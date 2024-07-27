@@ -81,7 +81,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'time_sync_pro',
         'USER': 'postgres',
-        'PASSWORD': 'Ilich3v33',
+
         'HOST': 'localhost',
         'PORT': '5432'
     }
