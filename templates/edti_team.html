@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+{% load filters %}
+
+<form action="{% url 'team edit'  pk=team.id %}" method="post" enctype="multipart/form-data">
+    <table>
+    {{ form.as_table }}
+    </table>
+    <button type="submit">Save</button>
+    
+    {% csrf_token %}
+</form>
+    
+    {% endblock %}

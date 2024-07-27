@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Shift Patterns</title>
+</head>
+<body>
+    <h1>Shift Patterns</h1>
+    <ul>
+        {% for pattern in shift_patterns %}
+            <li>
+                {{ pattern.name }}: {{ pattern.rotation_weeks }} week(s), Start Date: {{ pattern.start_date }}
+                <ul>
+                <a href="{% url 'shiftpattern detail' pattern.pk %}">View</a>
+                <a href="{% url 'shiftpattern edit' pattern.pk %}">Edit</a>
+                <a href="{% url 'shiftpattern delete' pattern.pk %}">Delete</a>
+                    {% for block in pattern.blocks.all %}
+                        
+                        <li>{{ block.days_on }} days on, {{ block.days_off }} days off, from {{ block.start_time }} to {{ block.end_time }}</li>
+                    {% endfor %}
+                </ul>
+            </li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'shiftpattern create' %}">Create New Shift Pattern</a>
+</body>
+</html>

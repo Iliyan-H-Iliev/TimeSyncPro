@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+{% block content %}
+
+{% load filters %}
+<form action="{% url 'register employee' company_name=user.get_company_name %}?next={{ next }}" method="post">
+{#                <p>#}
+{#                    {{ form.username|placeholder:"Email" }}#}
+{#                </p>#}
+{#                <p>#}
+{#                    {{ form.password|placeholder:"Password" }}#}
+{#                </p>#}
+    {{ form.as_p }}
+                <button type="submit">Register</button>
+
+                {% csrf_token %}
+            </form>
+{% endblock %}

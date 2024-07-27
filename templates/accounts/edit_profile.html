@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+{% load filters %}
+
+<form action="{% url 'edit profile'  slug=user.slug company_name=user.get_company_name %}" method="post" enctype="multipart/form-data">
+    <table>
+    {{ user_form.as_table }}
+    {% if additional_form %}
+      {{ additional_form.as_table }}
+    {% endif %}
+    </table>
+    <button type="submit">Save</button>
+    {% csrf_token %}
+</form>
+    
+    {% endblock %}
