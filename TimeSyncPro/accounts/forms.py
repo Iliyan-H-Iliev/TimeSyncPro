@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, SetPasswordForm
 from django.db.models import Prefetch
 
 from django.utils.timezone import now
@@ -43,16 +43,19 @@ class SignupCompanyForm(UserCreationForm):
         user = super().save(commit=False)
         user.email = self.cleaned_data["email"]
         user.is_company = True
+        if commit:
+            user.save()
 
         company = Company.objects.create(
             company_name=self.cleaned_data["company_name"],
             user=user,
         )
 
-        if commit:
-            user.save()
-            company.save()
+        user.company = company
 
+        if commit:
+            company.save()
+            user.save()
         return user
 
 
@@ -330,6 +333,7 @@ class EditCompanyForm(forms.ModelForm):
             "transferable_leave_days",
             "minimum_leave_notice",
             "maximum_leave_days_per_request",
+            "working_on_local_holidays",
         ]
 
     # def clean(self):
@@ -345,31 +349,17 @@ class BasicEditEmployeeForm(BasicEditEmployeesBaseForm):
         model = Employee
 
 
-# class BasicEditManagerForm(BasicEditEmployeesBaseForm):
-#     class Meta(BasicEditEmployeeForm.Meta):
-#         model = Manager
-#
-#
-# class BasicEditHRForm(BasicEditEmployeesBaseForm):
-#     class Meta(BasicEditEmployeeForm.Meta):
-#         model = HR
-
-
 class DetailedEditEmployeeForm(DetailedEditEmployeesBaseForm):
     class Meta(DetailedEditEmployeesBaseForm.Meta):
         model = Employee
 
 
-# class DetailedEditHRForm(DetailedEditEmployeesBaseForm):
-#     class Meta(DetailedEditEmployeesBaseForm.Meta):
-#         model = HR
-#
-#
-# class DetailedEditManagerForm(DetailedEditEmployeesBaseForm):
-#     class Meta(DetailedEditEmployeesBaseForm.Meta):
-#         model = Manager
-#         fields = DetailedEditEmployeesBaseForm.Meta.fields + ["manages_team"]
-
-
 class DeleteUserForm(forms.Form):
     pass
+
+
+class CustomSetPasswordForm(SetPasswordForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.user.is_active:
+            raise forms.ValidationError("This account is already active.")

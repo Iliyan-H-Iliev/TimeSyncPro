@@ -1,9 +1,10 @@
 from django.contrib.auth.mixins import UserPassesTestMixin, AccessMixin
 from django.shortcuts import redirect
 from django.contrib import messages
+from django.urls import reverse
 
 from TimeSyncPro.accounts.models import Employee
-from TimeSyncPro.accounts.utils import get_obj_company
+from TimeSyncPro.accounts.utils import get_obj_company, get_user_by_slug
 
 
 class OwnerRequiredMixin(AccessMixin):
@@ -24,7 +25,7 @@ class OwnerRequiredMixin(AccessMixin):
 class CompanyContextMixin():
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        company = self.object
+        company = self.request.user.get_company
 
         context['company'] = company if company else None
         context['company_name'] = company.company_name if company else None
@@ -33,22 +34,44 @@ class CompanyContextMixin():
         return context
 
 
-class UserGroupRequiredMixin(UserPassesTestMixin):
-    allowed_groups = []
+class UserBySlugMixin:
+    def get_object(self):
+        user_slug = self.kwargs['slug']
+        user_to_edit = get_user_by_slug(user_slug)
+        return user_to_edit
 
-    def test_func(self):
-        return (
-                self.request.user.is_authenticated and
-                self.request.user.groups.filter(name__in=self.allowed_groups).exists()
+
+class SuccessUrlMixin:
+    success_url = "index"
+
+    def get_success_url(self):
+        user = self.object
+        return reverse(
+            'profile',
+            kwargs={
+                'slug': user.slug,
+                "company_name": user.get_company_name
+            }
         )
 
-    def handle_no_permission(self):
-        if not self.request.user.is_authenticated:
-            messages.info(self.request, "You are not authorized to access this page.")
-            return redirect('signin user')
-        else:
-            messages.error(self.request, "Only HR and Company users can register employees.")
-            return redirect('index')
+
+
+# class UserGroupRequiredMixin(UserPassesTestMixin):
+#     allowed_groups = []
+#
+#     def test_func(self):
+#         return (
+#                 self.request.user.is_authenticated and
+#                 self.request.user.groups.filter(name__in=self.allowed_groups).exists()
+#         )
+#
+#     def handle_no_permission(self):
+#         if not self.request.user.is_authenticated:
+#             messages.info(self.request, "You are not authorized to access this page.")
+#             return redirect('signin user')
+#         else:
+#             messages.error(self.request, "Only HR and Company users can register employees.")
+#             return redirect('index')
 
 
 class DynamicPermissionMixin:
@@ -61,7 +84,7 @@ class DynamicPermissionMixin:
             if obj.is_company:
                 return obj.related_instance.__class__.__name__.lower()
 
-            return obj.related_instance.role.lower()
+            return obj.related_instance.role.lower().replace(' ', '_')
 
         return obj.__class__.__name__.lower()
 

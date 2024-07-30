@@ -89,7 +89,8 @@ class TimeSyncProUser(auth_models.AbstractBaseUser, auth_models.PermissionsMixin
 
     @property
     def slug(self):
-        return self.related_instance.slug if self.related_instance else None
+        related_instance = self.related_instance
+        return related_instance.slug if related_instance else None
 
     @property
     def full_name(self):
@@ -122,8 +123,6 @@ class TimeSyncProUser(auth_models.AbstractBaseUser, auth_models.PermissionsMixin
 
     @property
     def user_permissions_codenames(self):
-        a = self.get_all_user_permissions.values_list('codename', flat=True)
-        print(a)
         return self.get_all_user_permissions.values_list('codename', flat=True)
 
     USERNAME_FIELD = "email"
@@ -194,6 +193,12 @@ class Company(AbstractSlugMixin, GroupAssignmentMixin, CreatedModifiedMixin):
         blank=False,
     )
 
+    working_on_local_holidays = models.BooleanField(
+        default=False,
+        null=False,
+        blank=False,
+    )
+
     user = models.OneToOneField(
         TimeSyncProUser,
         on_delete=models.CASCADE,
@@ -209,6 +214,7 @@ class Company(AbstractSlugMixin, GroupAssignmentMixin, CreatedModifiedMixin):
 
     def save(self, *args, **kwargs):
         self.time_zone = self.suggest_time_zone()
+        super().save(*args, **kwargs)
 
     def get_slug_identifier(self):
         return slugify(f"{self.company_name}-{get_random_string(self.RANDOM_STRING_LENGTH)}")
@@ -421,6 +427,9 @@ class Employee(AbstractSlugMixin, GroupAssignmentMixin, CreatedModifiedMixin, mo
     @property
     def full_name(self):
         return f'{self.first_name} {self.last_name}'
+
+    def get_employee_needed_permission_codename(self, action):
+        return f'{action}_{self.role.lower().replace(" ", "_")}'
 
     def __str__(self):
         return f"{self.full_name} - {self.role}"

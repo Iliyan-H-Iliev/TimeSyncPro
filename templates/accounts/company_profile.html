@@ -1,0 +1,47 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+    <h1>Profile Details</h1>
+
+{% if user %}
+    <p>Username: {{ user.get_company.company_name }}</p>
+    <p>Email: {{ user.email }}</p>
+    <p>Company Name: {{ company.company_name }}</p>
+    <p>Phone Number: {{ company.location }}</p>
+    <p>Address: {{ user.address }}</p>
+    <p></p>
+    <a href="{% url 'update company profile' slug=user.slug company_name=user.get_company_name %}">Edit</a>
+    <a href="{% url 'delete company' slug=user.slug company_name=user.get_company_name %}">Delete</a>
+    <!-- Display company details -->
+
+    <!-- Display HRs related to the company -->
+{#    {% if hrs %}#}
+{#        <h3>HRs</h3>#}
+{#        <ul>#}
+{#            {% for hr in hrs %}#}
+{#                <li>{{ hr.full_name }}</li>#}
+{#            {% endfor %}#}
+{#        </ul>#}
+{#    {% endif %}#}
+{##}
+{#    <!-- Display Managers related to the company -->#}
+{#    {% if managers %}#}
+{#        <h3>Managers</h3>#}
+{#        <ul>#}
+{#            {% for manager in managers %}#}
+{#                <li>{{ manager.full_name }}</li>#}
+{#            {% endfor %}#}
+{#        </ul>#}
+{#    {% endif %}#}
+
+    <!-- Display Employees related to the company -->
+{#    {% if employees %}#}
+{#        <h3>Employees</h3>#}
+{#        <ul>#}
+{#            {% for employee in employees %}#}
+{#                <li>{{ employee.full_name }}</li>#}
+{#            {% endfor %}#}
+{#        </ul>#}
+{#    {% endif %}#}
+{% endif %}
+{% endblock %}

@@ -20,9 +20,12 @@
     <p>Phone Number: {{ user_to_view.related_instance.phone_number }}</p>
     <p>Address: {{ user_to_view.address }}</p>
     {% if has_detailed_change_permission %}
-        <a href="{% url 'full profile update' company_name=company_name slug=user_to_view.slug %}">Edit</a>
+        <a href="{% url 'full profile update' slug=user_to_view.slug company_name=company_name %}">Edit</a>
         {% elif user == user_to_view%}
         <a href="{% url 'edit profile' slug=user_to_view.slug company_name=company_name %}">Edit</a>
+    {% endif %}
+    {% if has_delete_permission %}
+        <a href="{% url 'delete profile' slug=user_to_view.slug company_name=company_name %}">Delete</a>
     {% endif %}
     <!-- Display company details -->
     {% if company_name %}

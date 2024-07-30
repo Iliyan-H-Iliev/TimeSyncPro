@@ -12,6 +12,9 @@
     {% endif %}
     </table>
     <button type="submit">Save</button>
+{#    {% if user.is_company and user_to_edit == None %} }}#}
+{#    <a href="{% url 'delete company'  slug=user.slug company_name=user.get_company_name %}">Delete Company</a>#}
+{#    {% endif %}#}
     {% csrf_token %}
 </form>
     

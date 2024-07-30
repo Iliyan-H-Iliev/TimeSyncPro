@@ -35,7 +35,7 @@ def get_obj_company(obj):
     if obj is None:
         return None
 
-    if obj.__class__.__name__ == 'LeaveOpsManagerUser':
+    if obj.__class__.__name__ == 'TimeSyncProUser':
         return obj.get_company
     else:
         return obj.company

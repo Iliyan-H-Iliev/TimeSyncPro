@@ -34,7 +34,11 @@
                   <a href="{% url 'signin user' %}">Login</a>
                  <a href="{% url 'register company' %}">Register Now</a>
              {% else %}
-                 <a href="{% url 'profile'  slug=user.slug company_name=user.get_company_name %}">Profile</a>
+                 {% if user.is_company %}
+                     <a href="{% url 'company profile'  slug=user.slug company_name=user.get_company_name %}">Profile</a>
+                     {% else %}
+                        <a href="{% url 'profile'  slug=user.slug company_name=user.get_company_name %}">Profile</a>
+                 {% endif %}
                  <a href="{% url 'register employee' company_name=user.get_company_name %}">Employee</a>
                  <a href="{% url 'edit profile' slug=user.slug company_name=user.get_company_name %}">Edit</a>
                  <a href="{% url 'signout user' %}">Logout</a>

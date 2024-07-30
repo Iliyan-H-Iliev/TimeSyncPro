@@ -1,25 +1,24 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
-
+from django.contrib.auth.views import PasswordResetConfirmView
+from django.shortcuts import render, redirect
 from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
-
-from django.shortcuts import render, redirect
 
 from django.urls import reverse_lazy, reverse
 from django.views import generic as views
 from django.contrib.auth import views as auth_views, login, logout, authenticate, get_user_model
 
 from TimeSyncPro.accounts.forms import SignupEmployeeForm, SignupCompanyForm, \
-    BasicEditTimeSyncProUserForm, DetailedEditTimeSyncProUserForm
+    BasicEditTimeSyncProUserForm, DetailedEditTimeSyncProUserForm, EditCompanyForm, CustomSetPasswordForm
 
 from TimeSyncPro.accounts.models import Company, Employee
 
 import logging
 
 from TimeSyncPro.accounts.utils import get_user_by_slug, get_additional_form_class
-from TimeSyncPro.accounts.view_mixins import UserGroupRequiredMixin, CompanyContextMixin, OwnerRequiredMixin, \
-    DynamicPermissionMixin, IsCompanyUserMixin
+from TimeSyncPro.accounts.view_mixins import CompanyContextMixin, OwnerRequiredMixin, \
+    DynamicPermissionMixin, IsCompanyUserMixin, UserBySlugMixin, SuccessUrlMixin
 from TimeSyncPro.core.views_mixins import AuthenticatedViewMixin, CompanyCheckMixin, \
     MultiplePermissionsRequiredMixin
 
@@ -47,11 +46,11 @@ class IndexView(views.TemplateView):
         })
 
 
-class SignupCompanyView(views.CreateView):
+class SignupCompanyView(SuccessUrlMixin, views.CreateView):
     template_name = "accounts/register_company.html"
     form_class = SignupCompanyForm
     redirect_authenticated_user = True
-    success_url = reverse_lazy("index")
+    success_url = reverse_lazy("company profile")
 
     def dispatch(self, request, *args, **kwargs):
         if self.request.user.is_authenticated:
@@ -70,18 +69,18 @@ class SignupCompanyView(views.CreateView):
         return super().form_invalid(form)
 
 # TODO CHECK THIS
-    def get_success_url(self):
-        user = self.object
-        return reverse(
-            'profile',
-            kwargs={
-                'slug': user.slug,
-                "company_name": user.get_company_name
-            }
-        )
+#     def get_success_url(self):
+#         user = self.object
+#         return reverse(
+#             'profile',
+#             kwargs={
+#                 'slug': user.slug,
+#                 "company_name": user.get_company_name
+#             }
+#         )
 
 
-class SignInUserView(auth_views.LoginView):
+class SignInUserView(SuccessUrlMixin, auth_views.LoginView):
     template_name = "accounts/signin_user.html"
     # TODO change to True
     redirect_authenticated_user = True
@@ -89,14 +88,13 @@ class SignInUserView(auth_views.LoginView):
 
     def get_success_url(self):
         user = self.request.user
+        kwargs = {
+            'slug': user.slug,
+            "company_name": user.get_company_name
+        }
 
-        return reverse(
-            'profile',
-            kwargs={
-                'slug': self.request.user.slug,
-                "company_name": user.get_company_name
-            }
-        )
+        url_name = 'company profile' if user.is_company else 'profile'
+        return reverse(url_name, kwargs=kwargs)
 
     def form_valid(self, form):
         username = form.cleaned_data.get('username')
@@ -117,10 +115,6 @@ class SignInUserView(auth_views.LoginView):
         return super().form_invalid(form)
 
 
-class DeleteUserView(PermissionRequiredMixin, CompanyCheckMixin, views.DeleteView):
-    pass
-
-
 class SignupEmployeeView(MultiplePermissionsRequiredMixin, AuthenticatedViewMixin, views.CreateView):
     template_name = 'accounts/register_employee.html'
     form_class = SignupEmployeeForm
@@ -133,7 +127,7 @@ class SignupEmployeeView(MultiplePermissionsRequiredMixin, AuthenticatedViewMixi
 
     # TODO: replace 'success_url' with the actual URL name
     success_url = reverse_lazy("index")
-    allowed_groups = ['HR', 'Company']
+    # allowed_groups = ['HR', 'Company']
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -141,14 +135,10 @@ class SignupEmployeeView(MultiplePermissionsRequiredMixin, AuthenticatedViewMixi
         return kwargs
 
 
-class DetailsProfileBaseView(views.DetailView):
+class DetailsProfileBaseView(UserBySlugMixin, views.DetailView):
     template_name = "accounts/details_company_employee.html"
     context_object_name = 'user'
     model = UserModel
-
-    def get_object(self, queryset=None):
-        user_to_view_slug = self.kwargs.get('slug')
-        return get_user_by_slug(user_to_view_slug)
 
     def get_context_data(self, user, user_to_view):
         return {
@@ -173,24 +163,16 @@ class DetailsProfileBaseView(views.DetailView):
         return render(request, self.template_name, context)
 
 
-# class DetailsCompanyProfileView(OwnerRequiredMixin, IsCompanyUserMixin, DetailsProfileBaseView):
-#     template_name = "accounts/details_company_employee.html"
-#
-#     def get_object(self, queryset=None):
-#         return self.request.user
-#
-#     def get(self, request, *args, **kwargs):
-#         user = request.user
-#         context = self.get_context_data(user)
-#         return render(request, self.template_name, context)
-
-
 class DetailsOwnProfileView(OwnerRequiredMixin, DetailsProfileBaseView):
     pass
 
 
-class DetailsEmployeesProfileView(CompanyCheckMixin, PermissionRequiredMixin,
-                                  DynamicPermissionMixin, DetailsProfileBaseView):
+class DetailsEmployeesProfileView(
+    CompanyCheckMixin,
+    PermissionRequiredMixin,
+    DynamicPermissionMixin,
+    DetailsProfileBaseView
+):
     # TODO add permission
 
     def dispatch(self, request, *args, **kwargs):
@@ -203,43 +185,29 @@ class DetailsEmployeesProfileView(CompanyCheckMixin, PermissionRequiredMixin,
     def get_context_data(self, user, user_to_view):
         context = super().get_context_data(user, user_to_view)
         context['has_detailed_change_permission'] = self.has_needed_permission(user, user_to_view, "change")
+        context['has_delete_permission'] = self.has_needed_permission(user, user_to_view, "delete")
         return context
 
-    # def get(self, request, *args, **kwargs):
-    #     user = request.user
-    #     user_to_view = self.get_object()
-    #     return super().get(request, *args, **kwargs)
 
+class DetailsCompanyProfileView(OwnerRequiredMixin, IsCompanyUserMixin, DetailsProfileBaseView):
+    template_name = "accounts/company_profile.html"
 
-    # TODO: CHECK IF THIS IS THE RIGHT WAY TO FETCH RELATED MODELS FOR THE USER PROFILE
-    # def get_queryset(self):
-    #     return super().get_queryset().prefetch_related(
-    #         'company__hr_set',  # Prefetch HR instances related to the company
-    #         'company__manager_set',  # Prefetch Manager instances related to the company
-    #         'company__employee_set'  # Prefetch Employee instances related to the company
-    #     )
-
-    # TODO check if this is the right way to fetch related models for the user profile
-    # def get_context_data(self, **kwargs):
-    #     context = super().get_context_data(**kwargs)
-    #     user = self.object
-    #
-    #     company = user.get_company
-    #
-    #     context['company'] = company if company else None
-    #     context['hrs'] = HR.objects.filter(company=company) if company else None
-    #     context['managers'] = Manager.objects.filter(company=company) if company else None
-    #     context['employees'] = Employee.objects.filter(company=company) if company else None
-    #
-    #     return context
+    def get_context_data(self, user, user_to_view):
+        context = super().get_context_data(user, user_to_view)
+        context['company'] = user.get_company
+        return context
 
 
 class EditProfileBaseView(AuthenticatedViewMixin, views.View):
+    success_url = 'index'
     detailed_edit = False
 
     @staticmethod
     def get_user_to_edit(slug):
         return get_user_by_slug(slug)
+
+    def get_success_url(self, slug, company_name):
+        return reverse(self.success_url, kwargs={'slug': slug, 'company_name': company_name})
 
     def get_additional_form_class(self, is_company, detailed_edit):
         try:
@@ -273,7 +241,7 @@ class EditProfileBaseView(AuthenticatedViewMixin, views.View):
         if additional_form:
             additional_form.save()
         messages.success(self.request, 'Profile updated successfully.')
-        return redirect(self.success_url, slug=user_to_edit.slug, company_name=user.get_company_name)
+        return redirect(self.get_success_url(user.slug, user.get_company_name))
 
     def form_invalid(self, user_form, additional_form, context):
         messages.error(self.request, 'Please correct the error below.')
@@ -309,7 +277,7 @@ class BasicEditProfileView(OwnerRequiredMixin, EditProfileBaseView):
         return self.form_invalid(user_form, additional_form, context)
 
 
-class DetailedEditProfileView(PermissionRequiredMixin, DynamicPermissionMixin, EditProfileBaseView):
+class DetailedEditProfileView(UserBySlugMixin, PermissionRequiredMixin, DynamicPermissionMixin, EditProfileBaseView):
     template_name = 'accounts/full_profile_edit.html'
     form_class = DetailedEditTimeSyncProUserForm
     success_url = 'company employee profile'
@@ -322,15 +290,9 @@ class DetailedEditProfileView(PermissionRequiredMixin, DynamicPermissionMixin, E
         self.permission_required = permission
         return super().dispatch(request, *args, **kwargs)
 
-    def get_object(self):
-        user_slug = self.kwargs['slug']
-        user_to_edit = get_user_by_slug(user_slug)
-        return user_to_edit
-
     def get(self, request, *args, **kwargs):
-        slug = self.kwargs['slug']
         user = request.user
-        user_to_edit = self.get_user_to_edit(slug)
+        user_to_edit = self.get_object()
         company_name = user.get_company_name
 
         user_form = self.form_class(instance=user_to_edit)
@@ -350,10 +312,6 @@ class DetailedEditProfileView(PermissionRequiredMixin, DynamicPermissionMixin, E
             messages.error(request, "User not found.")
             return redirect('index')
 
-        if user.user_type not in ["HR", "Company"]:
-            messages.error(request, "Only HR and Company users can edit profiles.")
-            return redirect('index')
-
         user_form = self.form_class(request.POST or None, instance=user_to_edit)
         additional_form = self.get_additional_form(user_to_edit, request)
         if additional_form is None:
@@ -366,7 +324,13 @@ class DetailedEditProfileView(PermissionRequiredMixin, DynamicPermissionMixin, E
         return self.form_invalid(user_form, additional_form, context)
 
 
-class DeleteUserView(AuthenticatedViewMixin, PermissionRequiredMixin, CompanyCheckMixin, DynamicPermissionMixin, views.DeleteView):
+class EditCompanyView(IsCompanyUserMixin, BasicEditProfileView):
+    template_name = 'accounts/edit_company.html'
+    success_url = 'company profile'
+    detailed_edit = True
+
+
+class DeleteEmployeeView(SuccessUrlMixin, UserBySlugMixin, AuthenticatedViewMixin, PermissionRequiredMixin, CompanyCheckMixin, DynamicPermissionMixin, views.DeleteView):
     model = UserModel
     template_name = 'accounts/delete_user.html'
     success_url = reverse_lazy('company members')
@@ -379,30 +343,35 @@ class DeleteUserView(AuthenticatedViewMixin, PermissionRequiredMixin, CompanyChe
         self.permission_required = permission
         return super().dispatch(request, *args, **kwargs)
 
-    def get_object(self, queryset=None):
-        user_slug = self.kwargs.get('slug')
-        return get_user_by_slug(user_slug)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        user_to_delete = self.get_object()
+        context['has_delete_employee_permission'] = self.has_needed_permission(user, user_to_delete, "delete")
+        return context
 
-    def get_success_url(self):
-        return reverse('company members')
+    # def get_success_url(self):
+    #     user = self.request.user
+    #     company_name = user.get_company_name
+    #     return reverse('company members', kwargs={"company_name": company_name})
 
     def post(self, request, *args, **kwargs):
         user_to_delete = self.get_object()
         related_instance = user_to_delete.related_instance
 
-        if related_instance.__class__.__name__ == 'Manager':
+        if related_instance.role == 'Manager':
             manager_teams = related_instance.teams.all()
             for team in manager_teams:
                 team.manager = None
                 team.save()
 
+        related_instance.delete()
+        user_to_delete.delete()
+        messages.success(request, "User deleted successfully.")
+        return redirect(self.get_success_url())
 
 
-
-
-
-
-class CompanyMembersView(AuthenticatedViewMixin, CompanyContextMixin, views.DetailView):
+class CompanyMembersView(AuthenticatedViewMixin, CompanyContextMixin, views.ListView):
     model = UserModel
     template_name = "accounts/company_members.html"
     context_object_name = 'company'
@@ -410,10 +379,6 @@ class CompanyMembersView(AuthenticatedViewMixin, CompanyContextMixin, views.Deta
     def get_object(self, queryset=None):
         user = self.request.user
         company = user.get_company
-
-        if not company:
-            raise Http404("User does not belong to any company.")
-
         return company
 
     # # TODO: CHECK IF THIS IS THE RIGHT WAY TO FETCH RELATED MODELS FOR THE USER PROFILE
@@ -422,22 +387,16 @@ class CompanyMembersView(AuthenticatedViewMixin, CompanyContextMixin, views.Deta
         if not user_company:
             return UserModel.objects.none()  # Return an empty queryset if no company
         return UserModel.objects.filter(company=user_company).prefetch_related(
-            'company__hr_set',  # Prefetch HR instances related to the company
-            'company__manager_set',  # Prefetch Manager instances related to the company
             'company__employee_set'  # Prefetch Employee instances related to the company
         )
 
     def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        user = request.user
-        company = user.get_company
+        company = self.get_object()
 
         if not company:
             messages.error(request, "User does not belong to any company.")
             return redirect('index')
-
-        context = self.get_context_data()
-        return render(request, self.template_name, context)
+        return super().get(request, *args, **kwargs)
 
     # # TODO check if this is the right way to fetch related models for the user profile
     # def get_context_data(self, **kwargs):
@@ -445,11 +404,54 @@ class CompanyMembersView(AuthenticatedViewMixin, CompanyContextMixin, views.Deta
     #     company = self.object
     #
     #     context['company'] = company if company else None
-    #     context['hrs'] = HR.objects.filter(company=company) if company else None
-    #     context['managers'] = Manager.objects.filter(company=company) if company else None
     #     context['employees'] = Employee.objects.filter(company=company) if company else None
     #
     #     return context
+
+
+class DeleteCompanyView(OwnerRequiredMixin, CompanyCheckMixin, views.DeleteView):
+    model = UserModel
+    template_name = 'accounts/delete_company.html'
+    success_url = reverse_lazy('index')
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        company = user.get_company
+        if not company:
+            messages.error(request, "Company not found.")
+            return redirect('index')
+        return super().get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        user.delete()
+        messages.success(request, "Company deleted successfully.")
+        return redirect(self.success_url)
+
+
+class PasswordResetView(auth_views.PasswordResetView):
+    template_name = "accounts/password_reset.html"
+    email_template_name = "accounts/password_reset_email.html"
+    subject_template_name = "accounts/password_reset_subject.txt"
+    success_url = reverse_lazy("password reset done")
+
+
+class CustomPasswordResetConfirmView(PasswordResetConfirmView):
+    success_url = reverse_lazy('password_reset_complete')
+    form_class = CustomSetPasswordForm
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        user = form.user
+        if not user.is_active:
+            user.is_active = True
+            user.save()
+        return response
+
+
+class PasswordChangeView(auth_views.PasswordChangeView):
+    template_name = "accounts/password_change.html"
+    success_url = reverse_lazy("password change done")
 
 
 def signout_user(request):
