@@ -1,62 +1,166 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>LeaveOpsManager</title>
-    <style>
-        .navbar {
-            overflow: hidden;
-            background-color: #333;
-        }
-        
-
-        .navbar a {
-            float: left;
-            display: block;
-            color: #f2f2f2;
-            text-align: center;
-            padding: 14px 16px;
-            text-decoration: none;
-        }
-
-        .navbar a:hover {
-            background-color: #ddd;
-            color: black;
-        }
-    </style>
+    <title>TimeSyncPro</title>
+    <link rel="stylesheet" href="{% static 'styles/site.css' %}">
 </head>
+
 <body>
-    <div class="navbar">
-    <a href="{% url 'index'  %}">Home</a>
-    
-             {% if not request.user.is_authenticated %}
-                  <a href="{% url 'signin user' %}">Login</a>
-                 <a href="{% url 'register company' %}">Register Now</a>
-             {% else %}
-                 {% if user.is_company %}
-                     <a href="{% url 'company profile'  slug=user.slug company_name=user.get_company_name %}">Profile</a>
-                     {% else %}
-                        <a href="{% url 'profile'  slug=user.slug company_name=user.get_company_name %}">Profile</a>
-                 {% endif %}
-                 <a href="{% url 'register employee' company_name=user.get_company_name %}">Employee</a>
-                 <a href="{% url 'edit profile' slug=user.slug company_name=user.get_company_name %}">Edit</a>
-                 <a href="{% url 'signout user' %}">Logout</a>
-                 <a href="{% url 'company members' company_name=user.get_company_name %}">Company Members</a>
-                 <a href="{% url 'team list' %}">Teams</a>
-                 <a href="{% url 'shiftpattern list' %}">Shift Patterns</a>
-             {% endif %}
+<div class="page-container">
 
-                 
-      
+    <div class="content-wrap">
 
-{#      {% if request.user.is_authenticated %}#}
-{#    <a href="{% url 'profile' request.user.slug  %}">Profile</a>#}
-{#{% endif %}#}
-    
+
+        <header class="site-header sticky-top">
+
+            <div class="container-header" id="container-header">
+
+                <div class="container-navigation" id="container-navigation">
+
+                    <div class="container-logo" id="tsp-logo">
+                        <a href="{% url 'index' %}"><img src="{% static 'images/tsp_logo2.png' %}"
+                                                         alt="TimeSyncPro"></a>
+                    </div>
+
+                    {% if not request.user.is_authenticated %}
+
+                        <div class="navbar central-nav">
+                            <ul class="navbar-ul">
+                                <li><a href="{% url 'signin user' %}" class="nav-button">Features</a></li>
+                                <li><a href="{% url 'register company' %}" class="nav-button">Pricing</a></li>
+                                <li><a href="{% url 'register company' %}" class="nav-button">Contact</a></li>
+                            </ul>
+                        </div>
+
+                        <div class="navbar signup-login-container">
+                            {% include "partials/sign_up_button.html" %}
+                            {% include "partials/log_in_button.html" %}
+                        </div>
+
+                    {% else %}
+
+                        <div class="navbar central-nav authenticated-navbar">
+                            <ul class="navbar-ul authenticated-navbar-ul">
+                                {#                        {% if user.is_company %}#}
+                                {#                            <a href="{% url 'company profile'  slug=user.slug company_name=user.get_company_name %}">Profile</a>#}
+                                {#                        {% else %}#}
+                                {#                            <a href="{% url 'profile'  slug=user.slug company_name=user.get_company_name %}">Profile</a>#}
+                                {#                        {% endif %}#}
+                                {#            <li><a href="{% url 'index'  %}" class="nav-button">Home</a></li>#}
+                                <li>
+                                    <a href="{% url 'company members' company_name=user.get_company_name %}">Employees</a>
+                                </li>
+                                <li><a href="{% url 'register company' %}" class="nav-button">Management</a></li>
+                                <li><a href="{% url 'register company' %}" class="nav-button">Reports</a></li>
+                                {#                        <li><a href="{% url 'signout user' %}" class="nav-button">Sign Out</a></li>#}
+                            </ul>
+                        </div>
+
+                        <div class="dropdown">
+                            <div class="dropdown-toggler" id="navbarDropdown">
+                                <div class="img-container">
+                                    {% if user.related_instance.profile_picture %}
+                                        <img class="rounded-circle" src="{{ user.related_instance.profile_picture }}"
+                                             title="profile" alt="image">
+                                    {% else %}
+                                        <img class="rounded-circle" src="{% static 'images/profile.png' %}"
+                                             title="profile"
+                                             alt="image">
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                <li>
+                                    {% if user.is_company %}
+                                        <a href="{% url 'company profile'  slug=user.slug company_name=user.get_company_name %}">Profile</a>
+                                    {% else %}
+                                        <a href="{% url 'profile'  slug=user.slug company_name=user.get_company_name %}">Profile</a>
+                                    {% endif %}
+                                </li>
+                                <li><a class="dropdown-item" href="{% url 'password change' %}">Change Password</a></li>
+                                <li><a class="dropdown-item" href="{% url 'signout user' %}">Log Out</a></li>
+                            </ul>
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </header>
+        <main class="site-main">
+            <div class="content-container">
+
+                {% block content %}
+                {% endblock content %}
+            </div>
+        </main>
+    </div>
+
+    <footer class="site-footer">
+        <div class="footer-container">
+{#            <div class="footer-logo">#}
+{#                <a href="{% url 'index' %}"><img src="{% static 'images/tsp_logo2.png' %}" alt="TimeSyncPro"></a>#}
+{#            </div>#}
+            <div class="footer-links">
+
+                <ul>
+                    <li><a href="{% url 'about' %}">About</a></li>
+                    <li><a href="{% url 'terms and conditions' %}">Terms and Conditions</a></li>
+                    <li><a href="{% url 'terms of use' %}">Terms of Use</a></li>
+                    <li><a href="{% url 'privacy policy' %}">Privacy Policy</a></li>
+                    <li><a href="{% url 'register company' %}">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-social">
+                <p>Follow us:</p>
+                <div>
+                <ul>
+                    <li><a href="https://www.facebook.com/"><i class="fab fa-facebook"></i></a></li>
+                    <li><a href="https://www.x.com/"><i class="fab fa-x"></i></a></li>
+                    <li><a href="https://www.linkedin.com/"><i class="fab fa-linkedin"></i></a></li>
+                    <li><a href="https://www.instagram.com/"><i class="fab fa-instagram"></i></a></li>
+                </ul>
+                    </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 TimeSyncPro. All rights reserved.</p>
+        </div>
+    </footer>
 </div>
-
-    {% block content %}
-    {% endblock content %}
 </body>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+        const dropdownToggle = document.getElementById('navbarDropdown');
+        const dropdownMenu = dropdownToggle.nextElementSibling;
+        const image = dropdownToggle.querySelector('.rounded-circle');
+
+        const showMenu = () => {
+            dropdownMenu.style.display = 'block';
+            image.classList.add('hovered');
+        };
+
+        const hideMenu = (e) => {
+            if (!dropdownToggle.contains(e.relatedTarget) && !dropdownMenu.contains(e.relatedTarget)) {
+                dropdownMenu.style.display = 'none';
+                image.classList.remove('hovered');
+            }
+        };
+
+        dropdownToggle.addEventListener('mouseover', showMenu);
+        dropdownToggle.addEventListener('mouseout', hideMenu);
+        dropdownMenu.addEventListener('mouseover', showMenu);
+        dropdownMenu.addEventListener('mouseout', hideMenu);
+    });
+</script>
+
 </html>

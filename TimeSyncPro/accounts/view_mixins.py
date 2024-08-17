@@ -45,7 +45,7 @@ class SuccessUrlMixin:
     success_url = "index"
 
     def get_success_url(self):
-        user = self.object
+        user = self.request.user
         return reverse(
             'profile',
             kwargs={

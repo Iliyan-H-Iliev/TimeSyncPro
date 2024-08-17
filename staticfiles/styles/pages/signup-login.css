@@ -1,0 +1,218 @@
+.login-container, .signup-container {
+    display: flex;
+    /*margin: 0 auto;*/
+    justify-content: center;
+    align-items: center;
+    align-content: flex-start;
+    height: 100vh;
+    width: 100%;
+}
+
+
+.login-form-container, .signup-form-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+    margin: 0 auto;
+}
+
+.login-container {
+    background: url("../images/login_background.png") no-repeat center;
+    background-size: cover;
+}
+
+.signup-container {
+    background: url("../images/signup_background.png") no-repeat center;
+    background-size: cover;
+}
+
+
+/*.login-container, .signup-container  {*/
+/*  display:flex;*/
+/*  justify-content: center;*/
+/*  align-content: start;*/
+/*  align-items: center;*/
+/*  height:100vh;*/
+/*  width:100%;*/
+/*}*/
+
+.login-form-container, .signup-form-container {
+    position: relative;
+    background: transparent;
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, .5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(1.5em);
+}
+
+.login-form-container {
+    width: 407px;
+    height: 500px;
+}
+
+.signup-form-container {
+    width: 407px;
+    height: 650px;
+}
+
+h2 {
+    font-size: 2em;
+    color: #ffffff;
+    text-align: center;
+}
+
+.input-box {
+    position: relative;
+    width: 310px;
+    margin: 30px 0;
+    border-bottom: 1px solid #fff
+}
+
+.input-box label {
+    position: absolute;
+    top: 50%;
+    left: 5px;
+    transform: translateY(-50%);
+    font-size: 1em;
+    color: #f8f8f8;
+    pointer-events: none;
+    transition: .5s;
+}
+
+.input-box input:focus ~ label,
+.input-box.input-filled label {
+    top: -10px;
+}
+
+.container-logo-login-signup {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 90%;
+    margin: 0 auto 1.5em;
+    border-bottom: 2px solid rgba(255, 255, 255, .5);
+    padding-bottom: 0.5em;
+}
+
+.container-logo-tsp {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 12em;
+    padding: 0.5em;
+    /*border-bottom: 2px solid transparent;*/
+}
+
+/*.container-logo-tsp:hover {*/
+/*    cursor: pointer;*/
+/*    !*border-bottom: 2px solid rgba(255, 255, 255, .1);*!*/
+/*    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);*/
+/*    background-color: rgba(255, 255, 255, 0.2);*/
+/*    border-radius: 2em;*/
+/*}*/
+
+/*.input-box input:valid  ~ label {*/
+/*  top:-10px;*/
+/*}*/
+
+.input-box input {
+    width: 100%;
+    height: 50px;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-size: 1em;
+    color: #fdfdfd;
+    font-weight: 600;
+    padding: 0 35px 0 5px;
+}
+
+.input-box .icon {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    color: #fff;
+    transform: translateY(-50%);
+}
+
+.remember-forgot {
+    margin: -15px 0 15px;
+    font-size: .9em;
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+}
+
+.remember-forgot label input {
+    margin-right: 3px;
+}
+
+.remember-forgot a {
+    color: #fff;
+    text-decoration: none;
+}
+
+.remember-forgot a:hover {
+    text-decoration: underline;
+}
+
+.login-button, .sign-up-button {
+    margin-top: 1em;
+    width: 100%;
+    height: 2.5em;
+    border-radius: 1.2em 0.3em;
+    cursor: pointer;
+    font-size: 1em;
+    color: #fff;
+    font-weight: 500;
+    background-color: #ec755a;
+    border: 2px solid #ec755a;
+    transition: .3s;
+}
+
+.login-button:hover,
+.sign-up-button:hover {
+    /*background-color: #373738;*/
+    border-radius: 0.3em 1.2em;
+    border-color: #f55734;
+    background-color: #f55734;
+    transition: .3s;
+    /*background-color: #8c8a8a;*/
+
+}
+
+.register-link {
+    font-size: .9em;
+    color: #fff;
+    text-align: center;
+    margin: 25px 0 10px;
+}
+
+.register-link p a {
+    color: #ec755a;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.register-link p a:hover {
+    text-decoration: underline;
+    color: #f55734
+}
+
+@media (max-width: 500px) {
+    .login-box {
+        width: 100%;
+        height: 100vh;
+        border: none;
+        border-radius: 0;
+    }
+
+    .input-box {
+        width: 290px;
+    }
+}

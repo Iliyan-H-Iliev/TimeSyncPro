@@ -1,0 +1,80 @@
+/*body {*/
+/*    background-color: #010C15;*/
+/*}*/
+
+/*.site_container {*/
+/*    background-color: #2B2D30;*/
+/*    display: flex;*/
+/*    flex-direction: column;*/
+/*    max-width: 1100px;*/
+/*    margin: 3em auto;*/
+/*    border: 1px solid rgba(107, 107, 108, 0.5);*/
+/*    border-radius: 0.5em;*/
+/*    overflow: hidden;*/
+/*}*/
+
+/*.site_main {*/
+/*    display: flex;*/
+/*}*/
+
+/*.main_container {*/
+/*    height: 81vh;*/
+/*    padding: 1em;*/
+/*     overflow-y: scroll;*/
+/*    overflow-x: hidden;*/
+/*}*/
+
+/*.hidden {*/
+/*    display: none;*/
+/*}*/
+
+
+/*.main_container::-webkit-scrollbar {*/
+/*    width: 7px; !* Adjust width of the scrollbar *!*/
+/*}*/
+
+/*.main_container::-webkit-scrollbar-track {*/
+/*    background: #2B2D30; !* Color of the track *!*/
+/*}*/
+
+/*.main_container::-webkit-scrollbar-thumb {*/
+/*    background: #555; !* Color of the scroll thumb *!*/
+/*}*/
+
+/*.main_container::-webkit-scrollbar-thumb:hover {*/
+/*    background: #888; !* Color of the scroll thumb on hover *!*/
+/*}*/
+
+/*.folder_name:first-child::before {*/
+/*    content: "\f078";*/
+/*    font-family: "Font Awesome 6 Free", serif;*/
+/*    font-weight: 700;*/
+/*    font-size: 0.7em;*/
+/*    margin-top: 0.2em;*/
+/*}*/
+
+/*@media (max-width: 500px) {*/
+/*    .site_main {*/
+/*        flex-direction: column;*/
+/*    }*/
+
+/*   .main_container {*/
+/*       height: 70vh;*/
+/*   }*/
+/*}*/
+
+body {
+    background-color: #dddddd;
+
+    height: 100%;
+}
+
+.page-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.content-wrap {
+  flex: 1 0 auto;
+}

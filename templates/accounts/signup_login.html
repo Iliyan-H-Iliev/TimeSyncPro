@@ -1,0 +1,154 @@
+{% load static %}
+{% load filters %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TimeSyncPro - Sign Up or Login</title>
+    <link rel="stylesheet" href="{% static 'styles/site.css' %}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+
+<body>
+
+<div class="container">
+    <!-- Sign Up Form -->
+    <form class="form signup" id="signup-form">
+        <h2>Sign Up</h2>
+        <div class="inputBox">
+            <input type="text" id="signup-company_name" name="company_name" required="required">
+            <i class="fa-regular fa-user"></i>
+            <span>Company name</span>
+        </div>
+        <div class="inputBox">
+            <input type="email" id="signup-email" name="email" required="required">
+            <i class="fa-regular fa-envelope"></i>
+            <span>Email address</span>
+        </div>
+        <div class="inputBox">
+            <input type="password" id="signup-password1" name="password1" required="required">
+            <i class="fa-solid fa-lock"></i>
+            <span>Create password</span>
+        </div>
+        <div class="inputBox">
+            <input type="password" id="signup-password2" name="password2" required="required">
+            <i class="fa-solid fa-lock"></i>
+            <span>Confirm password</span>
+        </div>
+        <div class="inputBox">
+            <input type="submit" value="Create Account">
+        </div>
+        <p>Already a member? <a href="#" class="login">Log in</a></p>
+    </form>
+
+    <!-- Sign In Form -->
+    <form class="form signin" id="login-form" style="display: none;">
+        <h2>Sign In</h2>
+        <div class="inputBox">
+            <input type="email" id="login-username" name="username" required="required">
+            <i class="fa-regular fa-user"></i>
+            <span>Email</span>
+        </div>
+        <div class="inputBox">
+            <input type="password" id="login-password" name="password" required="required">
+            <i class="fa-solid fa-lock"></i>
+            <span>Password</span>
+        </div>
+        <div class="inputBox">
+            <input type="submit" value="Login">
+        </div>
+        <p>Not Registered? <a href="#" class="create">Create an account</a></p>
+    </form>
+</div>
+
+<script>
+    $(document).ready(function () {
+        // Toggle between signup and login forms
+        $('.login').click(function (e) {
+            e.preventDefault();
+            $('#signup-form').hide();
+            $('#login-form').show();
+        });
+
+        $('.create').click(function (e) {
+            e.preventDefault();
+            $('#login-form').hide();
+            $('#signup-form').show();
+        });
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        const csrftoken = getCookie('csrftoken');
+
+        $.ajaxSetup({
+            beforeSend: function (xhr, settings) {
+                if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+            }
+        });
+
+        // AJAX for Sign Up
+        $('#signup-form').on('submit', function(e) {
+            e.preventDefault();
+            $.ajax({
+                url: '{% url "api_signup" %}',
+                method: 'POST',
+                data: JSON.stringify({
+                    company_name: $('#signup-company_name').val(),
+                    email: $('#signup-email').val(),
+                    password1: $('#signup-password1').val(),
+                    password2: $('#signup-password2').val()
+                }),
+                contentType: 'application/json',
+                success: function(response) {
+                    localStorage.setItem('token', response.token);
+                    window.location.href = '{% url "index" %}';
+                },
+                error: function(xhr) {
+                    alert('Signup failed: ' + JSON.stringify(xhr.responseJSON));
+                }
+            });
+        });
+
+        // AJAX for Login
+        $('#login-form').on('submit', function(e) {
+            e.preventDefault();
+            $.ajax({
+                url: '{% url "api_login" %}',
+                method: 'POST',
+                data: JSON.stringify({
+                    username: $('#login-username').val(),
+                    password: $('#login-password').val()
+                }),
+                contentType: 'application/json',
+                success: function(response) {
+                    localStorage.setItem('token', response.token);
+                    window.location.href = '{% url "index" %}';
+                },
+                error: function(xhr) {
+                    alert('Login failed: ' + JSON.stringify(xhr.responseJSON));
+                }
+            });
+        });
+    });
+</script>
+
+</body>
+</html>

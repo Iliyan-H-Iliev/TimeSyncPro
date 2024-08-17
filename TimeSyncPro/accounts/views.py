@@ -1,21 +1,22 @@
-from django.contrib import messages
-from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.contrib.auth.views import PasswordResetConfirmView
-from django.shortcuts import render, redirect
-from django.http import Http404, HttpResponseRedirect
-from django.shortcuts import get_object_or_404
-
-from django.urls import reverse_lazy, reverse
-from django.views import generic as views
-from django.contrib.auth import views as auth_views, login, logout, authenticate, get_user_model
-
-from TimeSyncPro.accounts.forms import SignupEmployeeForm, SignupCompanyForm, \
-    BasicEditTimeSyncProUserForm, DetailedEditTimeSyncProUserForm, EditCompanyForm, CustomSetPasswordForm
-
-from TimeSyncPro.accounts.models import Company, Employee
-
 import logging
 
+from django.contrib import messages
+from django.contrib.auth import views as auth_views, login, logout, authenticate, get_user_model
+from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.contrib.auth.views import PasswordResetConfirmView
+from django.http import HttpResponseRedirect
+from django.shortcuts import render, redirect
+from django.urls import reverse_lazy, reverse
+from django.views import generic as views
+
+from rest_framework import generics, status
+from rest_framework.response import Response
+from rest_framework.authtoken.models import Token
+from rest_framework.permissions import AllowAny
+from .serializers import LoginSerializer, SignupCompanySerializer
+
+from TimeSyncPro.accounts.forms import SignupEmployeeForm, SignupCompanyForm, \
+    BasicEditTimeSyncProUserForm, DetailedEditTimeSyncProUserForm, CustomSetPasswordForm
 from TimeSyncPro.accounts.utils import get_user_by_slug, get_additional_form_class
 from TimeSyncPro.accounts.view_mixins import CompanyContextMixin, OwnerRequiredMixin, \
     DynamicPermissionMixin, IsCompanyUserMixin, UserBySlugMixin, SuccessUrlMixin
@@ -27,6 +28,42 @@ from TimeSyncPro.core.views_mixins import AuthenticatedViewMixin, CompanyCheckMi
 logger = logging.getLogger(__name__)
 
 UserModel = get_user_model()
+
+
+class SignupAndLoginView(views.TemplateView):
+    template_name = 'accounts/signup_login.html'
+
+
+class SignUpView(generics.CreateAPIView):
+    queryset = UserModel.objects.all()
+    serializer_class = SignupCompanySerializer
+    permission_classes = [AllowAny]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({
+            'user': SignupCompanySerializer(user).data,
+            'token': token.key
+        })
+
+
+class LoginView(generics.GenericAPIView):
+    serializer_class = LoginSerializer
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({
+            'token': token.key,
+            'user_id': user.pk,
+            'email': user.email
+        })
 
 
 class IndexView(views.TemplateView):
@@ -99,10 +136,16 @@ class SignInUserView(SuccessUrlMixin, auth_views.LoginView):
     def form_valid(self, form):
         username = form.cleaned_data.get('username')
         password = form.cleaned_data.get('password')
+        remember_me = form.cleaned_data.get('remember_me')
         user = authenticate(self.request, username=username, password=password)
 
         if user is not None:
             login(self.request, user)
+
+            if remember_me:
+                self.request.session.set_expiry(1209600)  # 2 weeks
+            else:
+                self.request.session.set_expiry(0)  # Browser close
 
             return HttpResponseRedirect(
                 reverse('profile', kwargs={'slug': user.slug, "company_name": user.get_company_name}))
@@ -458,3 +501,18 @@ def signout_user(request):
     logout(request)
     return redirect('index')
 
+
+def about(request):
+    return render(request, 'static_html/about.html')
+
+
+def terms_and_conditions(request):
+    return render(request, 'static_html/terms_and_conditions.html')
+
+
+def terms_of_use(request):
+    return render(request, 'static_html/terms_of_use.html')
+
+
+def privacy_policy(request):
+    return render(request, 'static_html/privacy_policy.html')

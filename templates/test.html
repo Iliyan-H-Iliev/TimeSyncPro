@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Title</title>
+</head>
+<body>
+
+
+             {% if current_user.is_authenticated %}
+                    <div class="dropdown">
+                        <a class="nav-item nav-link dropdown-toggle" href="#" id="navbarDropdown"
+                           role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            {{ current_user.username }}
+                            <img class="rounded-circle" src="{% profile_picture %}" title="profile" alt="image" height="30" width="30">
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item" href="{% url 'profile' slug=user.slug company=user.get_company %}">Profile</a></li>
+                            <li><a class="dropdown-item" href="{% url 'password change' %}">Change Password</a></li>
+                            <li><a class="dropdown-item" href="{% url 'signout user' %}">log out</a></li>
+                        </ul>
+                    </div>
+                {% else %}
+</body>
+</html>

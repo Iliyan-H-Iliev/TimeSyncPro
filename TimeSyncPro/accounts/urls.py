@@ -2,14 +2,22 @@ from django.urls import path, include
 from django.contrib.auth import views as auth_views
 
 from TimeSyncPro.accounts.views import (
-    SignInUserView, signout_user, IndexView,
+    SignInUserView, signout_user, IndexView, about, terms_and_conditions, terms_of_use, privacy_policy,
     DetailsOwnProfileView, SignupEmployeeView, SignupCompanyView, BasicEditProfileView, CompanyMembersView,
     DetailedEditProfileView, DetailsEmployeesProfileView, DeleteEmployeeView, DeleteCompanyView,
-    DetailsCompanyProfileView, EditCompanyView, PasswordResetView, PasswordChangeView, CustomPasswordResetConfirmView
+    DetailsCompanyProfileView, EditCompanyView, PasswordResetView, PasswordChangeView, CustomPasswordResetConfirmView,
+    SignUpView, LoginView, SignupAndLoginView
 )
 
 urlpatterns = [
     path("", IndexView.as_view(), name="index"),
+    # path('signup-login/', SignupAndLoginView.as_view(), name='signup_login'),
+    # path('api/signup/', SignUpView.as_view(), name='api_signup'),
+    # path('api/login/', LoginView.as_view(), name='api_login'),
+    path("about/", about, name="about"),
+    path("terms-and-conditions/", terms_and_conditions, name="terms and conditions"),
+    path("terms-of-use/", terms_of_use, name="terms of use"),
+    path("privacy-policy/", privacy_policy, name="privacy policy"),
     path("login/", SignInUserView.as_view(), name="signin user"),
     path("logout/", signout_user, name="signout user"),
     path("register-company/", SignupCompanyView.as_view(), name="register company"),

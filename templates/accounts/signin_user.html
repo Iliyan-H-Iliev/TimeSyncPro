@@ -1,12 +1,84 @@
-{% extends  "layout.html" %}
-
-{% block content %}
+{% load static %}
 {% load filters %}
-<form action="{% url 'signin user' %}?next={{ next }}" method="post">
-                {{ form.as_p }}
-                <button type="submit">Log in</button>
 
-                {% csrf_token %}
-            </form>
+<!DOCTYPE html>
+<html lang="en">
 
-{% endblock %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TimeSyncPro</title>
+    <link rel="stylesheet" href="{% static 'styles/site.css' %}">
+</head>
+
+<body>
+
+<div class="login-container">
+
+    {#    <div class="login-img-container">#}
+    {#        <img src="{% static 'images/login_img copy.webp' %}" alt="login">#}
+    {#    </div>#}
+
+    <div class="login-form-container">
+        
+        <div class="container-logo-login-signup" id="tsp-logo">
+
+        <div class="container-logo-tsp" id="tsp-logo">
+            <a href="{% url 'index' %}"><img src="{% static 'images/tsp-logo-withe-orange.png' %}"
+                                             alt="TimeSyncPro"></a>
+        </div>
+            
+        </div>
+
+        <h2>Log in</h2>
+
+
+        <form action="/login/?next=" method="post">
+
+            {% csrf_token %}
+
+
+            <div class="input-box">
+                        <span class="icon">
+          <i class="fa-regular fa-user"></i>
+        </span>
+
+
+                <input type="text" name="username" autofocus="" autocapitalize="none" autocomplete="username"
+                       maxlength="254" required="" id="id_username">
+                <label for="id_username">Email</label>
+            </div>
+
+
+            <div class="input-box">
+                        <span class="icon">
+          <i class="fa-solid fa-lock"></i>
+        </span>
+                <input type="password" name="password" autocomplete="current-password" required="" id="id_password">
+                <label for="id_password">Password</label>
+            </div>
+
+            <div class="remember-forgot">
+                <label for="id_remember_me">
+                    <input type="checkbox" name="remember_me" id="id_remember_me">
+                    Remember me
+                </label>
+                <a href="{% url 'password reset' %}">Forgot password?</a>
+            </div>
+
+
+            <button class="login-button" type="submit">Log in</button>
+
+            <div class="register-link">
+                <p>Don't have an account? <a href="{% url 'register company' %}">Register</a></p>
+            </div>
+
+
+        </form>
+
+    </div>
+
+</div>
+</body>
+<script src="{% static 'javascript/signup-login.js' %}"></script>
+</html>

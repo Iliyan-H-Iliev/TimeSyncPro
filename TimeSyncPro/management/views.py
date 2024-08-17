@@ -60,7 +60,7 @@ class ShiftPatternEditView(CompanyCheckMixin, PermissionRequiredMixin,Authentica
 
 class ShiftPatternListView(AuthenticatedViewMixin, PermissionRequiredMixin, views.ListView):
     model = ShiftPattern
-    template_name = 'shiftpattern_list.html'
+    template_name = 'management/shiftpattern_list.html'
     context_object_name = 'shift_patterns'
     permission_required = 'team_management.can_view_shift_pattern'
 
@@ -73,7 +73,7 @@ class ShiftPatternListView(AuthenticatedViewMixin, PermissionRequiredMixin, view
 
 class ShiftPatternDetailView(AuthenticatedViewMixin, PermissionRequiredMixin, views.DetailView):
     model = ShiftPattern
-    template_name = 'shiftpattern_detail.html'
+    template_name = 'management/shiftpattern_detail.html'
     context_object_name = 'shift_pattern'
     permission_required = 'team_management.can_view_shift_pattern'
 
@@ -96,7 +96,7 @@ class ShiftPatternDetailView(AuthenticatedViewMixin, PermissionRequiredMixin, vi
 
 class ShiftPatternDeleteView(CompanyCheckMixin, AuthenticatedViewMixin, PermissionRequiredMixin, views.DeleteView):
     model = ShiftPattern
-    template_name = 'delete_shiftpattern.html'
+    template_name = 'management/delete_shiftpattern.html'
     permission_required = 'team_management.can_delete_shift_pattern'
     success_url = reverse_lazy('shiftpattern list')
 
@@ -117,7 +117,7 @@ class ShiftPatternDeleteView(CompanyCheckMixin, AuthenticatedViewMixin, Permissi
 
 class TeamListView(AuthenticatedViewMixin, PermissionRequiredMixin, views.ListView):
     model = Team
-    template_name = 'team_list.html'
+    template_name = 'management/team_list.html'
     permission_required = 'team_management.can_view_team'
     context_object_name = 'teams'
 
@@ -136,7 +136,7 @@ class TeamListView(AuthenticatedViewMixin, PermissionRequiredMixin, views.ListVi
 class TeamCreateView(AuthenticatedViewMixin, PermissionRequiredMixin, views.CreateView):
     model = Team
     form_class = CreateTeamForm
-    template_name = 'create_team_form.html'
+    template_name = 'management/create_team_form.html'
     permission_required = 'team_management.can_add_team'
     success_url = reverse_lazy('team list')
 
@@ -154,7 +154,7 @@ class TeamCreateView(AuthenticatedViewMixin, PermissionRequiredMixin, views.Crea
 class TeamEditView(CompanyCheckMixin, AuthenticatedViewMixin, PermissionRequiredMixin, views.UpdateView):
     model = Team
     form_class = EditTeamForm
-    template_name = 'edti_team.html'
+    template_name = 'management/edti_team.html'
     permission_required = 'team_management.can_change_team'
     success_url = reverse_lazy('team list')
 
@@ -177,7 +177,7 @@ class TeamEditView(CompanyCheckMixin, AuthenticatedViewMixin, PermissionRequired
 
 class TeamDeleteView(CompanyCheckMixin, AuthenticatedViewMixin, PermissionRequiredMixin, views.DeleteView):
     model = Team
-    template_name = 'delete_team.html'
+    template_name = 'management/delete_team.html'
     permission_required = 'team_management.can_delete_team'
     success_url = reverse_lazy('team list')
 
