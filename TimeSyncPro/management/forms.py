@@ -15,7 +15,7 @@ class ShiftPatternBaseForm(forms.ModelForm):
         cleaned_data = super().clean()
         rotation_weeks = cleaned_data.get('rotation_weeks')
         name = cleaned_data.get('name')
-        company = self.request.user.get_company
+        company = self.request.user.company
 
         if ShiftPattern.objects.filter(company=company, name=name).exclude(pk=self.instance.pk).exists():
             self.add_error('name', 'Shift pattern with this name already exists for your company.')

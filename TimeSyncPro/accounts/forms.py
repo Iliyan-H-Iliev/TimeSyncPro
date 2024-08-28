@@ -1,68 +1,112 @@
+import logging
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm, SetPasswordForm
+from django.contrib.auth.hashers import make_password
+from django.db import transaction, IntegrityError
 from django.db.models import Prefetch
-
+from django.core.exceptions import ValidationError
+from django.urls import reverse
 from django.utils.timezone import now
 
 from .form_mixins import ReadonlyFieldsFormMixin
+# from .tasks import send_welcome_email, send_password_reset_email, send_activation_email
+from .funks import normalize_company_name
 from .models import  Company,  Employee
 from ..management.models import Team, ShiftPattern, Department
 
+
+logger = logging.getLogger(__name__)
+
 UserModel = get_user_model()
 
-# employee_edit_fields = [
-#     'first_name',
-#     'last_name',
-#     'employee_id',
-#     'managed_by',
-#     'date_of_hire',
-#     'days_off_left',
-#     "phone_number",
-#     "address", "date_of_birth",
-#     "profile_picture",
-# ]
-# user_edit_fields = ['email']
-# company_edit_fields = ['company_name']
+#TODO Autintication request
+class SignupCompanyAdministratorForm(UserCreationForm):
+    first_name = forms.CharField(
+        max_length=Employee.MAX_FIRST_NAME_LENGTH,
+        min_length=Employee.MIN_FIRST_NAME_LENGTH,
+        required=True,
+    )
 
+    last_name = forms.CharField(
+        max_length=Employee.MAX_LAST_NAME_LENGTH,
+        min_length=Employee.MIN_LAST_NAME_LENGTH,
+        required=True,
+    )
 
-class SignupCompanyForm(UserCreationForm):
     company_name = forms.CharField(
         max_length=Company.MAX_COMPANY_NAME_LENGTH,
         min_length=Company.MIN_COMPANY_NAME_LENGTH,
         required=True,
-        widget=forms.TextInput(attrs={'autofocus': 'autofocus'}),
     )
 
     class Meta:
         model = UserModel
-        fields = ["company_name", "email", "password1", "password2"]
+        fields = ["first_name", "last_name", "email", "company_name", "password1", "password2"]
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if email:
+            email = email.lower()
+            if UserModel.objects.filter(email=email).exists():
+                raise ValidationError("A user with this email already exists.")
+        return email
+
+    def clean_company_name(self):
+        company_name = self.cleaned_data.get('company_name')
+
+        if company_name:
+            normalized_company_name = normalize_company_name(company_name)
+            if Company.objects.filter(normalized_company_name=normalized_company_name).exists():
+                raise ValidationError("A company with this name already exists.")
+        return company_name
 
     def save(self, commit=True):
+        try:
+            with transaction.atomic():
+                user = super().save(commit=False)
+                user.email = self.cleaned_data["email"].lower()
+                user.save()
 
-        user = super().save(commit=False)
-        user.email = self.cleaned_data["email"]
-        user.is_company = True
-        if commit:
-            user.save()
+                company = Company.objects.create(
+                    company_name=self.cleaned_data["company_name"],
+                    normalized_company_name=normalize_company_name(self.cleaned_data["company_name"]),
+                )
 
-        company = Company.objects.create(
-            company_name=self.cleaned_data["company_name"],
-            user=user,
-        )
+                company.save()
 
-        user.company = company
+                employee = Employee.objects.create(
+                    user=user,
+                    company=company,
+                    first_name=self.cleaned_data["first_name"],
+                    last_name=self.cleaned_data["last_name"],
+                    role=Employee.EmployeeRoles.ADMINISTRATOR,
+                )
 
-        if commit:
-            company.save()
-            user.save()
-        return user
+                if commit:
+                    employee.save()
+
+                    logger.info(f"Successfully created administrator account for {user.email} at company {company.company_name}")
+
+                # send_welcome_email.delay(user.email)
+
+                return user
+
+        except IntegrityError as e:
+            logger.error(f"IntegrityError occurred while creating administrator account: {str(e)}")
+            self.add_error(None, "An integrity error occurred. Please check your data and try again.")
+            return None  # Return None in case of an error
+        except Exception as e:
+            logger.exception(f"Unexpected error occurred while creating administrator account: {str(e)}")
+            self.add_error(None, f"An unexpected error occurred: {str(e)}. Please try again.")
+            return None  # Return None in case of an error
 
 
 # TODO add TeamLeader role
 # TODO new Employee to chose from existing teams
 # TODO use Employee as as fields model
 class SignupEmployeeForm(UserCreationForm):
+
     employee_role = []
 
     class Meta:
@@ -96,11 +140,13 @@ class SignupEmployeeForm(UserCreationForm):
 
     first_name = forms.CharField(
         max_length=Employee.MAX_FIRST_NAME_LENGTH,
+        min_length=Employee.MIN_FIRST_NAME_LENGTH,
         required=True,
     )
 
     last_name = forms.CharField(
         max_length=Employee.MAX_LAST_NAME_LENGTH,
+        min_length=Employee.MIN_LAST_NAME_LENGTH,
         required=True,
     )
 
@@ -111,6 +157,7 @@ class SignupEmployeeForm(UserCreationForm):
 
     employee_id = forms.CharField(
         max_length=Employee.MAX_EMPLOYEE_ID_LENGTH,
+        min_length=Employee.MIN_EMPLOYEE_ID_LENGTH,
         required=True,
     )
 
@@ -147,7 +194,7 @@ class SignupEmployeeForm(UserCreationForm):
         cleaned_data = super().clean()
 
         role = cleaned_data.get("role")
-        company = self.request.user.get_company
+        company = self.request.user.company
 
         company_departments = company.get_all_company_departments()
 
@@ -171,14 +218,20 @@ class SignupEmployeeForm(UserCreationForm):
 
         user = self.request.user
 
-        company = user.get_company
+        company = user.company
 
         if not company:
             raise forms.ValidationError("You must be associated with a company to register employees")
 
-        company_with_related_data = Company.objects.select_related(
-            'user'
-        ).prefetch_related(
+        # company_with_related_data = Company.objects.select_related(
+        #     'user'
+        # ).prefetch_related(
+        #     Prefetch('teams', queryset=Team.objects.all()),
+        #     Prefetch('shift_patterns', queryset=ShiftPattern.objects.all()),
+        #     Prefetch('departments', queryset=Department.objects.all()),
+        # ).get(id=company.id)
+
+        company_with_related_data = Company.objects.prefetch_related(
             Prefetch('teams', queryset=Team.objects.all()),
             Prefetch('shift_patterns', queryset=ShiftPattern.objects.all()),
             Prefetch('departments', queryset=Department.objects.all()),
@@ -209,13 +262,15 @@ class SignupEmployeeForm(UserCreationForm):
         self.fields['role'].choices = role_choices
 
     def save(self, commit=True):
-        company = self.request.user.get_company
+        company = self.request.user.company
         user = UserModel.objects.create_user(
             email=self.cleaned_data["email"],
             # todo UserModel.objects.make_random_password(), is_active=False
-            password="ilich3",
-            is_active=True,
+            password=make_password(UserModel.objects.make_random_password()),
+            is_active=False,
         )
+
+        activation_token = user.generate_activation_token()
 
         common_data = {
             "user": user,
@@ -234,22 +289,26 @@ class SignupEmployeeForm(UserCreationForm):
         employee = Employee.objects.create(**common_data)
 
         if commit:
-            employee.save()
+            user.save()
             if employee.role == "Manager" and self.cleaned_data["manages_departments"]:
                 employee.manages_departments.set(self.cleaned_data["manages_departments"])
-            # TODO Send Email
-            #
-            # # Send email to user with link to reset password and login
+            employee.save()
+
+            #     # Generate password reset URL
             # reset_password_url = self.request.build_absolute_uri(
-            #     reverse('password_reset')  # Assuming you have a named URL for password reset
+            #     reverse('password_reset_confirm', args=[user.pk])
             # )
-            # send_mail(
-            #     'Welcome to the Company',
-            #     f'Please reset your password using the following link: {reset_password_url}',
-            #     'from@example.com',
-            #     [user.email],
-            #     fail_silently=False,
+
+            # Send password reset email asynchronously using Celery
+            # send_password_reset_email.delay(user.email, reset_password_url)
+
+            #     # Generate activation URL
+            # activation_url = self.request.build_absolute_uri(
+            #     reverse('activate_and_set_password', args=[activation_token])
             # )
+            #
+            # # Send activation email asynchronously using Celery
+            # send_activation_email.delay(user.email, activation_url)
 
         return user
 
@@ -335,6 +394,8 @@ class EditCompanyForm(forms.ModelForm):
             "maximum_leave_days_per_request",
             "working_on_local_holidays",
         ]
+
+
 
     # def clean(self):
     #     cleaned_data = super().clean()

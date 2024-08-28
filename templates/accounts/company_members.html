@@ -2,6 +2,8 @@
 
 {% block content %}
     <h1>Company Members</h1>
+    
+
 
 {% if company %}
     <p>Username: {{ user.email }}</p>
@@ -10,6 +12,15 @@
         <h2>Company: {{ company.company_name }}</h2>
     {% endif %}
 
+        {%  if administrator %}
+            <h3>Administrator</h3>
+            <ul>
+                <li>{{ administrator.full_name }}</li>
+                <a href="{% url 'company employee profile' company_slug=company_slug slug=administrator.slug %}">Profile</a>
+                <a href="{% url 'full profile update' company_slug=company_slug slug=administrator.slug %}">Edit</a>
+            </ul>
+        {% endif %}
+    
     <!-- Display HRs related to the company -->
     {% if hrs %}
         <h3>HRs</h3>
@@ -17,8 +28,8 @@
             {% for hr in hrs %}
                 
                 <li>{{ hr.full_name }}</li>
-                <a href="{% url 'company employee profile' company_name=company_name slug=hr.slug %}">Profile</a>
-                <a href="{% url 'full profile update' company_name=company_name slug=hr.slug %}">Edit</a>
+                <a href="{% url 'company employee profile' company_slug=company_slug slug=hr.slug %}">Profile</a>
+                <a href="{% url 'full profile update' company_slug=company_slug slug=hr.slug %}">Edit</a>
             {% endfor %}
         </ul>
     {% endif %}
@@ -29,8 +40,8 @@
         <ul>
             {% for manager in managers %}
                 <li>{{ manager.full_name }}</li>
-                <a href="{% url 'company employee profile' company_name=company_name slug=manager.slug %}">Profile</a>
-                <a href="{% url 'full profile update'  slug=manager.slug company_name=company_name %}">Edit</a>
+                <a href="{% url 'company employee profile' company_slug=company_slug slug=manager.slug %}">Profile</a>
+                <a href="{% url 'full profile update'  slug=manager.slug company_slug=company_slug%}">Edit</a>
             {% endfor %}
         </ul>
     {% endif %}
@@ -41,8 +52,8 @@
         <ul>
             {% for employee in employees %}
                 <li>{{ employee.full_name }}</li>
-                <a href="{% url 'company employee profile' company_name=company_name slug=employee.slug %}">Profile</a>
-                <a href="{% url 'full profile update' company_name=company_name slug=employee.slug %}">Edit</a>
+                <a href="{% url 'company employee profile' company_slug=company_slug slug=employee.slug %}">Profile</a>
+                <a href="{% url 'full profile update' company_slug=company_slug slug=employee.slug %}">Edit</a>
             {% endfor %}
         </ul>
     {% endif %}

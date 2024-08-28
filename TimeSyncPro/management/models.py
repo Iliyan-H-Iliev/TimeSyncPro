@@ -263,7 +263,7 @@ class Team(models.Model):
         return self.employees.all()
 
     def get_team_leaders(self):
-        return self.employees.filter(role=Employee.EmployeeRole.TEAM_LEADER)
+        return self.employees.filter(role=Employee.EmployeeRoles.TEAM_LEADER)
 
     def __str__(self):
         return self.name

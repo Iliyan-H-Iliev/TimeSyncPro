@@ -53,10 +53,11 @@
                                 {#                        {% endif %}#}
                                 {#            <li><a href="{% url 'index'  %}" class="nav-button">Home</a></li>#}
                                 <li>
-                                    <a href="{% url 'company members' company_name=user.get_company_name %}">Employees</a>
+                                    <a href="{% url 'company members' company_slug=user.company_slug %}">Employees</a>
                                 </li>
                                 <li><a href="{% url 'register company' %}" class="nav-button">Management</a></li>
                                 <li><a href="{% url 'register company' %}" class="nav-button">Reports</a></li>
+                                 <li><a href="{% url 'company profile' company_slug=user.company_slug %}" class="nav-button">Company</a></li>
                                 {#                        <li><a href="{% url 'signout user' %}" class="nav-button">Sign Out</a></li>#}
                             </ul>
                         </div>
@@ -77,9 +78,9 @@
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                                 <li>
                                     {% if user.is_company %}
-                                        <a href="{% url 'company profile'  slug=user.slug company_name=user.get_company_name %}">Profile</a>
+                                        <a href="{% url 'company profile'  slug=user.slug company_slug=user.company_slug %}">Profile</a>
                                     {% else %}
-                                        <a href="{% url 'profile'  slug=user.slug company_name=user.get_company_name %}">Profile</a>
+                                        <a href="{% url 'profile'  slug=user.slug company_slug=user.company_slug %}">Profile</a>
                                     {% endif %}
                                 </li>
                                 <li><a class="dropdown-item" href="{% url 'password change' %}">Change Password</a></li>

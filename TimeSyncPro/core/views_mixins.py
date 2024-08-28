@@ -20,7 +20,7 @@ class CompanyCheckMixin:
         user_slug = self.kwargs['slug']
         obj_to_check = get_user_by_slug(user_slug)
 
-        if user.get_company != get_obj_company(obj_to_check):
+        if user.company != get_obj_company(obj_to_check):
             return redirect(self.get_redirect_url())
         return super().dispatch(request, *args, **kwargs)
 

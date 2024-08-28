@@ -25,10 +25,11 @@ class OwnerRequiredMixin(AccessMixin):
 class CompanyContextMixin():
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        company = self.request.user.get_company
+        company = self.request.user.company
 
         context['company'] = company if company else None
         context['company_name'] = company.company_name if company else None
+        context['company_slug'] = company.slug if company else None
         context['employees'] = Employee.objects.filter(company=company) if company else None
 
         return context
@@ -46,13 +47,16 @@ class SuccessUrlMixin:
 
     def get_success_url(self):
         user = self.request.user
-        return reverse(
-            'profile',
-            kwargs={
-                'slug': user.slug,
-                "company_name": user.get_company_name
-            }
-        )
+        # Ensure the user is authenticated before accessing attributes
+        if user.is_authenticated:
+            return reverse(
+                'profile',
+                kwargs={
+                    'slug': user.slug,
+                    "company_slug": user.company_slug
+                }
+            )
+        return reverse(self.success_url)
 
 
 
@@ -81,8 +85,8 @@ class DynamicPermissionMixin:
 
         if obj.__class__.__name__ == 'TimeSyncProUser':
 
-            if obj.is_company:
-                return obj.related_instance.__class__.__name__.lower()
+            # if obj.is_company:
+            #     return obj.related_instance.__class__.__name__.lower()
 
             return obj.related_instance.role.lower().replace(' ', '_')
 
@@ -127,7 +131,7 @@ class IsAuthorizedUserMixin(UserPassesTestMixin):
         obj_to_edit = self.get_object()
 
         return (
-                user.get_company == get_obj_company(obj_to_edit)
+                user.company == get_obj_company(obj_to_edit)
         )
 
     def handle_no_permission(self):

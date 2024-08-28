@@ -4,7 +4,7 @@
     <h1>Profile Details</h1>
 
 {% if user %}
-    <p>Username: {{ user.get_company.company_name }}</p>
+    <p>Username: {{ user.company_slug }}</p>
     <p>Email: {{ user.email }}</p>
     <p>Full Name: {{ user.related_instance.full_name }}</p>
     <p>Role: {{ user.user_type }}</p>

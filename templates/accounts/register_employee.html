@@ -2,7 +2,7 @@
 {% block content %}
 
 {% load filters %}
-<form action="{% url 'register employee' company_name=user.get_company_name %}?next={{ next }}" method="post">
+<form action="{% url 'register employee' company_slug=user.company_slug %}?next={{ next }}" method="post">
 {#                <p>#}
 {#                    {{ form.username|placeholder:"Email" }}#}
 {#                </p>#}

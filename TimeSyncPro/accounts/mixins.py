@@ -30,12 +30,29 @@ class AbstractSlugMixin(models.Model):
     )
 
     def save(self, *args, **kwargs):
-        # super().save(*args, **kwargs)
-
         if not self.slug:
-            self.slug = slugify(f"{self.get_slug_identifier()}")
+            temp_slug = slugify(f"{self.get_slug_identifier()}")
+            self.slug = temp_slug[:self.MAX_SLUG_LENGTH]
 
-        super().save(*args, **kwargs)
+        # Check if this is a new instance (no pk) or if the slug hasn't been modified
+        if not self.pk or not self._state.adding:
+            super().save(*args, **kwargs)
+
+            try:
+                has_attr_first_name = bool(getattr(self, 'first_name'))
+            except AttributeError:
+                has_attr_first_name = False
+
+            # Only add the pk to the slug for models with 'first_name' attribute
+            if has_attr_first_name and self.pk:
+                current_slug = self.slug
+                new_slug = f"{current_slug}-{self.pk}"
+                if len(new_slug) <= self.MAX_SLUG_LENGTH and not current_slug.endswith(f"-{self.pk}"):
+                    self.slug = new_slug
+                    # Use update() to avoid triggering the save method again
+                    type(self).objects.filter(pk=self.pk).update(slug=new_slug)
+        else:
+            super().save(*args, **kwargs)
 
     def get_slug_identifier(self):
         raise NotImplementedError("Subclasses must implement this method")

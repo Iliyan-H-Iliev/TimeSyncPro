@@ -46,7 +46,7 @@
             {% csrf_token %}
             <div class="button-container">
                 <button type="submit" class="button button-yes">Yes, delete it</button>
-                <a href="{% url 'company members'  company_name=user.get_company_name %}" class="button button-no">No, go back</a>
+                <a href="{% url 'company members'  company_slug=user.company_slug %}" class="button button-no">No, go back</a>
             </div>
         </form>
     </div>

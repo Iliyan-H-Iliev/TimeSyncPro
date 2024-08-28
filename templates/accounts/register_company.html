@@ -1,90 +1,18 @@
 {#{% extends "layout.html" %}#}
 {#{% block content %}#}
 {##}
-{#{% load filters %}#}
-{#<form action="{% url 'register company' %}" method="post">#}
-{#                <p>#}
-{#                    {{ form.username|placeholder:"Email" }}#}
-{#                </p>#}
-{#                <p>#}
-{#                    {{ form.password|placeholder:"Password" }}#}
-{#                </p>#}
-{#    {{ form.as_p }}#}
-{#                <button type="submit">Regist</button>#}
+{#    {% load filters %}#}
+{#    <form action="{% url 'register company' %}" method="post">#}
+{#        {{ form.as_p }}#}
+{#        <button type="submit">Regist</button>#}
 {##}
-{#                {% csrf_token %}#}
-{#            </form>#}
+{#        {% csrf_token %}#}
+{#    </form>#}
 {##}
 {#{% endblock %}#}
-
+{##}
 {% load static %}
 {% load filters %}
-
-{#<!DOCTYPE html>#}
-{#<html lang="en">#}
-{##}
-{#<head>#}
-{#    <meta charset="UTF-8">#}
-{#    <meta name="viewport" content="width=device-width, initial-scale=1">#}
-{#    <title>TimeSyncPro</title>#}
-{#    <link rel="stylesheet" href="{% static 'styles/site.css' %}">#}
-{#</head>#}
-{##}
-{#<body>#}
-{##}
-{#<div class="container">#}
-{#    <div class="form signup">#}
-{#        <h2>Sign Up</h2>#}
-{##}
-{#        <form action="/register-company/" method="post">#}
-{#            {% csrf_token %}#}
-{##}
-{##}
-{#            <div class="inputBox">#}
-{##}
-{#                <input type="text" name="company_name" autofocus="autofocus" maxlength="50" minlength="3" required=""#}
-{#                       id="id_company_name">#}
-{#                <i class="fa-regular fa-user"></i>#}
-{#                <label for="id_company_name">Company name:</label>#}
-{##}
-{#            </div>#}
-{##}
-{#            <div class="inputBox">#}
-{##}
-{#                <input type="email" name="email" maxlength="254" autofocus="" required="" id="id_email">#}
-{#                <i class="fa-regular fa-envelope"></i>#}
-{#                <label for="id_email">Email address:</label>#}
-{##}
-{##}
-{#            </div>#}
-{##}
-{##}
-{#            <div class="inputBox">#}
-{##}
-{#                <input type="password" name="password1" autocomplete="new-password" required="" id="id_password1">#}
-{#                <i class="fa-solid fa-lock"></i>#}
-{#                <label for="id_password1">Password:</label>#}
-{##}
-{##}
-{#            </div>#}
-{##}
-{##}
-{#            <div class="inputBox">#}
-{##}
-{#                <input type="password" name="password2" autocomplete="new-password" required=""#}
-{#                       aria-describedby="id_password2_helptext" id="id_password2">#}
-{#                <i class="fa-solid fa-lock"></i>#}
-{#                <label for="id_password2">Confirm password:</label>#}
-{##}
-{#            </div>#}
-{##}
-{##}
-{#            <button type="submit">Regist</button>#}
-{##}
-{#        </form>#}
-{#    </div>#}
-{#</div>#}
-{#</body>#}
 
 
 <!DOCTYPE html>
@@ -101,20 +29,38 @@
 
 <div class="signup-container">
     <div class="signup-form-container">
-        
-      <div class="container-logo-login-signup" id="tsp-logo">
 
-        <div class="container-logo-tsp" id="tsp-logo">
-            <a href="{% url 'index' %}"><img src="{% static 'images/tsp-logo-withe-orange.png' %}"
-                                             alt="TimeSyncPro"></a>
-        </div>
-            
+        <div class="container-logo-login-signup" id="tsp-logo">
+
+            <div class="container-logo-tsp" id="tsp-logo">
+                <a href="{% url 'index' %}"><img src="{% static 'images/tsp-logo-withe-orange.png' %}"
+                                                 alt="TimeSyncPro"></a>
+            </div>
+
         </div>
 
         <h2>Sign Up</h2>
 
         <form action="/register-company/" method="post">
-                    {% csrf_token %}
+            {% csrf_token %}
+
+            <div class="input-box">
+                <span class="icon">
+          <i class="fa-regular fa-user"></i>
+        </span>
+                <label for="id_first_name">First name:</label>
+                <input type="text" name="first_name" maxlength="30" minlength="2" required="" id="id_first_name">
+
+            </div>
+
+            <div class="input-box">
+                <span class="icon">
+          <i class="fa-regular fa-user"></i>
+        </span>
+                <label for="id_last_name">Last name:</label>
+                <input type="text" name="last_name" maxlength="30" minlength="2" required="" id="id_last_name">
+                
+            </div>
 
             <div class="input-box">
                 <span class="icon">
@@ -153,10 +99,10 @@
             </div>
 
             <button class="sign-up-button" type="submit">Register</button>
-            
+
             <div class="register-link">
-        <p>Already a member? <a href="{% url 'signin user' %}">Log in</a></p>
-      </div>
+                <p>Already a member? <a href="{% url 'signin user' %}">Log in</a></p>
+            </div>
 
         </form>
     </div>
@@ -164,80 +110,3 @@
 </body>
 <script src="{% static 'javascript/signup-login.js' %}"></script>
 </html>
-
-
-{#<!DOCTYPE html>#}
-{#<html lang="en">#}
-{##}
-{#<head>#}
-{#    <meta charset="UTF-8">#}
-{#    <meta name="viewport" content="width=device-width, initial-scale=1">#}
-{#    <title>TimeSyncPro</title>#}
-{#    <link rel="stylesheet" href="{% static 'styles/site.css' %}">#}
-{#</head>#}
-{##}
-{#<body>#}
-{##}
-{#<div class="container">#}
-{#    <div class="form signup">#}
-{#        <h2>Sign Up</h2>#}
-{#        <div class="inputBox">#}
-{#            <input type="text" required="required">#}
-{#            <i class="fa-regular fa-user"></i>#}
-{#            <span>Company name</span>#}
-{#        </div>#}
-{#        <div class="inputBox">#}
-{#            <input type="text" required="required">#}
-{#            <i class="fa-regular fa-envelope"></i>#}
-{#            <span>Email address</span>#}
-{#        </div>#}
-{#        <div class="inputBox">#}
-{#            <input type="password" required="required">#}
-{#            <i class="fa-solid fa-lock"></i>#}
-{#            <span>Create password</span>#}
-{#        </div>#}
-{#        <div class="inputBox">#}
-{#            <input type="password" required="required">#}
-{#            <i class="fa-solid fa-lock"></i>#}
-{#            <span>Confirm password</span>#}
-{#        </div>#}
-{#        <div class="inputBox">#}
-{#            <input type="submit" value="Create Account">#}
-{#        </div>#}
-{#        <p>Already a member ? <a href="#" class="login">Log in</a></p>#}
-{#    </div>#}
-{##}
-{#    <div class="form signin">#}
-{#        <h2>Sign In</h2>#}
-{#        <div class="inputBox">#}
-{#            <input type="text" required="required">#}
-{#            <i class="fa-regular fa-user"></i>#}
-{#            <span>Email</span>#}
-{#        </div>#}
-{#        <div class="inputBox">#}
-{#            <input type="password" required="required">#}
-{#            <i class="fa-solid fa-lock"></i>#}
-{#            <span>password</span>#}
-{#        </div>#}
-{#        <div class="inputBox">#}
-{#            <input type="submit" value="Login">#}
-{#        </div>#}
-{#        <p>Not Registered ? <a href="#" class="create">Create an account</a></p>#}
-{#    </div>#}
-{##}
-{#</div>#}
-{#</body>#}
-{#<script>#}
-{#    let login = document.querySelector(".login");#}
-{#    let create = document.querySelector(".create");#}
-{#    let container = document.querySelector(".container");#}
-{##}
-{#    login.onclick = function () {#}
-{#        container.classList.add("signinForm");#}
-{#    };#}
-{##}
-{#    create.onclick = function () {#}
-{#        container.classList.remove("signinForm");#}
-{#    };#}
-{##}
-{#</script>#}

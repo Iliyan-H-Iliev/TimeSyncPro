@@ -84,11 +84,18 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'time_sync_pro',
         'USER': 'postgres',
-        'PASSWORD': 'Ilich3v33',
+        'PASSWORD': 'Asdf123',
         'HOST': 'localhost',
         'PORT': '5432'
     }
 }
+
+CELERY_BROKER_URL = 'redis://redis:6379/0'
+CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
+# CELERY_ACCEPT_CONTENT = ['json']
+# CELERY_TASK_SERIALIZER = 'json'
+# CELERY_RESULT_SERIALIZER = 'json'
+# CELERY_TIMEZONE = 'UTC'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -163,9 +170,9 @@ LOGGING = {
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # For development
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  # For production
-EMAIL_HOST = 'smtp.example.com'
+EMAIL_HOST = 'in-v3.mailjet.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'your-email@example.com'
-EMAIL_HOST_PASSWORD = 'your-email-password'
-DEFAULT_FROM_EMAIL = 'webmaster@example.com'
+EMAIL_HOST_USER = 'f0e66f5327c6349bc2f824dbc0f9754c'  # Replace with your Mailjet API key
+EMAIL_HOST_PASSWORD = '18f487a5dd7927b8dc09547562d62ae5'  # Replace with your Mailjet Secret key
+DEFAULT_FROM_EMAIL = 'timesyncpro@example.com'  # Replace with your email

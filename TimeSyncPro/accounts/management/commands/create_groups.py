@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import Group, Permission
 
-from TimeSyncPro.accounts.models import Company, Employee
+from TimeSyncPro.accounts.models import Employee
 
 
 class Command(BaseCommand):
@@ -9,14 +9,14 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         # Create groups
-        company_group, created = Group.objects.get_or_create(name="Company")
+        administrator_group, created = Group.objects.get_or_create(name="Administrator")
         hr_group, created = Group.objects.get_or_create(name="HR")
         manager_group, created = Group.objects.get_or_create(name="Manager")
         team_leader_group, created = Group.objects.get_or_create(name="Team Leader")
         staff_group, created = Group.objects.get_or_create(name="Staff")
 
         # Fetch permissions
-        company_permissions = Permission.objects.filter(
+        administrator_permissions = Permission.objects.filter(
             codename__in=[
                 "change_company",
                 "delete_company",
@@ -25,6 +25,10 @@ class Command(BaseCommand):
                 "change_user",
                 "delete_user",
                 "view_user",
+                "add_administrator",
+                "change_administrator",
+                "delete_administrator",
+                "view_administrator",
                 "add_hr",
                 "change_hr",
                 "delete_hr",
@@ -107,22 +111,24 @@ class Command(BaseCommand):
         )
 
         # Assign permissions to groups
-        company_group.permissions.set(company_permissions)
+        administrator_group.permissions.set(administrator_permissions)
         hr_group.permissions.set(hr_permissions)
         manager_group.permissions.set(manager_permissions)
+        team_leader_group.permissions.set(team_leader_permissions)
         staff_group.permissions.set(staff_permissions)
 
         # Assign users to groups
-        for company in Company.objects.all():
-            company.user.groups.add(company_group)
         for employee in Employee.objects.all():
-            if employee.role == Employee.EmployeeRole.HR:
+            if employee.role == Employee.EmployeeRoles.ADMINISTRATOR:
+                employee.user.groups.add(administrator_group)
+        for employee in Employee.objects.all():
+            if employee.role == Employee.EmployeeRoles.HR:
                 employee.user.groups.add(hr_group)
-            elif employee.role == Employee.EmployeeRole.MANAGER:
+            elif employee.role == Employee.EmployeeRoles.MANAGER:
                 employee.user.groups.add(manager_group)
-            elif employee.role == Employee.EmployeeRole.TEAM_LEADER:
+            elif employee.role == Employee.EmployeeRoles.TEAM_LEADER:
                 employee.user.groups.add(team_leader_group)
-            elif employee.role == Employee.EmployeeRole.STAFF:
+            elif employee.role == Employee.EmployeeRoles.STAFF:
                 employee.user.groups.add(staff_group)
 
         self.stdout.write(self.style.SUCCESS("Successfully created groups and assigned permissions"))
