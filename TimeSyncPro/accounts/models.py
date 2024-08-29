@@ -106,7 +106,12 @@ class TimeSyncProUser(auth_models.AbstractBaseUser, auth_models.PermissionsMixin
 
     @property
     def company(self):
-        company = self.related_instance.company if self.related_instance else None
+        instance = self.related_instance
+        if instance:
+            company = instance.company
+        else:
+            company = None
+
         if not company:
             raise AttributeError("The user does not have a company.")
         return company

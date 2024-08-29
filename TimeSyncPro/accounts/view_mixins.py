@@ -82,14 +82,8 @@ class DynamicPermissionMixin:
 
     @staticmethod
     def get_object_class_name(obj):
-
         if obj.__class__.__name__ == 'TimeSyncProUser':
-
-            # if obj.is_company:
-            #     return obj.related_instance.__class__.__name__.lower()
-
             return obj.related_instance.role.lower().replace(' ', '_')
-
         return obj.__class__.__name__.lower()
 
     def get_action_permission_codename(self, obj, action: str):
@@ -97,11 +91,16 @@ class DynamicPermissionMixin:
         return f"{action}_{obj_class_name}"
 
     def get_action_permission(self, obj, action: str):
-
         obj_app_label = obj._meta.app_label
         permission_codename = self.get_action_permission_codename(obj, action)
-
         return f"{obj_app_label}.{permission_codename}"
+
+    def get_all_user_permissions(self, user):
+        all_permissions = user.get_all_permissions()
+        print(all_permissions)
+        return user.get_all_permissions()
+
+
 
     # def get_action_permission_codename(self, obj, action: str):
     #     permission = self.get_action_permission(obj, action)
@@ -109,15 +108,12 @@ class DynamicPermissionMixin:
     #     return permission.split('.')[-1]
 
     def has_needed_permission(self, user, obj, action):
-
         try:
             needed_permission_codename = self.get_action_permission_codename(obj, action)
         except AttributeError:
             return False
-
         try:
             user_permissions_codenames = user.user_permissions_codenames
-            print(user_permissions_codenames)
         except AttributeError:
             return False
 

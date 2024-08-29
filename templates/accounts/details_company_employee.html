@@ -1,7 +1,7 @@
 {% extends 'layout.html' %}
 
 {% block content %}
-    <h1>Profile Details</h1>
+    <h1>Profile Details Company</h1>
 
 {#{% if user %}#}
 {#    <p>Username: {{ user.related_instance.full_name }}</p><br>#}
@@ -16,9 +16,10 @@
 {% if user_to_view %}
     <p>Email: {{ user_to_view.email }}</p>
     <p>Full Name: {{ user_to_view.related_instance.full_name }}</p>
-    <p>Role: {{ user_to_view.user_type }}</p>
+    <p>Role: {{ user_to_view.related_instance.role }}</p>
     <p>Phone Number: {{ user_to_view.related_instance.phone_number }}</p>
     <p>Address: {{ user_to_view.address }}</p>
+    
     {% if has_detailed_change_permission %}
         <a href="{% url 'full profile update' slug=user_to_view.slug company_slug=company_slug %}">Edit</a>
         {% elif user == user_to_view%}

@@ -70,7 +70,6 @@ class SignupCompanyAdministratorForm(UserCreationForm):
 
                 company = Company.objects.create(
                     company_name=self.cleaned_data["company_name"],
-                    normalized_company_name=normalize_company_name(self.cleaned_data["company_name"]),
                 )
 
                 company.save()

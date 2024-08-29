@@ -262,16 +262,24 @@ class SignupEmployeeView(MultiplePermissionsRequiredMixin, AuthenticatedViewMixi
         return kwargs
 
 
-class DetailsProfileBaseView(UserBySlugMixin, views.DetailView):
+class DetailsProfileBaseView(UserBySlugMixin, DynamicPermissionMixin, views.DetailView):
     template_name = "accounts/details_company_employee.html"
     context_object_name = 'user'
     model = UserModel
 
+    # def get_queryset(self, *args, **kwargs):
+    #     user = self.request.user
+    #     user_to_view = self.get_object()
+    #     return UserModel.objects.prefetch_related('employee').all()
+
     def get_context_data(self, user, user_to_view):
+        user_permissions = user.get_all_permissions()
         return {
             'user': user,
             'user_to_view': user_to_view,
             'company_slug': user.company_slug,
+            'has_detailed_change_permission': self.get_action_permission(user_to_view, "change") in user_permissions,
+            'has_delete_permission': self.get_action_permission(user_to_view, "delete") in user_permissions,
         }
 
     @staticmethod
@@ -297,7 +305,6 @@ class DetailsOwnProfileView(OwnerRequiredMixin, DetailsProfileBaseView):
 class DetailsEmployeesProfileView(
     CompanyCheckMixin,
     PermissionRequiredMixin,
-    DynamicPermissionMixin,
     DetailsProfileBaseView
 ):
     # TODO add permission
@@ -309,11 +316,12 @@ class DetailsEmployeesProfileView(
         self.permission_required = permission
         return super().dispatch(request, *args, **kwargs)
 
-    def get_context_data(self, user, user_to_view):
-        context = super().get_context_data(user, user_to_view)
-        context['has_detailed_change_permission'] = self.has_needed_permission(user, user_to_view, "change")
-        context['has_delete_permission'] = self.has_needed_permission(user, user_to_view, "delete")
-        return context
+    # def get_context_data(self, user, user_to_view):
+    #     context = super().get_context_data(user, user_to_view)
+    #     needed_permission = self.get_all_needed_permission(user_to_view)
+    #     # context['has_detailed_change_permission'] = self.has_needed_permission(user, user_to_view, "change")
+    #     context['has_delete_permission'] = self.has_needed_permission(user, user_to_view, "delete")
+    #     return context
 
 
 #OwnerRequiredMixin, IsCompanyUserMixin,
