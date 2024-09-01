@@ -3,10 +3,10 @@ from django.contrib.auth import views as auth_views
 
 from TimeSyncPro.accounts.views import (
     SignInUserView, signout_user, IndexView, about, terms_and_conditions, terms_of_use, privacy_policy,
-    DetailsOwnProfileView, SignupEmployeeView, SignupCompanyView, BasicEditProfileView, CompanyMembersView,
+    DetailsOwnProfileView, SignupEmployeeView, SignupCompanyAdministratorView, BasicEditProfileView, CompanyMembersView,
     DetailedEditProfileView, DetailsEmployeesProfileView, DeleteEmployeeView, DeleteCompanyView,
     DetailsCompanyProfileView, EditCompanyView, PasswordResetView, PasswordChangeView, CustomPasswordResetConfirmView,
-    LoginView, ActivateAndSetPasswordView,
+    ActivateAndSetPasswordView,
 )
 
 urlpatterns = [
@@ -20,14 +20,14 @@ urlpatterns = [
     path("privacy-policy/", privacy_policy, name="privacy policy"),
     path("login/", SignInUserView.as_view(), name="signin user"),
     path("logout/", signout_user, name="signout user"),
-    path("register-company/", SignupCompanyView.as_view(), name="register company"),
+    path("register-company/", SignupCompanyAdministratorView.as_view(), name="signup administrator"),
     path('password_reset/', PasswordResetView.as_view(), name='password reset'),
     path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password reset done'),
     path('reset/<uidb64>/<token>/', CustomPasswordResetConfirmView.as_view(), name='password reset confirm'),
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(), name='password reset complete'),
     path('password_change/', PasswordChangeView.as_view(), name='password change'),
     path('password_change/done/', auth_views.PasswordChangeDoneView.as_view(), name='password change done'),
-    path('activate-set-password/<str:token>/', ActivateAndSetPasswordView.as_view(), name='activate_and_set_password'),
+    path('activate-set-password/<str:token>/', ActivateAndSetPasswordView.as_view(), name='activate and set password'),
     path(
         "<str:company_slug>/", include([
             path("register-employee/", SignupEmployeeView.as_view(), name="register employee"),

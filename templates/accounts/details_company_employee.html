@@ -15,18 +15,18 @@
     
 {% if user_to_view %}
     <p>Email: {{ user_to_view.email }}</p>
-    <p>Full Name: {{ user_to_view.related_instance.full_name }}</p>
-    <p>Role: {{ user_to_view.related_instance.role }}</p>
-    <p>Phone Number: {{ user_to_view.related_instance.phone_number }}</p>
-    <p>Address: {{ user_to_view.address }}</p>
+    <p>Full Name: {{ user_to_view.employee.full_name }}</p>
+    <p>Role: {{ user_to_view.employee.role }}</p>
+    <p>Phone Number: {{ user_to_view.employee.phone_number }}</p>
+    <p>Address: {{ user_to_view.employee.address }}</p>
     
     {% if has_detailed_change_permission %}
-        <a href="{% url 'full profile update' slug=user_to_view.slug company_slug=company_slug %}">Edit</a>
+        <a href="{% url 'full profile update' slug=user_to_view.employee.slug company_slug=company_slug %}">Edit</a>
         {% elif user == user_to_view%}
-        <a href="{% url 'edit profile' slug=user_to_view.slug company_slug=company_slug %}">Edit</a>
+        <a href="{% url 'edit profile' slug=user_to_view.employee.slug company_slug=company_slug %}">Edit</a>
     {% endif %}
     {% if has_delete_permission %}
-        <a href="{% url 'delete profile' slug=user_to_view.slug company_slug=company_slug %}">Delete</a>
+        <a href="{% url 'delete profile' slug=user_to_view.employee.slug company_slug=company_slug %}">Delete</a>
     {% endif %}
     <!-- Display company details -->
     {% if company_name %}

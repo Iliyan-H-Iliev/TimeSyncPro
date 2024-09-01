@@ -32,8 +32,8 @@
                         <div class="navbar central-nav">
                             <ul class="navbar-ul">
                                 <li><a href="{% url 'signin user' %}" class="nav-button">Features</a></li>
-                                <li><a href="{% url 'register company' %}" class="nav-button">Pricing</a></li>
-                                <li><a href="{% url 'register company' %}" class="nav-button">Contact</a></li>
+                                <li><a href="{% url 'signup administrator' %}" class="nav-button">Pricing</a></li>
+                                <li><a href="{% url 'signup administrator' %}" class="nav-button">Contact</a></li>
                             </ul>
                         </div>
 
@@ -55,8 +55,8 @@
                                 <li>
                                     <a href="{% url 'company members' company_slug=user.company_slug %}">Employees</a>
                                 </li>
-                                <li><a href="{% url 'register company' %}" class="nav-button">Management</a></li>
-                                <li><a href="{% url 'register company' %}" class="nav-button">Reports</a></li>
+                                <li><a href="{% url 'signup administrator' %}" class="nav-button">Management</a></li>
+                                <li><a href="{% url 'signup administrator' %}" class="nav-button">Reports</a></li>
                                  <li><a href="{% url 'company profile' company_slug=user.company_slug %}" class="nav-button">Company</a></li>
                                 {#                        <li><a href="{% url 'signout user' %}" class="nav-button">Sign Out</a></li>#}
                             </ul>
@@ -116,7 +116,7 @@
                     <li><a href="{% url 'terms and conditions' %}">Terms and Conditions</a></li>
                     <li><a href="{% url 'terms of use' %}">Terms of Use</a></li>
                     <li><a href="{% url 'privacy policy' %}">Privacy Policy</a></li>
-                    <li><a href="{% url 'register company' %}">Contact</a></li>
+                    <li><a href="{% url 'signup administrator' %}">Contact</a></li>
                 </ul>
             </div>
             <div class="footer-social">

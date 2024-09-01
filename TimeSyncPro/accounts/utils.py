@@ -1,43 +1,23 @@
-from django.contrib.auth import get_user_model
-from django.db.models import Q
-from django.http import Http404
+import uuid
 
-from .forms import  BasicEditEmployeeForm, EditCompanyForm, DetailedEditEmployeesBaseForm
-from .models import Company, Employee
-
-UserModel = get_user_model()
+from django.utils.text import slugify
 
 
-def get_user_by_slug(slug):
-    user = UserModel.objects.prefetch_related('employee').filter(employee__slug=slug).first()
+def generate_unique_slug(instance, field, max_length):
+    base_slug = slugify(getattr(instance, field).split("@")[0])[:max_length - 8]
+    unique_slug = f"{base_slug}-{uuid.uuid4().hex[:8]}"  # Append first 8 characters of a UUID
 
-    if user is None:
-        raise Http404("No user found")
-
-    return user
-
-
-def get_additional_form_class(detailed_edit=False):
-    form_class = None
-
-    # if is_company:
-    #     form_class = EditCompanyForm
-    # elif not is_company:
-    form_class = DetailedEditEmployeesBaseForm if detailed_edit else BasicEditEmployeeForm
-
-    return form_class
+    # Ensure the slug fits within the max_length
+    return unique_slug[:max_length]
 
 
-def get_obj_company(obj):
-
-    if obj is None:
-        return None
-
-    # if obj.__class__.__name__ == 'TimeSyncProUser':
-    #     return obj.company
-    # else:
-    return obj.company
+def format_company_name(company_name):
+    return company_name.lower().replace(" ", "")
 
 
-# def normalize_company_name(company_name):
-#     return company_name.lower().replace(" ", "")
+def format_email(email):
+    return email.lower()
+
+
+def capitalize_words(string):
+    return " ".join([word.capitalize() for word in string.split()])

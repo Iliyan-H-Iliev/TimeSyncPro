@@ -6,12 +6,12 @@ from django.contrib.auth.hashers import make_password
 from django.db import transaction, IntegrityError
 from django.db.models import Prefetch
 from django.core.exceptions import ValidationError
-from django.urls import reverse
+# from django.urls import reverse
 from django.utils.timezone import now
 
 from .form_mixins import ReadonlyFieldsFormMixin
 # from .tasks import send_welcome_email, send_password_reset_email, send_activation_email
-from .funks import normalize_company_name
+from .utils import format_company_name, format_email
 from .models import  Company,  Employee
 from ..management.models import Team, ShiftPattern, Department
 
@@ -20,8 +20,10 @@ logger = logging.getLogger(__name__)
 
 UserModel = get_user_model()
 
+
 #TODO Autintication request
 class SignupCompanyAdministratorForm(UserCreationForm):
+
     first_name = forms.CharField(
         max_length=Employee.MAX_FIRST_NAME_LENGTH,
         min_length=Employee.MIN_FIRST_NAME_LENGTH,
@@ -42,12 +44,12 @@ class SignupCompanyAdministratorForm(UserCreationForm):
 
     class Meta:
         model = UserModel
-        fields = ["first_name", "last_name", "email", "company_name", "password1", "password2"]
+        fields = ["first_name", "last_name", "email", "name", "password1", "password2"]
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
         if email:
-            email = email.lower()
+            email = format_email(email)
             if UserModel.objects.filter(email=email).exists():
                 raise ValidationError("A user with this email already exists.")
         return email
@@ -56,8 +58,8 @@ class SignupCompanyAdministratorForm(UserCreationForm):
         company_name = self.cleaned_data.get('company_name')
 
         if company_name:
-            normalized_company_name = normalize_company_name(company_name)
-            if Company.objects.filter(normalized_company_name=normalized_company_name).exists():
+            formatted_name = format_company_name(company_name)
+            if Company.objects.filter(formatted_name=formatted_name).exists():
                 raise ValidationError("A company with this name already exists.")
         return company_name
 
@@ -65,11 +67,11 @@ class SignupCompanyAdministratorForm(UserCreationForm):
         try:
             with transaction.atomic():
                 user = super().save(commit=False)
-                user.email = self.cleaned_data["email"].lower()
+                user.email = self.cleaned_data["email"]
                 user.save()
 
                 company = Company.objects.create(
-                    company_name=self.cleaned_data["company_name"],
+                    company_name=self.cleaned_data["name"],
                 )
 
                 company.save()
@@ -85,7 +87,7 @@ class SignupCompanyAdministratorForm(UserCreationForm):
                 if commit:
                     employee.save()
 
-                    logger.info(f"Successfully created administrator account for {user.email} at company {company.company_name}")
+                    logger.info(f"Successfully created administrator account for {user.email} at company {company.name}")
 
                 # send_welcome_email.delay(user.email)
 
@@ -191,25 +193,36 @@ class SignupEmployeeForm(UserCreationForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        user = self.request.user
 
+        # Fetch the company and related departments in one query
+        company = user.employee.company
+        company_with_departments = Company.objects.prefetch_related('departments').get(id=company.id)
+
+        company_departments = company_with_departments.departments.all()
         role = cleaned_data.get("role")
-        company = self.request.user.company
 
-        company_departments = company.get_all_company_departments()
-
-        if company_departments and (role == "Staff" or role == "Team Leader"):
+        # Role-specific validation
+        if company_departments.exists() and (role == "Staff" or role == "Team Leader"):
             if not cleaned_data.get("department"):
-                self.add_error("department", "Please select a department for Employee role")
+                self.add_error("department", "Please select a department for the Employee role")
 
-        if role == "Manager" and company_departments:
+        if role == "Manager" and company_departments.exists():
             if not cleaned_data.get("manages_departments") and not cleaned_data.get("department"):
                 self.add_error("department",
-                               "Please select a 'department' or 'manages departments' for Manager role")
+                               "Please select a 'department' or 'manages departments' for the Manager role")
+
+        # Email validation
+        email = cleaned_data.get("email")
+        if email:
+            email = format_email(email)
+            if UserModel.objects.filter(email=email).exists():
+                self.add_error("email", "A user with this email already exists.")
 
         return cleaned_data
 
     def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop("request", None)
+        self.request = kwargs.get("request", None)
         super().__init__(*args, **kwargs)
 
         if not self.request:
@@ -217,7 +230,7 @@ class SignupEmployeeForm(UserCreationForm):
 
         user = self.request.user
 
-        company = user.company
+        company = user.employee.company
 
         if not company:
             raise forms.ValidationError("You must be associated with a company to register employees")
@@ -246,10 +259,10 @@ class SignupEmployeeForm(UserCreationForm):
         self.fields["shift_pattern"].queryset = shift_patterns
         self.fields["password1"].widget = forms.HiddenInput()
         self.fields["password2"].widget = forms.HiddenInput()
+        self.fields['role'].choices = self._adjust_role_choices(user)
 
-        self._adjust_role_choices(user)
-
-    def _adjust_role_choices(self, user):
+    @staticmethod
+    def _adjust_role_choices(user):
 
         employee_role = Employee.get_all_employee_roles()
         role_choices = []
@@ -257,59 +270,68 @@ class SignupEmployeeForm(UserCreationForm):
         for role in employee_role:
             if user.has_perm(f'accounts.add_{role.lower().replace(" ", "_")}'):
                 role_choices.append((role, role))
-
-        self.fields['role'].choices = role_choices
+        return role_choices
 
     def save(self, commit=True):
-        company = self.request.user.company
-        user = UserModel.objects.create_user(
-            email=self.cleaned_data["email"],
-            # todo UserModel.objects.make_random_password(), is_active=False
-            password=make_password(UserModel.objects.make_random_password()),
-            is_active=False,
-        )
+        try:
+            with transaction.atomic():
+                # Start transaction: create user and employee records
+                company = self.request.user.employee.company
+                user = UserModel.objects.create_user(
+                    email=self.cleaned_data["email"],
+                    password=make_password(UserModel.objects.make_random_password()),
+                    is_active=False,
+                )
 
-        activation_token = user.generate_activation_token()
+                activation_token = user.generate_activation_token()
 
-        common_data = {
-            "user": user,
-            "company": company,
-            "first_name": self.cleaned_data["first_name"],
-            "last_name": self.cleaned_data["last_name"],
-            "role": self.cleaned_data["role"],
-            "employee_id": self.cleaned_data["employee_id"],
-            "department": self.cleaned_data["department"],
-            "shift_pattern": self.cleaned_data["shift_pattern"],
-            "team": self.cleaned_data["team"],
-            "date_of_hire": self.cleaned_data["date_of_hire"],
-            "days_off_left": self.cleaned_data["days_off_left"],
-        }
+                common_data = {
+                    "user": user,
+                    "company": company,
+                    "first_name": self.cleaned_data["first_name"],
+                    "last_name": self.cleaned_data["last_name"],
+                    "role": self.cleaned_data["role"],
+                    "employee_id": self.cleaned_data["employee_id"],
+                    "department": self.cleaned_data["department"],
+                    "shift_pattern": self.cleaned_data["shift_pattern"],
+                    "team": self.cleaned_data["team"],
+                    "date_of_hire": self.cleaned_data["date_of_hire"],
+                    "days_off_left": self.cleaned_data["days_off_left"],
+                }
 
-        employee = Employee.objects.create(**common_data)
+                employee = Employee.objects.create(**common_data)
 
-        if commit:
-            user.save()
-            if employee.role == "Manager" and self.cleaned_data["manages_departments"]:
-                employee.manages_departments.set(self.cleaned_data["manages_departments"])
-            employee.save()
+                if commit:
+                    user.save()
+                    if employee.role == "Manager" and self.cleaned_data["manages_departments"]:
+                        employee.manages_departments.set(self.cleaned_data["manages_departments"])
+                    employee.save()
 
-            #     # Generate password reset URL
-            # reset_password_url = self.request.build_absolute_uri(
-            #     reverse('password_reset_confirm', args=[user.pk])
-            # )
+            # Transaction is committed here. The user and employee are created.
 
-            # Send password reset email asynchronously using Celery
-            # send_password_reset_email.delay(user.email, reset_password_url)
-
+            # Now, perform email tasks outside the transaction.
+            # try:
             #     # Generate activation URL
-            # activation_url = self.request.build_absolute_uri(
-            #     reverse('activate_and_set_password', args=[activation_token])
-            # )
+            #     activation_url = self.request.build_absolute_uri(
+            #         reverse('activate_and_set_password', args=[activation_token])
+            #     )
             #
-            # # Send activation email asynchronously using Celery
-            # send_activation_email.delay(user.email, activation_url)
+            #     # Send activation email asynchronously using Celery
+            #     send_activation_email.delay(user.email, activation_url)
+            #
+            # except Exception as e:
+            #     # Log the email sending failure but do not roll back the user/employee creation
+            #     logger.error(f"Failed to send activation email to {user.email}: {str(e)}")
+            #     # Optionally, you might want to inform the user or admin about this failure
 
-        return user
+            return user
+
+        except IntegrityError as e:
+            self.add_error(None, "An integrity error occurred. Please check your data and try again.")
+            return None  # Return None in case of an error
+        except Exception as e:
+            self.add_error(None, f"An unexpected error occurred: {str(e)}. Please try again.")
+            return None  # Return None in case of an error
 
 
 class EditTimeSyncProUserBaseForm(forms.ModelForm):
@@ -378,30 +400,7 @@ class DetailedEditEmployeesBaseForm(EditEmployeeBaseForm):
         model = Employee
 
 
-# TODO only company can edit company name and company email
-class EditCompanyForm(forms.ModelForm):
-    class Meta:
-        model = Company
-        fields = [
-            "company_name",
-            "leave_days_per_year",
-            "transferable_leave_days",
-            "location",
-            "leave_approver",
-            "transferable_leave_days",
-            "minimum_leave_notice",
-            "maximum_leave_days_per_request",
-            "working_on_local_holidays",
-        ]
 
-
-
-    # def clean(self):
-    #     cleaned_data = super().clean()
-    #     if 'location' in cleaned_data and not cleaned_data.get('time_zone'):
-    #         # If a location is set but no time zone, suggest one
-    #         cleaned_data['time_zone'] = self.instance.suggest_time_zone()
-    #     return cleaned_data
 
 
 class BasicEditEmployeeForm(BasicEditEmployeesBaseForm):
@@ -412,6 +411,30 @@ class BasicEditEmployeeForm(BasicEditEmployeesBaseForm):
 class DetailedEditEmployeeForm(DetailedEditEmployeesBaseForm):
     class Meta(DetailedEditEmployeesBaseForm.Meta):
         model = Employee
+
+
+# TODO only Administrator can edit company
+class EditCompanyForm(forms.ModelForm):
+    class Meta:
+        model = Company
+        fields = [
+            "name",
+            "leave_days_per_year",
+            "transferable_leave_days",
+            "location",
+            "leave_approver",
+            "transferable_leave_days",
+            "minimum_leave_notice",
+            "maximum_leave_days_per_request",
+            "working_on_local_holidays",
+        ]
+
+    # def clean(self):
+    #     cleaned_data = super().clean()
+    #     if 'location' in cleaned_data and not cleaned_data.get('time_zone'):
+    #         # If a location is set but no time zone, suggest one
+    #         cleaned_data['time_zone'] = self.instance.suggest_time_zone()
+    #     return cleaned_data
 
 
 class DeleteUserForm(forms.Form):

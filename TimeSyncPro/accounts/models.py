@@ -5,7 +5,6 @@ from django.db import models
 from django.db.models import Model, Q
 from django.utils.crypto import get_random_string
 from django.utils.text import slugify
-from django.utils import timezone
 import pytz
 
 from django.utils.translation import gettext_lazy as _
@@ -14,19 +13,14 @@ from django.contrib.auth import models as auth_models
 from django.utils import timezone
 from django_countries.fields import CountryField
 
-# from .managers import LeaveOpsManagerUserManager, EmployeeManager
+from TimeSyncPro.core.model_mixins import CreatedModifiedMixin
 
-from .base_models import CreatedModifiedMixin
-from .funks import normalize_company_name
 from .managers import TimeSyncProUserManager
-from .mixins import AbstractSlugMixin, GroupAssignmentMixin
+from .utils import generate_unique_slug, format_company_name, format_email, capitalize_words
 
 # from .proxy_models import ManagerProxy, HRProxy, TeamLeaderProxy, StaffProxy
 
 from .validators import validate_date_of_hire, phone_number_validator
-
-
-# from TimeSyncPro.accounts.utils import get_related_instance
 
 
 class TimeSyncProUser(auth_models.AbstractBaseUser, auth_models.PermissionsMixin):
@@ -63,12 +57,6 @@ class TimeSyncProUser(auth_models.AbstractBaseUser, auth_models.PermissionsMixin
         null=False,
     )
 
-    # is_company = models.BooleanField(
-    #     default=False,
-    #     blank=False,
-    #     null=False,
-    # )
-
     date_joined = models.DateTimeField(
         _("date joined"),
         default=timezone.now
@@ -82,66 +70,34 @@ class TimeSyncProUser(auth_models.AbstractBaseUser, auth_models.PermissionsMixin
         default=True,
     )
 
+    slug = models.SlugField(
+        max_length=MAX_SLUG_LENGTH,
+        unique=True,
+        null=False,
+        blank=True,
+        editable=False,
+    )
+
     activation_token = models.CharField(max_length=64, blank=True)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = generate_unique_slug(self, 'email', self.MAX_SLUG_LENGTH)
+
+        self.email = format_email(self.email)
+        super().save(*args, **kwargs)
 
     def generate_activation_token(self):
         self.activation_token = get_random_string(64)
         self.save()
         return self.activation_token
 
-    @property
-    def related_instance(self):
-        employee = self.employee
-        return employee if employee else None
-
-    @property
-    def slug(self):
-        employee = self.related_instance
-        return employee.slug if employee else None
-
-    @property
-    def full_name(self):
-        employee = self.related_instance
-        return employee.full_name if employee else None
-
-    @property
-    def company(self):
-        instance = self.related_instance
-        if instance:
-            company = instance.company
-        else:
-            company = None
-
-        if not company:
-            raise AttributeError("The user does not have a company.")
-        return company
-
-    @property
-    def company_name(self):
-        company = self.company
-        return company.company_name if company else None
-
-    @property
-    def company_slug(self):
-        company = self.company
-        return company.slug if company else None
-
-    @property
-    def get_all_user_permissions(self):
-        return Permission.objects.filter(
-            Q(group__in=self.groups.all()) | Q(user=self)
-        ).distinct()
-
-    @property
-    def user_permissions_codenames(self):
-        return self.get_all_user_permissions.values_list('codename', flat=True)
-
     USERNAME_FIELD = "email"
 
     objects = TimeSyncProUserManager()
 
 
-class Company(AbstractSlugMixin, CreatedModifiedMixin):
+class Company(CreatedModifiedMixin):
     MAX_COMPANY_NAME_LENGTH = 50
     MIN_COMPANY_NAME_LENGTH = 3
     DEFAULT_LEAVE_DAYS_PER_YEAR = 0
@@ -151,7 +107,7 @@ class Company(AbstractSlugMixin, CreatedModifiedMixin):
     MIN_LEAVE_NOTICE = 0
     MAX_TIMEZONE_LENGTH = 50
 
-    company_name = models.CharField(
+    name = models.CharField(
         max_length=MAX_COMPANY_NAME_LENGTH,
         validators=[MinLengthValidator(MIN_COMPANY_NAME_LENGTH)],
         unique=True,
@@ -159,14 +115,14 @@ class Company(AbstractSlugMixin, CreatedModifiedMixin):
         blank=False,
     )
 
-    normalized_company_name = models.CharField(
+    formatted_name = models.CharField(
         max_length=MAX_COMPANY_NAME_LENGTH,
         unique=True,
         null=False,
         blank=False,
     )
 
-    company_email = models.EmailField(
+    email = models.EmailField(
         blank=True,
         null=True,
     )
@@ -223,12 +179,6 @@ class Company(AbstractSlugMixin, CreatedModifiedMixin):
         blank=False,
     )
 
-    # user = models.OneToOneField(
-    #     TimeSyncProUser,
-    #     on_delete=models.CASCADE,
-    #     related_name="company",
-    # )
-
     # TODO Add a method to suggest a timezone based on the location
     def suggest_time_zone(self):
         if self.location:
@@ -239,32 +189,37 @@ class Company(AbstractSlugMixin, CreatedModifiedMixin):
 
     def save(self, *args, **kwargs):
         self.time_zone = self.suggest_time_zone()
-        self.normalize_company_name = normalize_company_name(self.company_name)
+        self.formatted_name = format_company_name(self.name)
+        self.name = capitalize_words(self.name)
+        self.email = format_email(self.email)
         super().save(*args, **kwargs)
 
-    def get_slug_identifier(self):
-        return slugify(f"{self.company_name}")
+    @property
+    def slug(self):
+        return slugify(f"{self.name}")
 
-    def get_all_company_members(self):
-        return Employee.objects.filter(company=self)
-
-    def get_all_company_departments(self):
-        return apps.get_model('management', 'Department').objects.filter(company=self)
-
-    def get_all_company_teams(self):
-        return apps.get_model('management', 'Team').objects.filter(company=self)
-
-    def get_all_company_shift_patterns(self):
-        return apps.get_model('management', 'ShiftPattern').objects.filter(company=self)
+    # # TODO FIX IT
+    # def get_all_company_members(self):
+    #     return Employee.objects.filter(company=self)
+    #
+    # def get_all_company_departments(self):
+    #     return apps.get_model('management', 'Department').objects.filter(company=self)
+    #
+    # def get_all_company_teams(self):
+    #     return apps.get_model('management', 'Team').objects.filter(company=self)
+    #
+    # def get_all_company_shift_patterns(self):
+    #     return apps.get_model('management', 'ShiftPattern').objects.filter(company=self)
 
     # def get_group_name(self):
     #     return 'Company'
 
     def __str__(self):
-        return f"{self.__class__.__name__} - {self.company_name}"
+        return f"{self.__class__.__name__} - {self.name}"
 
 
-class Employee(AbstractSlugMixin, GroupAssignmentMixin, CreatedModifiedMixin, models.Model):
+class Employee(CreatedModifiedMixin):
+
     MAX_FIRST_NAME_LENGTH = 30
     MIN_FIRST_NAME_LENGTH = 2
     MAX_LAST_NAME_LENGTH = 30
@@ -402,20 +357,24 @@ class Employee(AbstractSlugMixin, GroupAssignmentMixin, CreatedModifiedMixin, mo
     )
 
     shift_pattern = models.ForeignKey(
-         'management.ShiftPattern',
-         on_delete=models.SET_NULL,
-         null=True,
-         blank=True,
-         related_name="employees",
-     )
+        'management.ShiftPattern',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="employees",
+    )
 
     team = models.ForeignKey(
-         'management.Team',
-         on_delete=models.SET_NULL,
-         null=True,
-         blank=True,
-         related_name="employees",
-     )
+        'management.Team',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="employees",
+    )
+
+    @property
+    def is_administrator(self):
+        return self.role == 'Administrator'
 
     @property
     def is_manager(self):
@@ -456,9 +415,7 @@ class Employee(AbstractSlugMixin, GroupAssignmentMixin, CreatedModifiedMixin, mo
             return StaffProxy.objects.get(id=self.id)
         return self
 
-    def get_slug_identifier(self):
-        return slugify(f"{self.full_name}")
-
+    @property
     def get_group_name(self):
         return self.role
 
@@ -471,28 +428,3 @@ class Employee(AbstractSlugMixin, GroupAssignmentMixin, CreatedModifiedMixin, mo
 
     def __str__(self):
         return f"{self.full_name} - {self.role}"
-
-
-
-    # def promote_to_manager(self):
-    #     # Create a new Manager instance with the same attributes as the employee
-    #     manager = Manager.objects.create(
-    #         first_name=self.first_name,
-    #         last_name=self.last_name,
-    #         employee_id=self.employee_id,
-    #         date_of_hire=self.date_of_hire,
-    #         days_off_left=self.days_off_left,
-    #         phone_number=self.phone_number,
-    #         address=self.address,
-    #         date_of_birth=self.date_of_birth,
-    #         profile_picture=self.profile_picture,
-    #         user=self.user,
-    #         company=self.company,
-    #     )
-    #
-    #     # Delete the Employee instance
-    #     self.delete()
-    #
-    #     return manager
-
-

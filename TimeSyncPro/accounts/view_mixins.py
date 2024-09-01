@@ -4,10 +4,12 @@ from django.contrib import messages
 from django.urls import reverse
 
 from TimeSyncPro.accounts.models import Employee
-from TimeSyncPro.accounts.utils import get_obj_company, get_user_by_slug
 
+
+# TODO check THIS
 
 class OwnerRequiredMixin(AccessMixin):
+
     def _handle_no_permission(self):
         obj = self.get_object()
 
@@ -28,7 +30,7 @@ class CompanyContextMixin():
         company = self.request.user.company
 
         context['company'] = company if company else None
-        context['company_name'] = company.company_name if company else None
+        context['company_name'] = company.name if company else None
         context['company_slug'] = company.slug if company else None
         context['employees'] = Employee.objects.filter(company=company) if company else None
 
@@ -37,8 +39,9 @@ class CompanyContextMixin():
 
 class UserBySlugMixin:
     def get_object(self):
+        queryset = self.queryset
         user_slug = self.kwargs['slug']
-        user_to_edit = get_user_by_slug(user_slug)
+        user_to_edit = queryset.get(user_slug=user_slug)
         return user_to_edit
 
 
@@ -53,11 +56,10 @@ class SuccessUrlMixin:
                 'profile',
                 kwargs={
                     'slug': user.slug,
-                    "company_slug": user.company_slug
+                    "company_slug": user.employee.company.slug
                 }
             )
         return reverse(self.success_url)
-
 
 
 # class UserGroupRequiredMixin(UserPassesTestMixin):
@@ -83,7 +85,7 @@ class DynamicPermissionMixin:
     @staticmethod
     def get_object_class_name(obj):
         if obj.__class__.__name__ == 'TimeSyncProUser':
-            return obj.related_instance.role.lower().replace(' ', '_')
+            return obj.employee.role.lower().replace(' ', '_')
         return obj.__class__.__name__.lower()
 
     def get_action_permission_codename(self, obj, action: str):
@@ -95,12 +97,11 @@ class DynamicPermissionMixin:
         permission_codename = self.get_action_permission_codename(obj, action)
         return f"{obj_app_label}.{permission_codename}"
 
-    def get_all_user_permissions(self, user):
+    @staticmethod
+    def get_all_user_permissions( user):
         all_permissions = user.get_all_permissions()
         print(all_permissions)
         return user.get_all_permissions()
-
-
 
     # def get_action_permission_codename(self, obj, action: str):
     #     permission = self.get_action_permission(obj, action)
@@ -121,7 +122,15 @@ class DynamicPermissionMixin:
         return has_permission
 
 
+def get_obj_company(obj_to_edit):
+    try:
+        return obj_to_edit.company
+    except AttributeError as e:
+        return obj_to_edit
+
+
 class IsAuthorizedUserMixin(UserPassesTestMixin):
+
     def test_func(self, *args, **kwargs):
         user = self.request.user
         obj_to_edit = self.get_object()
@@ -134,14 +143,12 @@ class IsAuthorizedUserMixin(UserPassesTestMixin):
         messages.error(self.request, "You are not authorized to access this page.")
         return redirect('index')
 
-
-class IsCompanyUserMixin(UserPassesTestMixin):
-    def test_func(self, *args, **kwargs):
-        user = self.request.user
-        return user.is_company
-
-    def handle_no_permission(self):
-        messages.error(self.request, "You are not authorized to access this page.")
-        return redirect('index')
-
-
+#
+# class IsCompanyUserMixin(UserPassesTestMixin):
+#     def test_func(self, *args, **kwargs):
+#         user = self.request.user
+#         return user.is_company
+#
+#     def handle_no_permission(self):
+#         messages.error(self.request, "You are not authorized to access this page.")
+#         return redirect('index')
