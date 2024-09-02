@@ -1,7 +1,7 @@
-from TimeSyncPro.accounts.models import Employee
+from TimeSyncPro.accounts.models import Profile
 
 
-class ManagerProxy(Employee):
+class ManagerProxy(Profile):
     class Meta:
         proxy = True
 
@@ -12,7 +12,7 @@ class ManagerProxy(Employee):
         return f"Manager {self.first_name} approved leave request for {leave_request.employee.first_name}"
 
 
-class HRProxy(Employee):
+class HRProxy(Profile):
     class Meta:
         proxy = True
 
@@ -26,7 +26,7 @@ class HRProxy(Employee):
         return f"HR {self.first_name} updated info for {employee.first_name}"
 
 
-class TeamLeaderProxy(Employee):
+class TeamLeaderProxy(Profile):
     class Meta:
         proxy = True
 
@@ -34,7 +34,7 @@ class TeamLeaderProxy(Employee):
         return f"Team Leader {self.first_name} scheduled a team meeting for {date} at {time}"
 
 
-class StaffProxy(Employee):
+class StaffProxy(Profile):
     class Meta:
         proxy = True
 

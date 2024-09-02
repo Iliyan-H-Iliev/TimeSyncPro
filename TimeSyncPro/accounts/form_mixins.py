@@ -1,3 +1,9 @@
+from django.core.exceptions import ValidationError, ImproperlyConfigured
+
+from TimeSyncPro.accounts.utils import format_email
+
+
+
 class ReadonlyFieldsFormMixin:
     readonly_fields = ()
 
@@ -12,3 +18,22 @@ class ReadonlyFieldsFormMixin:
             return self.fields.keys()
 
         return self.readonly_fields
+
+
+class CleanEmailMixin:
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if email:
+            email = format_email(email)
+
+            # Ensure Meta and model are properly defined
+            if not hasattr(self, 'Meta') or not hasattr(self.Meta, 'model'):
+                raise ImproperlyConfigured(
+                    "The 'Meta' class or 'model' attribute is missing in the form."
+                )
+
+            model = self.Meta.model
+
+            if model.objects.filter(email=email).exists():
+                raise ValidationError("A user with this email already exists.")
+        return email

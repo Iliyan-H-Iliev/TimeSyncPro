@@ -47,7 +47,7 @@ class IndexView(views.TemplateView):
             # messages.info(request, "Please log in to access full features of this page.")
             return render(request, self.template_name)
 
-        full_name = user.full_name
+        full_name = user.employee.full_name
 
         return render(request, self.template_name, {
             'full_name': full_name,
@@ -73,12 +73,13 @@ class SignupCompanyAdministratorView(views.CreateView):
 
     @transaction.atomic
     def form_valid(self, form):
+        logger.debug("Entering form_valid method")
         try:
-            # Save the form and get the user
+
             user = form.save()
 
-            # Refresh the user object to ensure all related objects are loaded
-            user.refresh_from_db()
+            # # Refresh the user object to ensure all related objects are loaded
+            # user.refresh_from_db()
 
             # Authenticate and log the user in
             authenticated_user = authenticate(
@@ -257,7 +258,7 @@ class DetailsEmployeesProfileView(
     def get_object(self, queryset=None):
         user_slug = self.kwargs.get('slug')
         # Fetch the object based on slug or raise a 404 if not found
-        self.object = get_object_or_404(self.queryset, user_slug=user_slug)
+        self.object = get_object_or_404(self.queryset, slug=user_slug)
         return self.object
 
     def dispatch(self, request, *args, **kwargs):
@@ -283,6 +284,7 @@ class DetailsCompanyProfileView(
 
     def get_object(self, queryset=None):
         user = self.request.user
+        company = get_object_or_404(self.model, company_id=user.employee.company_id)
         return user.employee.company
 
 
@@ -468,35 +470,46 @@ class EditCompanyView(AuthenticatedViewMixin, views.UpdateView):
         return reverse('company profile', kwargs={'company_slug': company.slug})
 
 
-class DeleteEmployeeView(SuccessUrlMixin, UserBySlugMixin, AuthenticatedViewMixin, PermissionRequiredMixin,
+class DeleteEmployeeView(SuccessUrlMixin, AuthenticatedViewMixin, PermissionRequiredMixin,
                          CompanyCheckMixin, DynamicPermissionMixin, views.DeleteView):
+
     model = UserModel
+    queryset = model.objects.select_related(
+        'employee__company'  # Fetch employee and company in one query
+    ).prefetch_related(
+        Prefetch(
+            'groups',
+            queryset=Group.objects.prefetch_related('permissions')),  # Prefetch permissions through groups
+        'user_permissions'  # Prefetch individual user permissions
+    )
     template_name = 'accounts/delete_user.html'
     success_url = reverse_lazy('company members')
 
     def dispatch(self, request, *args, **kwargs):
         user = request.user
         user_slug = self.kwargs['slug']
-        user_to_delete = UserModel.objects.filter(slug=user_slug).first()
+        user_to_delete = get_object_or_404(self.queryset, slug=user_slug)
         permission = self.get_action_permission(user_to_delete, "delete")
         self.permission_required = permission
         return super().dispatch(request, *args, **kwargs)
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        user = self.request.user
-        user_to_delete = self.get_object()
-        context['has_delete_employee_permission'] = self.has_needed_permission(user, user_to_delete, "delete")
-        return context
+    # def get_context_data(self, **kwargs):
+    #     context = super().get_context_data(**kwargs)
+    #     user = self.request.user
+    #     user_to_delete = get_object_or_404(self.queryset, slug=self.kwargs['slug'])
+    #     all_permissions = list(user.get_all_permissions())
+    #
+    #     context['has_delete_employee_permission'] = self.get_action_permission(user_to_delete, "delete") in all_permissions,
+    #     return context
 
     # def get_success_url(self):
     #     user = self.request.user
-    #     company_slug = user.company_slug
+    #     company_slug = user.employee.company.slug
     #     return reverse('company members', kwargs={"company_slug": company_slug})
 
     def post(self, request, *args, **kwargs):
-        user_to_delete = self.get_object()
-        related_instance = user_to_delete.related_instance
+        user_to_delete = get_object_or_404(self.queryset, slug=self.kwargs['slug'])
+        related_instance = user_to_delete.employee
 
         if related_instance.role == 'Manager':
             manager_teams = related_instance.teams.all()
@@ -512,20 +525,28 @@ class DeleteEmployeeView(SuccessUrlMixin, UserBySlugMixin, AuthenticatedViewMixi
 
 class CompanyMembersView(AuthenticatedViewMixin, CompanyContextMixin, views.ListView):
     model = UserModel
+    queryset = model.objects.select_related(
+        'employee__company'  # Fetch employee and company in one query
+    ).prefetch_related(
+        Prefetch(
+            'groups',
+            queryset=Group.objects.prefetch_related('permissions')),  # Prefetch permissions through groups
+        'user_permissions'  # Prefetch individual user permissions
+    )
     template_name = "accounts/company_members.html"
     context_object_name = 'company'
 
     def get_object(self, queryset=None):
         user = self.request.user
-        company = user.company
+        company = get_object_or_404(self.queryset, employee__company_id=user.employee.company_id)
         return company
 
     # # TODO: CHECK IF THIS IS THE RIGHT WAY TO FETCH RELATED MODELS FOR THE USER PROFILE
-    def get_queryset(self):
-        user_company = self.request.user.company
-        if not user_company:
-            return UserModel.objects.none()  # Return an empty queryset if no company
-        return UserModel.objects.prefetch_related('employee').filter(employee__company=user_company)
+    # def get_queryset(self):
+    #     user_company = self.request.user.employee.company
+    #     if not user_company:
+    #         return UserModel.objects.none()  # Return an empty queryset if no company
+    #     return UserModel.objects.prefetch_related('employee').filter(employee__company=user_company)
 
     def get(self, request, *args, **kwargs):
         company = self.get_object()
@@ -546,14 +567,17 @@ class CompanyMembersView(AuthenticatedViewMixin, CompanyContextMixin, views.List
     #     return context
 
 
+# TODO add permision for delete
+# TODO Create logic for delete company
 class DeleteCompanyView(OwnerRequiredMixin, CompanyCheckMixin, views.DeleteView):
-    model = UserModel
+    model = Company
+    queryset = model.objects.all()
     template_name = 'accounts/delete_company.html'
     success_url = reverse_lazy('index')
 
     def get(self, request, *args, **kwargs):
         user = request.user
-        company = user.company
+        company = user.employee.company
         if not company:
             messages.error(request, "Company not found.")
             return redirect('index')
@@ -561,7 +585,8 @@ class DeleteCompanyView(OwnerRequiredMixin, CompanyCheckMixin, views.DeleteView)
 
     def post(self, request, *args, **kwargs):
         user = request.user
-        user.delete()
+        company = user.employee.company
+        company.delete()
         messages.success(request, "Company deleted successfully.")
         return redirect(self.success_url)
 

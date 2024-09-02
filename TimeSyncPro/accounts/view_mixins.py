@@ -3,7 +3,7 @@ from django.shortcuts import redirect
 from django.contrib import messages
 from django.urls import reverse
 
-from TimeSyncPro.accounts.models import Employee
+from TimeSyncPro.accounts.models import Profile
 
 
 # TODO check THIS
@@ -27,12 +27,12 @@ class OwnerRequiredMixin(AccessMixin):
 class CompanyContextMixin():
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        company = self.request.user.company
+        company = self.request.user.employee.company
 
         context['company'] = company if company else None
         context['company_name'] = company.name if company else None
         context['company_slug'] = company.slug if company else None
-        context['employees'] = Employee.objects.filter(company=company) if company else None
+        context['employees'] = Profile.objects.filter(company=company) if company else None
 
         return context
 
@@ -53,13 +53,26 @@ class SuccessUrlMixin:
         # Ensure the user is authenticated before accessing attributes
         if user.is_authenticated:
             return reverse(
-                'profile',
+                self.success_url,
                 kwargs={
                     'slug': user.slug,
                     "company_slug": user.employee.company.slug
                 }
             )
         return reverse(self.success_url)
+
+    # def get_success_url(self):
+    #     user = self.request.user
+    #     # Ensure the user is authenticated before accessing attributes
+    #     if user.is_authenticated:
+    #         return reverse(
+    #             'profile',
+    #             kwargs={
+    #                 'slug': user.slug,
+    #                 "company_slug": user.employee.company.slug
+    #             }
+    #         )
+    #     return reverse(self.success_url)
 
 
 # class UserGroupRequiredMixin(UserPassesTestMixin):

@@ -6,13 +6,14 @@ from django.contrib.auth.hashers import make_password
 from django.db import transaction, IntegrityError
 from django.db.models import Prefetch
 from django.core.exceptions import ValidationError
+from django.utils.text import slugify
 # from django.urls import reverse
 from django.utils.timezone import now
 
-from .form_mixins import ReadonlyFieldsFormMixin
+from .form_mixins import ReadonlyFieldsFormMixin, CleanEmailMixin
 # from .tasks import send_welcome_email, send_password_reset_email, send_activation_email
-from .utils import format_company_name, format_email
-from .models import  Company,  Employee
+from .utils import format_email
+from .models import  Company,  Profile
 from ..management.models import Team, ShiftPattern, Department
 
 
@@ -22,17 +23,17 @@ UserModel = get_user_model()
 
 
 #TODO Autintication request
-class SignupCompanyAdministratorForm(UserCreationForm):
+class SignupCompanyAdministratorForm(CleanEmailMixin, UserCreationForm):
 
     first_name = forms.CharField(
-        max_length=Employee.MAX_FIRST_NAME_LENGTH,
-        min_length=Employee.MIN_FIRST_NAME_LENGTH,
+        max_length=Profile.MAX_FIRST_NAME_LENGTH,
+        min_length=Profile.MIN_FIRST_NAME_LENGTH,
         required=True,
     )
 
     last_name = forms.CharField(
-        max_length=Employee.MAX_LAST_NAME_LENGTH,
-        min_length=Employee.MIN_LAST_NAME_LENGTH,
+        max_length=Profile.MAX_LAST_NAME_LENGTH,
+        min_length=Profile.MIN_LAST_NAME_LENGTH,
         required=True,
     )
 
@@ -44,22 +45,26 @@ class SignupCompanyAdministratorForm(UserCreationForm):
 
     class Meta:
         model = UserModel
-        fields = ["first_name", "last_name", "email", "name", "password1", "password2"]
+        fields = ["first_name", "last_name", "email", "company_name", "password1", "password2"]
+
+    # def clean_email(self):
+    #     email = self.cleaned_data.get('email')
+    #     if email:
+    #         email = format_email(email)
+    #         if UserModel.objects.filter(email=email).exists():
+    #             raise ValidationError("A user with this email already exists.")
+    #     return email
 
     def clean_email(self):
-        email = self.cleaned_data.get('email')
-        if email:
-            email = format_email(email)
-            if UserModel.objects.filter(email=email).exists():
-                raise ValidationError("A user with this email already exists.")
-        return email
+        # Call the mixin method and pass in the User model
+        return super().clean_email()
 
     def clean_company_name(self):
         company_name = self.cleaned_data.get('company_name')
 
         if company_name:
-            formatted_name = format_company_name(company_name)
-            if Company.objects.filter(formatted_name=formatted_name).exists():
+            slug_name = slugify(company_name)
+            if Company.objects.filter(slug=slug_name).exists():
                 raise ValidationError("A company with this name already exists.")
         return company_name
 
@@ -68,23 +73,28 @@ class SignupCompanyAdministratorForm(UserCreationForm):
             with transaction.atomic():
                 user = super().save(commit=False)
                 user.email = self.cleaned_data["email"]
-                user.save()
+                logger.debug(f"Generated slug: {user.slug}")
+
+                first_name = self.cleaned_data["first_name"]
+                last_name = self.cleaned_data["last_name"]
+
+                # Pass the first_name and last_name to the user save method
+                user.save(first_name=first_name, last_name=last_name)
 
                 company = Company.objects.create(
-                    company_name=self.cleaned_data["name"],
+                    name=self.cleaned_data["company_name"],
                 )
 
-                company.save()
-
-                employee = Employee.objects.create(
+                employee = Profile.objects.create(
                     user=user,
                     company=company,
                     first_name=self.cleaned_data["first_name"],
                     last_name=self.cleaned_data["last_name"],
-                    role=Employee.EmployeeRoles.ADMINISTRATOR,
+                    role=Profile.EmployeeRoles.ADMINISTRATOR,
                 )
 
                 if commit:
+                    company.save()
                     employee.save()
 
                     logger.info(f"Successfully created administrator account for {user.email} at company {company.name}")
@@ -106,7 +116,7 @@ class SignupCompanyAdministratorForm(UserCreationForm):
 # TODO add TeamLeader role
 # TODO new Employee to chose from existing teams
 # TODO use Employee as as fields model
-class SignupEmployeeForm(UserCreationForm):
+class SignupEmployeeForm(CleanEmailMixin, UserCreationForm):
 
     employee_role = []
 
@@ -140,14 +150,14 @@ class SignupEmployeeForm(UserCreationForm):
     )
 
     first_name = forms.CharField(
-        max_length=Employee.MAX_FIRST_NAME_LENGTH,
-        min_length=Employee.MIN_FIRST_NAME_LENGTH,
+        max_length=Profile.MAX_FIRST_NAME_LENGTH,
+        min_length=Profile.MIN_FIRST_NAME_LENGTH,
         required=True,
     )
 
     last_name = forms.CharField(
-        max_length=Employee.MAX_LAST_NAME_LENGTH,
-        min_length=Employee.MIN_LAST_NAME_LENGTH,
+        max_length=Profile.MAX_LAST_NAME_LENGTH,
+        min_length=Profile.MIN_LAST_NAME_LENGTH,
         required=True,
     )
 
@@ -157,8 +167,8 @@ class SignupEmployeeForm(UserCreationForm):
     )
 
     employee_id = forms.CharField(
-        max_length=Employee.MAX_EMPLOYEE_ID_LENGTH,
-        min_length=Employee.MIN_EMPLOYEE_ID_LENGTH,
+        max_length=Profile.MAX_EMPLOYEE_ID_LENGTH,
+        min_length=Profile.MIN_EMPLOYEE_ID_LENGTH,
         required=True,
     )
 
@@ -191,12 +201,14 @@ class SignupEmployeeForm(UserCreationForm):
         required=True,
     )
 
+    def clean_email(self):
+        return super().clean_email()
+
     def clean(self):
         cleaned_data = super().clean()
         user = self.request.user
 
-        # Fetch the company and related departments in one query
-        company = user.employee.company
+        company = user.company
         company_with_departments = Company.objects.prefetch_related('departments').get(id=company.id)
 
         company_departments = company_with_departments.departments.all()
@@ -213,11 +225,11 @@ class SignupEmployeeForm(UserCreationForm):
                                "Please select a 'department' or 'manages departments' for the Manager role")
 
         # Email validation
-        email = cleaned_data.get("email")
-        if email:
-            email = format_email(email)
-            if UserModel.objects.filter(email=email).exists():
-                self.add_error("email", "A user with this email already exists.")
+        # email = cleaned_data.get("email")
+        # if email:
+        #     email = format_email(email)
+        #     if UserModel.objects.filter(email=email).exists():
+        #         self.add_error("email", "A user with this email already exists.")
 
         return cleaned_data
 
@@ -230,10 +242,18 @@ class SignupEmployeeForm(UserCreationForm):
 
         user = self.request.user
 
-        company = user.employee.company
+        company = user.company
 
         if not company:
             raise forms.ValidationError("You must be associated with a company to register employees")
+
+        # all_user_related_data = UserModel.objects.prefetch_related(
+        #     Prefetch('profile', queryset=Profile.objects.all()),
+        #     Prefetch('company', queryset=Company.objects.all()),
+        #     Prefetch('team', queryset=Team.objects.all()),
+        #     Prefetch('department', queryset=Department.objects.all()),
+        #     Prefetch('shift_pattern', queryset=ShiftPattern.objects.all()),
+        # ).get(id=user.id)
 
         # company_with_related_data = Company.objects.select_related(
         #     'user'
@@ -264,7 +284,7 @@ class SignupEmployeeForm(UserCreationForm):
     @staticmethod
     def _adjust_role_choices(user):
 
-        employee_role = Employee.get_all_employee_roles()
+        employee_role = Profile.get_all_employee_roles()
         role_choices = []
 
         for role in employee_role:
@@ -276,7 +296,7 @@ class SignupEmployeeForm(UserCreationForm):
         try:
             with transaction.atomic():
                 # Start transaction: create user and employee records
-                company = self.request.user.employee.company
+                company = self.request.user.company
                 user = UserModel.objects.create_user(
                     email=self.cleaned_data["email"],
                     password=make_password(UserModel.objects.make_random_password()),
@@ -299,7 +319,7 @@ class SignupEmployeeForm(UserCreationForm):
                     "days_off_left": self.cleaned_data["days_off_left"],
                 }
 
-                employee = Employee.objects.create(**common_data)
+                employee = Profile.objects.create(**common_data)
 
                 if commit:
                     user.save()
@@ -354,7 +374,7 @@ class DetailedEditTimeSyncProUserForm(EditTimeSyncProUserBaseForm):
 class EditEmployeeBaseForm(forms.ModelForm):
 
     class Meta:
-        model = Employee
+        model = Profile
         fields = [
             "department",
             "first_name",
@@ -387,7 +407,7 @@ class BasicEditEmployeesBaseForm(ReadonlyFieldsFormMixin, EditEmployeeBaseForm):
     ]
 
     class Meta(EditEmployeeBaseForm.Meta):
-        model = Employee
+        model = Profile
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -397,7 +417,7 @@ class BasicEditEmployeesBaseForm(ReadonlyFieldsFormMixin, EditEmployeeBaseForm):
 class DetailedEditEmployeesBaseForm(EditEmployeeBaseForm):
 
     class Meta(EditEmployeeBaseForm.Meta):
-        model = Employee
+        model = Profile
 
 
 
@@ -405,12 +425,12 @@ class DetailedEditEmployeesBaseForm(EditEmployeeBaseForm):
 
 class BasicEditEmployeeForm(BasicEditEmployeesBaseForm):
     class Meta(BasicEditEmployeesBaseForm.Meta):
-        model = Employee
+        model = Profile
 
 
 class DetailedEditEmployeeForm(DetailedEditEmployeesBaseForm):
     class Meta(DetailedEditEmployeesBaseForm.Meta):
-        model = Employee
+        model = Profile
 
 
 # TODO only Administrator can edit company

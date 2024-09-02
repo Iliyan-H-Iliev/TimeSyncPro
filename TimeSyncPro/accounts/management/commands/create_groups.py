@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import Group, Permission
 
-from TimeSyncPro.accounts.models import Employee
+from TimeSyncPro.accounts.models import Profile
 
 
 class Command(BaseCommand):
@@ -118,17 +118,17 @@ class Command(BaseCommand):
         staff_group.permissions.set(staff_permissions)
 
         # Assign users to groups
-        for employee in Employee.objects.all():
-            if employee.role == Employee.EmployeeRoles.ADMINISTRATOR:
+        for employee in Profile.objects.all():
+            if employee.role == Profile.EmployeeRoles.ADMINISTRATOR:
                 employee.user.groups.add(administrator_group)
-        for employee in Employee.objects.all():
-            if employee.role == Employee.EmployeeRoles.HR:
+        for employee in Profile.objects.all():
+            if employee.role == Profile.EmployeeRoles.HR:
                 employee.user.groups.add(hr_group)
-            elif employee.role == Employee.EmployeeRoles.MANAGER:
+            elif employee.role == Profile.EmployeeRoles.MANAGER:
                 employee.user.groups.add(manager_group)
-            elif employee.role == Employee.EmployeeRoles.TEAM_LEADER:
+            elif employee.role == Profile.EmployeeRoles.TEAM_LEADER:
                 employee.user.groups.add(team_leader_group)
-            elif employee.role == Employee.EmployeeRoles.STAFF:
+            elif employee.role == Profile.EmployeeRoles.STAFF:
                 employee.user.groups.add(staff_group)
 
         self.stdout.write(self.style.SUCCESS("Successfully created groups and assigned permissions"))

@@ -2,7 +2,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.core.validators import MinValueValidator, MinLengthValidator, MaxValueValidator
 from django.utils import timezone
-from TimeSyncPro.accounts.models import Company, Employee
+from TimeSyncPro.accounts.models import Company, Profile
 from datetime import date, timedelta
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -27,7 +27,7 @@ class Department(models.Model):
     )
 
     leave_approver = models.ForeignKey(
-        Employee,
+        Profile,
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
@@ -231,7 +231,7 @@ class Team(models.Model):
     )
     
     leave_approver = models.ForeignKey(
-        Employee,
+        Profile,
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
@@ -263,7 +263,7 @@ class Team(models.Model):
         return self.employees.all()
 
     def get_team_leaders(self):
-        return self.employees.filter(role=Employee.EmployeeRoles.TEAM_LEADER)
+        return self.employees.filter(role=Profile.EmployeeRoles.TEAM_LEADER)
 
     def __str__(self):
         return self.name

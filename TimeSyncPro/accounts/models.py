@@ -16,7 +16,7 @@ from django_countries.fields import CountryField
 from TimeSyncPro.core.model_mixins import CreatedModifiedMixin
 
 from .managers import TimeSyncProUserManager
-from .utils import generate_unique_slug, format_company_name, format_email, capitalize_words
+from .utils import generate_unique_slug, format_email
 
 # from .proxy_models import ManagerProxy, HRProxy, TeamLeaderProxy, StaffProxy
 
@@ -78,19 +78,39 @@ class TimeSyncProUser(auth_models.AbstractBaseUser, auth_models.PermissionsMixin
         editable=False,
     )
 
-    activation_token = models.CharField(max_length=64, blank=True)
+    activation_token = models.CharField(max_length=64, blank=True, null=True)
 
-    def save(self, *args, **kwargs):
+    def save(self, *args, first_name=None, last_name=None, **kwargs):
+
         if not self.slug:
-            self.slug = generate_unique_slug(self, 'email', self.MAX_SLUG_LENGTH)
 
-        self.email = format_email(self.email)
+            if first_name and last_name:
+                full_name = f"{first_name} {last_name}"
+            else:
+                full_name = self.email.split('@')[0]
+
+            slug = generate_unique_slug(full_name, self.MAX_SLUG_LENGTH)
+
+            while TimeSyncProUser.objects.filter(slug=slug).exists():
+                slug = generate_unique_slug(full_name, self.MAX_SLUG_LENGTH)
+
+            self.slug = slug
+
+        if self.email:
+            self.email = format_email(self.email)
         super().save(*args, **kwargs)
 
     def generate_activation_token(self):
         self.activation_token = get_random_string(64)
         self.save()
         return self.activation_token
+
+    def __str__(self):
+        return f"{self.__class__.__name__} - {self.email}"
+
+    @property
+    def company(self):
+        return self.profile.company
 
     USERNAME_FIELD = "email"
 
@@ -106,17 +126,11 @@ class Company(CreatedModifiedMixin):
     MAX_LEAVE_DAYS_PER_REQUEST = 30
     MIN_LEAVE_NOTICE = 0
     MAX_TIMEZONE_LENGTH = 50
+    MAX_SLUG_LENGTH = 100
 
     name = models.CharField(
         max_length=MAX_COMPANY_NAME_LENGTH,
         validators=[MinLengthValidator(MIN_COMPANY_NAME_LENGTH)],
-        unique=True,
-        null=False,
-        blank=False,
-    )
-
-    formatted_name = models.CharField(
-        max_length=MAX_COMPANY_NAME_LENGTH,
         unique=True,
         null=False,
         blank=False,
@@ -128,7 +142,7 @@ class Company(CreatedModifiedMixin):
     )
 
     leave_approver = models.ForeignKey(
-        'accounts.Employee',
+        'accounts.Profile',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -179,6 +193,14 @@ class Company(CreatedModifiedMixin):
         blank=False,
     )
 
+    slug = models.SlugField(
+        max_length=MAX_SLUG_LENGTH,
+        unique=True,
+        null=False,
+        blank=True,
+        editable=False,
+    )
+
     # TODO Add a method to suggest a timezone based on the location
     def suggest_time_zone(self):
         if self.location:
@@ -187,16 +209,16 @@ class Company(CreatedModifiedMixin):
                 return country_timezones[0]  # Return the first timezone for the country
         return 'UTC'
 
+    # TODO Check ii works correctly
     def save(self, *args, **kwargs):
         self.time_zone = self.suggest_time_zone()
-        self.formatted_name = format_company_name(self.name)
-        self.name = capitalize_words(self.name)
-        self.email = format_email(self.email)
-        super().save(*args, **kwargs)
 
-    @property
-    def slug(self):
-        return slugify(f"{self.name}")
+        if not self.slug:
+            self.slug = slugify(self.name)[:self.MAX_SLUG_LENGTH]
+
+        if self.email:
+            self.email = format_email(self.email)
+        super().save(*args, **kwargs)
 
     # # TODO FIX IT
     # def get_all_company_members(self):
@@ -218,8 +240,7 @@ class Company(CreatedModifiedMixin):
         return f"{self.__class__.__name__} - {self.name}"
 
 
-class Employee(CreatedModifiedMixin):
-
+class Profile(CreatedModifiedMixin):
     MAX_FIRST_NAME_LENGTH = 30
     MIN_FIRST_NAME_LENGTH = 2
     MAX_LAST_NAME_LENGTH = 30
@@ -269,7 +290,7 @@ class Employee(CreatedModifiedMixin):
     user = models.OneToOneField(
         TimeSyncProUser,
         on_delete=models.CASCADE,
-        related_name="employee",
+        related_name="profile",
     )
 
     company = models.ForeignKey(
@@ -416,7 +437,7 @@ class Employee(CreatedModifiedMixin):
         return self
 
     @property
-    def get_group_name(self):
+    def group_name(self):
         return self.role
 
     @property
