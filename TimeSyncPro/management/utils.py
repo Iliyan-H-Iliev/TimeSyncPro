@@ -123,7 +123,7 @@ def handle_shift_pattern_post(request, form, formset, pk, template_name, redirec
     if form.is_valid() and formset.is_valid():
         shift_pattern = form.save(commit=False)
         combined_shift_blocks = retrieve_combined_shift_blocks(formset, shift_pattern, is_edit=bool(pk))
-        shift_pattern.company = request.user.get_company
+        shift_pattern.company = request.user.company
         is_duplicate = is_duplicate_name(form, shift_pattern, is_edit=bool(pk))
         has_consistent = has_consistent_block_type(form, combined_shift_blocks)
         has_days_off = validate_days_on_off_in_shift_pattern(form, formset)

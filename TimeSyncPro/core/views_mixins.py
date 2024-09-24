@@ -1,7 +1,8 @@
 from django.contrib.auth.mixins import AccessMixin
-from django.shortcuts import  redirect
+from django.shortcuts import redirect, get_object_or_404
 
-from TimeSyncPro.accounts.utils import get_obj_company, get_user_by_slug
+
+# from TimeSyncPro.accounts.utils import get_obj_company, get_user_by_slug
 
 
 class AuthenticatedViewMixin(object):
@@ -12,16 +13,37 @@ class AuthenticatedViewMixin(object):
         return super(AuthenticatedViewMixin, self).dispatch(request, *args, **kwargs)
 
 
+# class CompanyCheckMixin:
+#     redirect_url = 'index'  # Default redirect URL
+#
+#     def dispatch(self, request, *args, **kwargs):
+#         queryset = self.queryset
+#         user = request.user
+#         user_slug = self.kwargs['slug']
+#         # obj_to_check = get_user_by_slug(user_slug)
+#         obj_to_check = queryset.get(employee__slug=user_slug)
+#
+#         if user.company != get_obj_company(obj_to_check):
+#             return redirect(self.get_redirect_url())
+#         return super().dispatch(request, *args, **kwargs)
+#
+#     def get_redirect_url(self):
+#         return self.redirect_url
+
 class CompanyCheckMixin:
     redirect_url = 'index'  # Default redirect URL
 
     def dispatch(self, request, *args, **kwargs):
         user = request.user
         user_slug = self.kwargs['slug']
-        obj_to_check = get_user_by_slug(user_slug)
 
-        if user.get_company != get_obj_company(obj_to_check):
+        # Fetch the user with related Employee and Company in a single query
+        user_to_check = get_object_or_404(self.queryset, slug=user_slug)
+
+        # Compare the user's company with the fetched object's company
+        if user.employee.company.id != user_to_check.employee.company.id:
             return redirect(self.get_redirect_url())
+
         return super().dispatch(request, *args, **kwargs)
 
     def get_redirect_url(self):

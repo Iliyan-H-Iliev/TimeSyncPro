@@ -1,42 +1,20 @@
-from django.contrib.auth import get_user_model
-from django.db.models import Q
-from django.http import Http404
+import uuid
 
-from .forms import  BasicEditEmployeeForm, EditCompanyForm, DetailedEditEmployeesBaseForm
-from .models import Company, Employee
-
-UserModel = get_user_model()
+from django.utils.text import slugify
 
 
-def get_user_by_slug(slug):
-    user = UserModel.objects.prefetch_related('company', 'employee').filter(
-        Q(company__slug=slug) | Q(employee__slug=slug)
-    ).first()
+def generate_unique_slug(full_name, max_length):
+    base_slug = slugify(full_name)[:max_length - 9]
+    unique_slug = f"{base_slug}-{uuid.uuid4().hex[:8]}"
 
-    if user is None:
-        raise Http404("No user found")
-
-    return user
+    return unique_slug[:max_length]
 
 
-def get_additional_form_class(is_company, detailed_edit=False):
-    form_class = None
-
-    if is_company:
-        form_class = EditCompanyForm
-    elif not is_company:
-        form_class = DetailedEditEmployeesBaseForm if detailed_edit else BasicEditEmployeeForm
-
-    return form_class
-
-
-def get_obj_company(obj):
-
-    if obj is None:
+def format_email(email):
+    if email is None:
         return None
+    return email.lower()
 
-    if obj.__class__.__name__ == 'TimeSyncProUser':
-        return obj.get_company
-    else:
-        return obj.company
 
+def capitalize_words(string):
+    return " ".join([word.capitalize() for word in string.split()])

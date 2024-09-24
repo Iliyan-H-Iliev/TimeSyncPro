@@ -5,7 +5,6 @@ from django.db import models
 from django.db.models import Model, Q
 from django.utils.crypto import get_random_string
 from django.utils.text import slugify
-from django.utils import timezone
 import pytz
 
 from django.utils.translation import gettext_lazy as _
@@ -14,17 +13,14 @@ from django.contrib.auth import models as auth_models
 from django.utils import timezone
 from django_countries.fields import CountryField
 
-# from .managers import LeaveOpsManagerUserManager, EmployeeManager
+from TimeSyncPro.core.model_mixins import CreatedModifiedMixin
 
-from .base_models import CreatedModifiedMixin
 from .managers import TimeSyncProUserManager
-from .mixins import AbstractSlugMixin, GroupAssignmentMixin
+from .utils import generate_unique_slug, format_email
+
 # from .proxy_models import ManagerProxy, HRProxy, TeamLeaderProxy, StaffProxy
 
 from .validators import validate_date_of_hire, phone_number_validator
-
-
-# from TimeSyncPro.accounts.utils import get_related_instance
 
 
 class TimeSyncProUser(auth_models.AbstractBaseUser, auth_models.PermissionsMixin):
@@ -61,12 +57,6 @@ class TimeSyncProUser(auth_models.AbstractBaseUser, auth_models.PermissionsMixin
         null=False,
     )
 
-    is_company = models.BooleanField(
-        default=False,
-        blank=False,
-        null=False,
-    )
-
     date_joined = models.DateTimeField(
         _("date joined"),
         default=timezone.now
@@ -80,57 +70,54 @@ class TimeSyncProUser(auth_models.AbstractBaseUser, auth_models.PermissionsMixin
         default=True,
     )
 
-    @property
-    def related_instance(self):
-        if self.is_company:
-            return self.company
+    slug = models.SlugField(
+        max_length=MAX_SLUG_LENGTH,
+        unique=True,
+        null=False,
+        blank=True,
+        editable=False,
+    )
 
-        return self.employee
+    activation_token = models.CharField(max_length=64, blank=True, null=True)
 
-    @property
-    def slug(self):
-        related_instance = self.related_instance
-        return related_instance.slug if related_instance else None
+    def save(self, *args, first_name=None, last_name=None, **kwargs):
 
-    @property
-    def full_name(self):
+        if not self.slug:
 
-        if self.is_company:
-            return self.related_instance.company_name
+            if first_name and last_name:
+                full_name = f"{first_name} {last_name}"
+            else:
+                full_name = self.email.split('@')[0]
 
-        return self.related_instance.full_name
+            slug = generate_unique_slug(full_name, self.MAX_SLUG_LENGTH)
 
-    @property
-    def get_company(self):
+            while TimeSyncProUser.objects.filter(slug=slug).exists():
+                slug = generate_unique_slug(full_name, self.MAX_SLUG_LENGTH)
 
-        if self.is_company:
-            return self.related_instance
+            self.slug = slug
 
-        company = self.related_instance.company if hasattr(self.related_instance, 'company') else None
-        return company
+        if self.email:
+            self.email = format_email(self.email)
+        super().save(*args, **kwargs)
 
-    @property
-    def get_company_name(self):
-        company = self.get_company
+    def generate_activation_token(self):
+        self.activation_token = get_random_string(64)
+        self.save()
+        return self.activation_token
 
-        return company.company_name if company else None
-
-    @property
-    def get_all_user_permissions(self):
-        return Permission.objects.filter(
-            Q(group__in=self.groups.all()) | Q(user=self)
-        ).distinct()
+    def __str__(self):
+        return f"{self.__class__.__name__} - {self.email}"
 
     @property
-    def user_permissions_codenames(self):
-        return self.get_all_user_permissions.values_list('codename', flat=True)
+    def company(self):
+        return self.profile.company
 
     USERNAME_FIELD = "email"
 
     objects = TimeSyncProUserManager()
 
 
-class Company(AbstractSlugMixin, GroupAssignmentMixin, CreatedModifiedMixin):
+class Company(CreatedModifiedMixin):
     MAX_COMPANY_NAME_LENGTH = 50
     MIN_COMPANY_NAME_LENGTH = 3
     DEFAULT_LEAVE_DAYS_PER_YEAR = 0
@@ -139,16 +126,23 @@ class Company(AbstractSlugMixin, GroupAssignmentMixin, CreatedModifiedMixin):
     MAX_LEAVE_DAYS_PER_REQUEST = 30
     MIN_LEAVE_NOTICE = 0
     MAX_TIMEZONE_LENGTH = 50
+    MAX_SLUG_LENGTH = 100
 
-    company_name = models.CharField(
+    name = models.CharField(
         max_length=MAX_COMPANY_NAME_LENGTH,
         validators=[MinLengthValidator(MIN_COMPANY_NAME_LENGTH)],
+        unique=True,
         null=False,
         blank=False,
     )
 
+    email = models.EmailField(
+        blank=True,
+        null=True,
+    )
+
     leave_approver = models.ForeignKey(
-        'accounts.Employee',
+        'accounts.Profile',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -199,12 +193,15 @@ class Company(AbstractSlugMixin, GroupAssignmentMixin, CreatedModifiedMixin):
         blank=False,
     )
 
-    user = models.OneToOneField(
-        TimeSyncProUser,
-        on_delete=models.CASCADE,
-        related_name="company",
+    slug = models.SlugField(
+        max_length=MAX_SLUG_LENGTH,
+        unique=True,
+        null=False,
+        blank=True,
+        editable=False,
     )
 
+    # TODO Add a method to suggest a timezone based on the location
     def suggest_time_zone(self):
         if self.location:
             country_timezones = pytz.country_timezones.get(self.location.code)
@@ -212,33 +209,38 @@ class Company(AbstractSlugMixin, GroupAssignmentMixin, CreatedModifiedMixin):
                 return country_timezones[0]  # Return the first timezone for the country
         return 'UTC'
 
+    # TODO Check ii works correctly
     def save(self, *args, **kwargs):
         self.time_zone = self.suggest_time_zone()
+
+        if not self.slug:
+            self.slug = slugify(self.name)[:self.MAX_SLUG_LENGTH]
+
+        if self.email:
+            self.email = format_email(self.email)
         super().save(*args, **kwargs)
 
-    def get_slug_identifier(self):
-        return slugify(f"{self.company_name}-{get_random_string(self.RANDOM_STRING_LENGTH)}")
+    # # TODO FIX IT
+    # def get_all_company_members(self):
+    #     return Employee.objects.filter(company=self)
+    #
+    # def get_all_company_departments(self):
+    #     return apps.get_model('management', 'Department').objects.filter(company=self)
+    #
+    # def get_all_company_teams(self):
+    #     return apps.get_model('management', 'Team').objects.filter(company=self)
+    #
+    # def get_all_company_shift_patterns(self):
+    #     return apps.get_model('management', 'ShiftPattern').objects.filter(company=self)
 
-    def get_all_company_members(self):
-        return Employee.objects.filter(company=self)
-
-    def get_all_company_departments(self):
-        return apps.get_model('management', 'Department').objects.filter(company=self)
-
-    def get_all_company_teams(self):
-        return apps.get_model('management', 'Team').objects.filter(company=self)
-
-    def get_all_company_shift_patterns(self):
-        return apps.get_model('management', 'ShiftPattern').objects.filter(company=self)
-
-    def get_group_name(self):
-        return 'Company'
+    # def get_group_name(self):
+    #     return 'Company'
 
     def __str__(self):
-        return f"{self.__class__.__name__} - {self.company_name}"
+        return f"{self.__class__.__name__} - {self.name}"
 
 
-class Employee(AbstractSlugMixin, GroupAssignmentMixin, CreatedModifiedMixin, models.Model):
+class Profile(CreatedModifiedMixin):
     MAX_FIRST_NAME_LENGTH = 30
     MIN_FIRST_NAME_LENGTH = 2
     MAX_LAST_NAME_LENGTH = 30
@@ -247,16 +249,26 @@ class Employee(AbstractSlugMixin, GroupAssignmentMixin, CreatedModifiedMixin, mo
     MIN_EMPLOYEE_ID_LENGTH = 5
     MAX_PHONE_NUMBER_LENGTH = 15
 
-    class EmployeeRole(models.TextChoices):
+    class EmployeeRoles(models.TextChoices):
         STAFF = 'Staff', 'Staff'
         TEAM_LEADER = 'Team Leader', 'Team Leader'
         MANAGER = 'Manager', 'Manager'
         HR = 'HR', 'HR'
+        ADMINISTRATOR = 'Administrator', 'Administrator'
 
     # objects = EmployeeManager()
 
     class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['employee_id', 'company'],
+                name='unique_employee_id_per_company'
+            )]
         permissions = [
+            ('add_administrator', 'Can add Administrator'),
+            ('change_administrator', 'Can change Administrator'),
+            ('delete_administrator', 'Can delete Administrator'),
+            ('view_administrator', 'Can view Administrator'),
             ('add_hr', 'Can add HR'),
             ('change_hr', 'Can change HR'),
             ('delete_hr', 'Can delete HR'),
@@ -278,12 +290,12 @@ class Employee(AbstractSlugMixin, GroupAssignmentMixin, CreatedModifiedMixin, mo
     user = models.OneToOneField(
         TimeSyncProUser,
         on_delete=models.CASCADE,
-        related_name="employee",
+        related_name="profile",
     )
 
     company = models.ForeignKey(
         Company,
-        on_delete=models.CASCADE,
+        on_delete=models.DO_NOTHING,
         related_name="employees",
         blank=False,
         null=False,
@@ -306,28 +318,27 @@ class Employee(AbstractSlugMixin, GroupAssignmentMixin, CreatedModifiedMixin, mo
     employee_id = models.CharField(
         max_length=MAX_EMPLOYEE_ID_LENGTH,
         validators=[MinLengthValidator(MIN_EMPLOYEE_ID_LENGTH)],
-        unique=True,
-        blank=False,
-        null=False,
+        blank=True,
+        null=True,
     )
 
     role = models.CharField(
-        max_length=max([len(choice) for choice in EmployeeRole.values]),
-        choices=EmployeeRole.choices,
-        default=EmployeeRole.STAFF,
-        blank=False,
-        null=False,
+        max_length=max([len(choice) for choice in EmployeeRoles.values]),
+        choices=EmployeeRoles.choices,
+        default=EmployeeRoles.STAFF,
+        blank=True,
+        null=True,
     )
 
     date_of_hire = models.DateField(
         validators=[validate_date_of_hire],
-        blank=False,
-        null=False,
+        blank=True,
+        null=True,
     )
 
     days_off_left = models.PositiveSmallIntegerField(
-        blank=False,
-        null=False,
+        blank=True,
+        null=True,
     )
 
     phone_number = models.CharField(
@@ -354,33 +365,37 @@ class Employee(AbstractSlugMixin, GroupAssignmentMixin, CreatedModifiedMixin, mo
     department = models.ForeignKey(
         'management.Department',
         on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
         related_name="employees",
+        blank=True,
+        null=True,
     )
 
     # For Manager and HR
     manages_departments = models.ManyToManyField(
         'management.Department',
         related_name="managers",
-        blank=True,
+
     )
 
     shift_pattern = models.ForeignKey(
-         'management.ShiftPattern',
-         on_delete=models.SET_NULL,
-         null=True,
-         blank=True,
-         related_name="employees",
-     )
+        'management.ShiftPattern',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="employees",
+    )
 
     team = models.ForeignKey(
-         'management.Team',
-         on_delete=models.SET_NULL,
-         null=True,
-         blank=True,
-         related_name="employees",
-     )
+        'management.Team',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="employees",
+    )
+
+    @property
+    def is_administrator(self):
+        return self.role == 'Administrator'
 
     @property
     def is_manager(self):
@@ -400,10 +415,13 @@ class Employee(AbstractSlugMixin, GroupAssignmentMixin, CreatedModifiedMixin, mo
 
     @classmethod
     def get_all_employee_roles(cls):
-        employee_role = [role.value for role in cls.EmployeeRole]
+        employee_role = [role.value for role in cls.EmployeeRoles]
         return employee_role
 
     def get_role_specific_instance(self):
+        if self.role == 'Administrator':
+            AdministratorProxy = apps.get_model('accounts', 'AdministratorProxy')
+            return AdministratorProxy.objects.get(id=self.id)
         if self.role == 'Manager':
             ManagerProxy = apps.get_model('accounts', 'ManagerProxy')
             return ManagerProxy.objects.get(id=self.id)
@@ -418,10 +436,8 @@ class Employee(AbstractSlugMixin, GroupAssignmentMixin, CreatedModifiedMixin, mo
             return StaffProxy.objects.get(id=self.id)
         return self
 
-    def get_slug_identifier(self):
-        return slugify(f"{self.full_name}-{self.employee_id}")
-
-    def get_group_name(self):
+    @property
+    def group_name(self):
         return self.role
 
     @property
@@ -433,28 +449,3 @@ class Employee(AbstractSlugMixin, GroupAssignmentMixin, CreatedModifiedMixin, mo
 
     def __str__(self):
         return f"{self.full_name} - {self.role}"
-
-
-
-    # def promote_to_manager(self):
-    #     # Create a new Manager instance with the same attributes as the employee
-    #     manager = Manager.objects.create(
-    #         first_name=self.first_name,
-    #         last_name=self.last_name,
-    #         employee_id=self.employee_id,
-    #         date_of_hire=self.date_of_hire,
-    #         days_off_left=self.days_off_left,
-    #         phone_number=self.phone_number,
-    #         address=self.address,
-    #         date_of_birth=self.date_of_birth,
-    #         profile_picture=self.profile_picture,
-    #         user=self.user,
-    #         company=self.company,
-    #     )
-    #
-    #     # Delete the Employee instance
-    #     self.delete()
-    #
-    #     return manager
-
-

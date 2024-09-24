@@ -1,0 +1,93 @@
+#services:
+#  db:
+#    image: postgres:15
+#    environment:
+#      POSTGRES_DB: 'time_sync_pro'
+#      POSTGRES_USER: "postgres"
+#      POSTGRES_PASSWORD: 'Asdf123'
+#    volumes:
+#      - postgres_data:/var/lib/postgresql/data
+#    ports:
+#      - "5432:5432"
+#
+#  redis:
+#    image: redis:5.0.8
+#    ports:
+#      - "6379:6379"
+#
+#  web:
+#    build: .
+#    command: gunicorn TimeSyncPro.wsgi:application --bind 0.0.0.0:8000
+#    volumes:
+#      - .:/usr/src/app
+#    ports:
+#      - "8000:8000"
+#    depends_on:
+#      - db
+#      - redis
+#    environment:
+#      - POSTGRES_DB=time_sync_pro
+#      - POSTGRES_USER=postgres
+#      - POSTGRES_PASSWORD=Asdf123
+#      - CELERY_BROKER_URL=redis://redis:6379/0
+#      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+#
+#  worker:
+#    build: .
+#    command: celery -A TimeSyncPro worker --loglevel=info
+#    volumes:
+#      - .:/usr/src/app
+#    depends_on:
+#      - redis
+#      - db
+#    environment:
+#      - CELERY_BROKER_URL=redis://redis:6379/0
+#      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+#
+#  beat:
+#    build: .
+#    command: celery -A TimeSyncPro beat --loglevel=info
+#    volumes:
+#      - .:/usr/src/app
+#    depends_on:
+#      - redis
+#      - db
+#    environment:
+#      - CELERY_BROKER_URL=redis://redis:6379/0
+#      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+#
+#  flower:
+#    build: ./
+#    command: celery -A TimeSyncPro flower --port=5555
+#    ports:
+#      - "5555:5555"
+#    depends_on:
+#      - redis
+#      - db
+#      - web
+#      - worker
+#    environment:
+#      - CELERY_BROKER_URL=redis://redis:6379/0
+#      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+#
+#
+#volumes:
+#  postgres_data:
+
+
+version: '3.4'
+
+services:
+  mailcatcher:
+    image: schickling/mailcatcher
+    ports:
+        - "1080:1080"
+        - "1025:1025"
+  redis:
+    image: redis:alpine
+    ports:
+        - "6379:6379"
+  redisinght:
+    image: redislabs/redisinsight:latest
+    ports:
+        - "5540:5540"

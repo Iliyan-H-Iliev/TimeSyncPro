@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 
-from TimeSyncPro.accounts.models import Company, Employee
+from TimeSyncPro.accounts.models import Company, Profile
 
 UserModel = get_user_model()
 
@@ -28,26 +28,26 @@ class UserModelAdmin(admin.ModelAdmin):
     ]
 
 
-@admin.register(Company)
-class CompanyAdmin(admin.ModelAdmin):
+# @admin.register(Company)
+# class CompanyAdmin(admin.ModelAdmin):
+#
+#     list_display = [
+#         'company_name',
+#         'user',
+#     ]
+#
+#     search_fields = [
+#         'company_name',
+#         'user',
+#     ]
+#
+#     list_filter = [
+#         'company_name',
+#         'user',
+#     ]
 
-    list_display = [
-        'company_name',
-        'user',
-    ]
 
-    search_fields = [
-        'company_name',
-        'user',
-    ]
-
-    list_filter = [
-        'company_name',
-        'user',
-    ]
-
-
-@admin.register(Employee)
+@admin.register(Profile)
 class EmployeeAdmin(admin.ModelAdmin):
 
     list_display = [

@@ -40,13 +40,13 @@
 <body>
     <div class="container">
         <h1>Delete Team</h1>
-        <p>Are you sure you want to delete the team "<strong>{{ user.get_company.company_name }}</strong>"?</p>
+        <p>Are you sure you want to delete the team "<strong>{{ user.company_slug }}</strong>"?</p>
         <p>This action cannot be undone.</p>
         <form method="post">
             {% csrf_token %}
             <div class="button-container">
                 <button type="submit" class="button button-yes">Yes, delete it</button>
-                <a href="{% url 'edit profile'  slug=user.slug company_name=user.get_company_name %}" class="button button-no">No, go back</a>
+                <a href="{% url 'edit profile'  slug=user.slug company_slug=user.company_slug %}" class="button button-no">No, go back</a>
             </div>
         </form>
     </div>

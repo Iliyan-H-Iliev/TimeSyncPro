@@ -1,0 +1,112 @@
+{#{% extends "layout.html" %}#}
+{#{% block content %}#}
+{##}
+{#    {% load filters %}#}
+{#    <form action="{% url 'register company' %}" method="post">#}
+{#        {{ form.as_p }}#}
+{#        <button type="submit">Regist</button>#}
+{##}
+{#        {% csrf_token %}#}
+{#    </form>#}
+{##}
+{#{% endblock %}#}
+{##}
+{% load static %}
+{% load filters %}
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TimeSyncPro</title>
+    <link rel="stylesheet" href="{% static 'styles/site.css' %}">
+</head>
+
+<body>
+
+<div class="signup-container">
+    <div class="signup-form-container">
+
+        <div class="container-logo-login-signup" id="tsp-logo">
+
+            <div class="container-logo-tsp" id="tsp-logo">
+                <a href="{% url 'index' %}"><img src="{% static 'images/tsp-logo-withe-orange.png' %}"
+                                                 alt="TimeSyncPro"></a>
+            </div>
+
+        </div>
+
+        <h2>Sign Up</h2>
+
+        <form action="/register-company/" method="post">
+            {% csrf_token %}
+
+            <div class="input-box">
+                <span class="icon">
+          <i class="fa-regular fa-user"></i>
+        </span>
+                <label for="id_first_name">First name:</label>
+                <input type="text" name="first_name" maxlength="30" minlength="2" required="" id="id_first_name">
+
+            </div>
+
+            <div class="input-box">
+                <span class="icon">
+          <i class="fa-regular fa-user"></i>
+        </span>
+                <label for="id_last_name">Last name:</label>
+                <input type="text" name="last_name" maxlength="30" minlength="2" required="" id="id_last_name">
+                
+            </div>
+
+            <div class="input-box">
+                <span class="icon">
+          <i class="fa-regular fa-user"></i>
+        </span>
+                <input type="text" name="company_name" autofocus="autofocus" maxlength="50" minlength="3" required=""
+                       id="id_company_name">
+                <label for="id_company_name">Company name:</label>
+            </div>
+
+            <div class="input-box">
+                <span class="icon">
+                <i class="fa-regular fa-envelope"></i>
+        </span>
+                <input type="email" name="email" maxlength="254" autofocus="" required="" id="id_email">
+                <label for="id_email">Email address:</label>
+            </div>
+
+            <div class="input-box">
+                <span class="icon">
+                <i class="fa-solid fa-lock"></i>
+        </span>
+                <input type="password" name="password1" autocomplete="new-password" required="" id="id_password1">
+
+                <label for="id_password1">Password:</label>
+            </div>
+
+            <div class="input-box">
+                <span class="icon">
+                <i class="fa-solid fa-lock"></i>
+        </span>
+                <input type="password" name="password2" autocomplete="new-password" required=""
+                       aria-describedby="id_password2_helptext" id="id_password2">
+
+                <label for="id_password2">Confirm password:</label>
+            </div>
+
+            <button class="sign-up-button" type="submit">Register</button>
+
+            <div class="register-link">
+                <p>Already a member? <a href="{% url 'signin user' %}">Log in</a></p>
+            </div>
+
+        </form>
+    </div>
+</div>
+</body>
+<script src="{% static 'javascript/signup-login.js' %}"></script>
+</html>
