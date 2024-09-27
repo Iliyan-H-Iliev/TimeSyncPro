@@ -27,12 +27,23 @@ class OwnerRequiredMixin(AccessMixin):
 class CompanyContextMixin():
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        company = self.request.user.employee.company
+        company = self.request.user.profile.company
 
-        context['company'] = company if company else None
-        context['company_name'] = company.name if company else None
-        context['company_slug'] = company.slug if company else None
-        context['employees'] = Profile.objects.filter(company=company) if company else None
+        if company:
+            context['company'] = company
+            context['company_name'] = company.name
+            context['company_slug'] = company.slug
+            context['employees'] = Profile.objects.filter(company=company)
+        else:
+            context['company'] = None
+            context['company_name'] = None
+            context['company_slug'] = None
+            context['employees'] = None
+
+        # context['company'] = company if company else None
+        # context['company_name'] = company.name if company else None
+        # context['company_slug'] = company.slug if company else None
+        # context['employees'] = Profile.objects.filter(company=company) if company else None
 
         return context
 
@@ -56,7 +67,7 @@ class SuccessUrlMixin:
                 self.success_url,
                 kwargs={
                     'slug': user.slug,
-                    "company_slug": user.employee.company.slug
+                    "company_slug": user.profile.company.slug
                 }
             )
         return reverse(self.success_url)
@@ -69,7 +80,7 @@ class SuccessUrlMixin:
     #             'profile',
     #             kwargs={
     #                 'slug': user.slug,
-    #                 "company_slug": user.employee.company.slug
+    #                 "company_slug": user.profile.company.slug
     #             }
     #         )
     #     return reverse(self.success_url)
@@ -98,7 +109,7 @@ class DynamicPermissionMixin:
     @staticmethod
     def get_object_class_name(obj):
         if obj.__class__.__name__ == 'TimeSyncProUser':
-            return obj.employee.role.lower().replace(' ', '_')
+            return obj.profile.role.lower().replace(' ', '_')
         return obj.__class__.__name__.lower()
 
     def get_action_permission_codename(self, obj, action: str):
@@ -135,6 +146,7 @@ class DynamicPermissionMixin:
         return has_permission
 
 
+# TODO Fix this
 def get_obj_company(obj_to_edit):
     try:
         return obj_to_edit.company
@@ -142,6 +154,7 @@ def get_obj_company(obj_to_edit):
         return obj_to_edit
 
 
+# TODO Fix this
 class IsAuthorizedUserMixin(UserPassesTestMixin):
 
     def test_func(self, *args, **kwargs):
@@ -165,3 +178,21 @@ class IsAuthorizedUserMixin(UserPassesTestMixin):
 #     def handle_no_permission(self):
 #         messages.error(self.request, "You are not authorized to access this page.")
 #         return redirect('index')
+
+
+class IsAuthenticatedMixin:
+    success_url = "profile"
+
+    def dispatch(self, request, *args, **kwargs):
+        if self.request.user.is_authenticated:
+            user = self.request.user
+            return redirect(
+                reverse(
+                    self.success_url,
+                    kwargs={
+                        'slug': user.slug,
+                        'company_slug': user.company.slug
+                    }
+                )
+            )
+        return super().dispatch(request, *args, **kwargs)

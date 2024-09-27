@@ -21,12 +21,12 @@
     <p>Address: {{ user_to_view.employee.address }}</p>
     
     {% if has_detailed_change_permission %}
-        <a href="{% url 'full profile update' slug=user_to_view.slug company_slug=user.employee.company.slug %}">Edit</a>
+        <a href="{% url 'full profile update' slug=user_to_view.slug company_slug=user.profile.company.slug %}">Edit</a>
         {% elif user == user_to_view%}
-        <a href="{% url 'edit profile' slug=user_to_view.slug company_slug=user.employee.company.slug %}">Edit</a>
+        <a href="{% url 'edit profile' slug=user_to_view.slug company_slug=user.profile.company.slug %}">Edit</a>
     {% endif %}
     {% if has_delete_permission %}
-        <a href="{% url 'delete profile' slug=user_to_view.slug company_slug=user.employee.company.slug %}">Delete</a>
+        <a href="{% url 'delete profile' slug=user_to_view.slug company_slug=user.profile.company.slug %}">Delete</a>
     {% endif %}
     <!-- Display company details -->
     {% if company_name %}

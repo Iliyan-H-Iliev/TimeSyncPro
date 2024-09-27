@@ -20,7 +20,7 @@ from .utils import generate_unique_slug, format_email
 
 # from .proxy_models import ManagerProxy, HRProxy, TeamLeaderProxy, StaffProxy
 
-from .validators import validate_date_of_hire, phone_number_validator
+from .validators import IsDigitsValidator, DateValidator
 
 
 class TimeSyncProUser(auth_models.AbstractBaseUser, auth_models.PermissionsMixin):
@@ -248,6 +248,8 @@ class Profile(CreatedModifiedMixin):
     MAX_EMPLOYEE_ID_LENGTH = 15
     MIN_EMPLOYEE_ID_LENGTH = 5
     MAX_PHONE_NUMBER_LENGTH = 15
+    MIN_PHONE_NUMBER_LENGTH = 10
+    MIN_AGE = 16
 
     class EmployeeRoles(models.TextChoices):
         STAFF = 'Staff', 'Staff'
@@ -331,7 +333,9 @@ class Profile(CreatedModifiedMixin):
     )
 
     date_of_hire = models.DateField(
-        validators=[validate_date_of_hire],
+        validators=[
+            DateValidator,
+        ],
         blank=True,
         null=True,
     )
@@ -343,7 +347,10 @@ class Profile(CreatedModifiedMixin):
 
     phone_number = models.CharField(
         max_length=MAX_PHONE_NUMBER_LENGTH,
-        validators=[phone_number_validator],
+        validators=[
+            MinLengthValidator(MIN_PHONE_NUMBER_LENGTH),
+            IsDigitsValidator("Phone number must contain only digits"),
+        ],
         blank=True,
         null=True)
 
@@ -352,6 +359,9 @@ class Profile(CreatedModifiedMixin):
         null=True)
 
     date_of_birth = models.DateField(
+        validators=[
+            DateValidator(min_age=MIN_AGE),
+        ],
         blank=True,
         null=True,
     )

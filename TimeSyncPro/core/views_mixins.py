@@ -3,7 +3,7 @@ from django.shortcuts import redirect, get_object_or_404
 
 
 # from TimeSyncPro.accounts.utils import get_obj_company, get_user_by_slug
-
+# TODO move to accounts
 
 class AuthenticatedViewMixin(object):
     def dispatch(self, request, *args, **kwargs):
@@ -41,7 +41,7 @@ class CompanyCheckMixin:
         user_to_check = get_object_or_404(self.queryset, slug=user_slug)
 
         # Compare the user's company with the fetched object's company
-        if user.employee.company.id != user_to_check.employee.company.id:
+        if user.profile.company.id != user_to_check.profile.company.id:
             return redirect(self.get_redirect_url())
 
         return super().dispatch(request, *args, **kwargs)

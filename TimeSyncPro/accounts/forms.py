@@ -13,18 +13,16 @@ from django.utils.timezone import now
 from .form_mixins import ReadonlyFieldsFormMixin, CleanEmailMixin
 # from .tasks import send_welcome_email, send_password_reset_email, send_activation_email
 from .utils import format_email
-from .models import  Company,  Profile
+from .models import Company, Profile
 from ..management.models import Team, ShiftPattern, Department
-
 
 logger = logging.getLogger(__name__)
 
 UserModel = get_user_model()
 
 
-#TODO Autintication request
+# TODO Autintication request
 class SignupCompanyAdministratorForm(CleanEmailMixin, UserCreationForm):
-
     first_name = forms.CharField(
         max_length=Profile.MAX_FIRST_NAME_LENGTH,
         min_length=Profile.MIN_FIRST_NAME_LENGTH,
@@ -91,13 +89,15 @@ class SignupCompanyAdministratorForm(CleanEmailMixin, UserCreationForm):
                     first_name=self.cleaned_data["first_name"],
                     last_name=self.cleaned_data["last_name"],
                     role=Profile.EmployeeRoles.ADMINISTRATOR,
+                    days_off_left=0,
                 )
 
                 if commit:
                     company.save()
                     employee.save()
 
-                    logger.info(f"Successfully created administrator account for {user.email} at company {company.name}")
+                    logger.info(
+                        f"Successfully created administrator account for {user.email} at company {company.name}")
 
                 # send_welcome_email.delay(user.email)
 
@@ -117,7 +117,6 @@ class SignupCompanyAdministratorForm(CleanEmailMixin, UserCreationForm):
 # TODO new Employee to chose from existing teams
 # TODO use Employee as as fields model
 class SignupEmployeeForm(CleanEmailMixin, UserCreationForm):
-
     employee_role = []
 
     class Meta:
@@ -327,8 +326,6 @@ class SignupEmployeeForm(CleanEmailMixin, UserCreationForm):
                         employee.manages_departments.set(self.cleaned_data["manages_departments"])
                     employee.save()
 
-            # Transaction is committed here. The user and employee are created.
-
             # Now, perform email tasks outside the transaction.
             # try:
             #     # Generate activation URL
@@ -372,7 +369,6 @@ class DetailedEditTimeSyncProUserForm(EditTimeSyncProUserBaseForm):
 
 
 class EditEmployeeBaseForm(forms.ModelForm):
-
     class Meta:
         model = Profile
         fields = [
@@ -415,12 +411,8 @@ class BasicEditEmployeesBaseForm(ReadonlyFieldsFormMixin, EditEmployeeBaseForm):
 
 
 class DetailedEditEmployeesBaseForm(EditEmployeeBaseForm):
-
     class Meta(EditEmployeeBaseForm.Meta):
         model = Profile
-
-
-
 
 
 class BasicEditEmployeeForm(BasicEditEmployeesBaseForm):

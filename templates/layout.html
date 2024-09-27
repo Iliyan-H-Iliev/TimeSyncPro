@@ -53,11 +53,11 @@
                                 {#                        {% endif %}#}
                                 {#            <li><a href="{% url 'index'  %}" class="nav-button">Home</a></li>#}
                                 <li>
-                                    <a href="{% url 'company members' company_slug=user.employee.company.slug %}">Employees</a>
+                                    <a href="{% url 'company members' company_slug=user.profile.company.slug %}">Employees</a>
                                 </li>
                                 <li><a href="{% url 'signup administrator' %}" class="nav-button">Management</a></li>
                                 <li><a href="{% url 'signup administrator' %}" class="nav-button">Reports</a></li>
-                                 <li><a href="{% url 'company profile' company_slug=user.employee.company.slug %}" class="nav-button">Company</a></li>
+                                 <li><a href="{% url 'company profile' company_slug=user.profile.company.slug %}" class="nav-button">Company</a></li>
                                 {#                        <li><a href="{% url 'signout user' %}" class="nav-button">Sign Out</a></li>#}
                             </ul>
                         </div>
@@ -66,7 +66,7 @@
                             <div class="dropdown-toggler" id="navbarDropdown">
                                 <div class="img-container">
                                     {% if user.related_instance.profile_picture %}
-                                        <img class="rounded-circle" src="{{ user.employee.profile_picture }}"
+                                        <img class="rounded-circle" src="{{ user.profile.profile_picture }}"
                                              title="profile" alt="image">
                                     {% else %}
                                         <img class="rounded-circle" src="{% static 'images/profile.png' %}"
@@ -78,9 +78,9 @@
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                                 <li>
                                     {% if user.is_company %}
-                                        <a href="{% url 'company profile'  slug=user.slug company_slug=user.employee.company.slug %}">Profile</a>
+                                        <a href="{% url 'company profile'  slug=user.slug company_slug=user.profile.company.slug %}">Profile</a>
                                     {% else %}
-                                        <a href="{% url 'profile'  slug=user.slug company_slug=user.employee.company.slug %}">Profile</a>
+                                        <a href="{% url 'profile'  slug=user.slug company_slug=user.profile.company.slug %}">Profile</a>
                                     {% endif %}
                                 </li>
                                 <li><a class="dropdown-item" href="{% url 'password change' %}">Change Password</a></li>

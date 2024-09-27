@@ -3,7 +3,6 @@ from django.core.exceptions import ValidationError, ImproperlyConfigured
 from TimeSyncPro.accounts.utils import format_email
 
 
-
 class ReadonlyFieldsFormMixin:
     readonly_fields = ()
 
