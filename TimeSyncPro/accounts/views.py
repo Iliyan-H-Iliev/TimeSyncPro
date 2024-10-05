@@ -19,17 +19,16 @@ from django.views import generic as views
 # from rest_framework.authtoken.models import Token
 # from rest_framework.permissions import AllowAny
 
-from .models import Company, Profile
 # from .serializers import LoginSerializer, SignupCompanySerializer
 
 from TimeSyncPro.accounts.forms import SignupEmployeeForm, SignupCompanyAdministratorForm, \
-    BasicEditTimeSyncProUserForm, DetailedEditTimeSyncProUserForm, CustomSetPasswordForm, EditCompanyForm, \
+    BasicEditTimeSyncProUserForm, DetailedEditTimeSyncProUserForm, CustomSetPasswordForm, \
     DetailedEditEmployeesBaseForm, BasicEditEmployeeForm
-from TimeSyncPro.accounts.view_mixins import CompanyContextMixin, OwnerRequiredMixin, \
+from TimeSyncPro.accounts.view_mixins import OwnerRequiredMixin, \
     DynamicPermissionMixin, UserBySlugMixin, SuccessUrlMixin, AuthenticatedUserMixin
+from TimeSyncPro.core.utils import format_email
 from TimeSyncPro.core.views_mixins import NotAuthenticatedMixin, CompanyCheckMixin, \
     MultiplePermissionsRequiredMixin
-from .utils import format_email
 
 # TODO Employee not see another employee profile
 
@@ -245,7 +244,7 @@ class DetailsEmployeesProfileView(
     DetailsProfileBaseView
 ):
 
-    template_name = "accounts/details_company_employee.html"
+    template_name = "accounts/../../templates/management/details_company_employee.html"
     def get_object(self, queryset=None):
         user_slug = self.kwargs.get('slug')
         # Fetch the object based on slug or raise a 404 if not found
@@ -257,9 +256,6 @@ class DetailsEmployeesProfileView(
         permission = self.get_action_permission(user_to_view, "view")
         self.permission_required = permission
         return super().dispatch(request, *args, **kwargs)
-
-
-
 
 
 class EditProfileBaseView(NotAuthenticatedMixin, views.View):
@@ -415,6 +411,7 @@ class DetailedEditProfileView(PermissionRequiredMixin, DynamicPermissionMixin, E
         context = self.get_context_data(user_form, additional_form, user, user_to_edit, company_slug)
         return self.form_invalid(user_form, additional_form, context)
 
+
 class DeleteEmployeeView(
     SuccessUrlMixin,
     NotAuthenticatedMixin,
@@ -474,108 +471,7 @@ class DeleteEmployeeView(
         return redirect(self.get_success_url())
 
 
-class DetailsCompanyProfileView(
-    NotAuthenticatedMixin,
-    MultiplePermissionsRequiredMixin,
-    CompanyContextMixin,
-    views.DetailView
-):
 
-    model = Company
-    template_name = "accounts/company_profile.html"
-    context_object_name = 'company'
-    permissions_required = [
-        'accounts.view_company',
-    ]
-
-    def get_object(self, queryset=None):
-        user = self.request.user
-        company = get_object_or_404(self.model, id=user.profile.company.id)
-        return user.profile.company
-
-
-class EditCompanyView(NotAuthenticatedMixin, views.UpdateView):
-    model = Company
-    template_name = 'accounts/edit_company.html'
-    form_class = EditCompanyForm
-    permissions_required = [
-        'accounts.change_company',
-    ]
-
-    def get_object(self, queryset=None):
-        user = self.request.user
-
-        try:
-            return self.model.objects.get(id=user.company.id)
-        except Company.DoesNotExist:
-            return None
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        company = self.get_object()
-        context['company'] = company
-        return context
-
-    def get_success_url(self):
-        company = self.object
-        return reverse('company profile', kwargs={'company_slug': company.slug})
-
-
-class CompanyMembersView(NotAuthenticatedMixin, CompanyContextMixin, views.ListView):
-    model = Company
-    template_name = "accounts/company_members.html"
-    context_object_name = 'company'
-
-    def get_object(self, queryset=None):
-        user = self.request.user
-        queryset = self.get_queryset()
-
-        try:
-            return queryset.get(id=user.company.id)
-        except Company.DoesNotExist:
-            return None
-
-    def get(self, request, *args, **kwargs):
-        company = self.get_object()
-
-        if not company:
-            messages.error(request, "User does not belong to any company.")
-            return redirect('index')
-        return super().get(request, *args, **kwargs)
-
-    # # TODO check if this is the right way to fetch related models for the user profile
-    # def get_context_data(self, **kwargs):
-    #     context = super().get_context_data(**kwargs)
-    #     company = self.object
-    #
-    #     context['company'] = company if company else None
-    #     context['employees'] = Employee.objects.filter(company=company) if company else None
-    #
-    #     return context
-
-
-# TODO add permision for delete
-# TODO Create logic for delete company
-class DeleteCompanyView(OwnerRequiredMixin, CompanyCheckMixin, views.DeleteView):
-    model = Company
-    queryset = model.objects.all()
-    template_name = 'accounts/delete_company.html'
-    success_url = reverse_lazy('index')
-
-    def get(self, request, *args, **kwargs):
-        user = request.user
-        company = user.profile.company
-        if not company:
-            messages.error(request, "Company not found.")
-            return redirect('index')
-        return super().get(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        user = request.user
-        company = user.profile.company
-        company.delete()
-        messages.success(request, "Company deleted successfully.")
-        return redirect(self.success_url)
 
 
 class PasswordResetView(auth_views.PasswordResetView):

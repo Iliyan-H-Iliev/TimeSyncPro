@@ -1,8 +1,39 @@
 from datetime import timedelta
 
 from django import forms
-from .models import ShiftPattern, ShiftBlock, Team
+from .models import ShiftPattern, ShiftBlock, Team, Company
 from django.forms.models import inlineformset_factory
+
+
+
+# TODO only Administrator can edit company
+class EditCompanyForm(forms.ModelForm):
+    class Meta:
+        model = Company
+        fields = [
+            "name",
+            "leave_days_per_year",
+            "transferable_leave_days",
+            "location",
+            "leave_approver",
+            "transferable_leave_days",
+            "minimum_leave_notice",
+            "maximum_leave_days_per_request",
+            "working_on_local_holidays",
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # self.fields['leave_approver'].queryset = Profile.objects.filter(company=self.instance)
+        self.fields['leave_approver'].queryset = Company.objects.get(pk=self.instance.pk).employees.all()
+
+    # def clean(self):
+    #     cleaned_data = super().clean()
+    #     if 'location' in cleaned_data and not cleaned_data.get('time_zone'):
+    #         # If a location is set but no time zone, suggest one
+    #         cleaned_data['time_zone'] = self.instance.suggest_time_zone()
+    #     return cleaned_data
+
 
 
 class ShiftPatternBaseForm(forms.ModelForm):

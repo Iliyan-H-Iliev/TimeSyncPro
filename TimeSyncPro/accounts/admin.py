@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 
-from TimeSyncPro.accounts.models import Company, Profile
+from TimeSyncPro.accounts.models import Profile
 
 UserModel = get_user_model()
 

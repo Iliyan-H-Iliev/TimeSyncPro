@@ -3,11 +3,13 @@ from django.contrib.auth import views as auth_views
 
 from TimeSyncPro.accounts.views import (
     SignInUserView, signout_user, IndexUser, about, terms_and_conditions, terms_of_use, privacy_policy,
-    DetailsOwnProfileView, SignupEmployeeView, SignupCompanyAdministratorUser, BasicEditProfileView, CompanyMembersView,
-    DetailedEditProfileView, DetailsEmployeesProfileView, DeleteEmployeeView, DeleteCompanyView,
-    DetailsCompanyProfileView, EditCompanyView, PasswordResetView, PasswordChangeView, CustomPasswordResetConfirmView,
+    DetailsOwnProfileView, SignupEmployeeView, SignupCompanyAdministratorUser, BasicEditProfileView,
+    DetailedEditProfileView, DetailsEmployeesProfileView, DeleteEmployeeView,
+    PasswordResetView, PasswordChangeView, CustomPasswordResetConfirmView,
     ActivateAndSetPasswordView,
 )
+from TimeSyncPro.management.views import CompanyMembersView, DetailsCompanyProfileView, EditCompanyView, \
+    DeleteCompanyView
 
 urlpatterns = [
     path("", IndexUser.as_view(), name="index"),
@@ -28,18 +30,12 @@ urlpatterns = [
     path('password_change/', PasswordChangeView.as_view(), name='password change'),
     path('password_change/done/', auth_views.PasswordChangeDoneView.as_view(), name='password change done'),
     path('activate-set-password/<str:token>/', ActivateAndSetPasswordView.as_view(), name='activate and set password'),
-    path(
-        "<str:company_slug>/", include([
-            path("company-members/", CompanyMembersView.as_view(), name="company members"),
-            path("register-employee/", SignupEmployeeView.as_view(), name="register employee"),
-            path("company-profile/", DetailsCompanyProfileView.as_view(), name="company profile"),
-            path("edit/", EditCompanyView.as_view(), name="update company profile"),
-            path("<slug:slug>/delete/", DeleteCompanyView.as_view(), name="delete company"),
-            path("profile/<slug:slug>/", DetailsOwnProfileView.as_view(), name="profile"),
-            path("profile/<slug:slug>/edit/", BasicEditProfileView.as_view(), name="edit profile"),
-            path("profile/<slug:slug>/delete/", DeleteEmployeeView.as_view(), name="delete profile"),
-            path("company-members/<slug:slug>/", DetailsEmployeesProfileView.as_view(), name="company employee profile"),
-            path("company-members/<slug:slug>/edit/", DetailedEditProfileView.as_view(), name="full profile update"),
-        ])
-    ),
+
+    path("users/profile/<slug:slug>/", include([
+        path("", DetailsOwnProfileView.as_view(), name="profile"),
+        path("edit/", BasicEditProfileView.as_view(), name="edit profile"),
+    ])),
+
+
+
 ]

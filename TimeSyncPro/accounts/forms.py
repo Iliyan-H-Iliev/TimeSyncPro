@@ -10,11 +10,11 @@ from django.utils.text import slugify
 # from django.urls import reverse
 from django.utils.timezone import now
 
-from .form_mixins import ReadonlyFieldsFormMixin, CleanEmailMixin, RequiredFieldsFormMixin, CleanCompanyNameMixin
+from .form_mixins import ReadonlyFieldsFormMixin, CleanEmailMixin, RequiredFieldsFormMixin
 # from .tasks import send_welcome_email, send_password_reset_email, send_activation_email
-from .utils import format_email
-from .models import Company, Profile
-from ..management.models import Team, ShiftPattern, Department
+from .models import Profile
+from ..core.form_mixins import CleanCompanyNameMixin
+from ..management.models import Team, ShiftPattern, Department, Company
 
 logger = logging.getLogger(__name__)
 
@@ -162,16 +162,16 @@ class SignupEmployeeForm(RequiredFieldsFormMixin, CleanEmailMixin, UserCreationF
         profile_fields = forms.models.fields_for_model(
             Profile,
             fields=[
-                            "first_name",
-                            "last_name",
-                            "role",
-                            "employee_id",
-                            "department",
-                            "manages_departments",
-                            "shift_pattern",
-                            "team",
-                            "date_of_hire",
-                            "days_off_left",
+                "first_name",
+                "last_name",
+                "role",
+                "employee_id",
+                "department",
+                "manages_departments",
+                "shift_pattern",
+                "team",
+                "date_of_hire",
+                "days_off_left",
             ])
 
         self.fields.update(profile_fields)
@@ -289,7 +289,6 @@ class BasicEditTimeSyncProUserForm(EditTimeSyncProUserBaseForm):
 
 
 class DetailedEditTimeSyncProUserForm(EditTimeSyncProUserBaseForm):
-
     class Meta(EditTimeSyncProUserBaseForm.Meta):
         model = UserModel
         fields = EditTimeSyncProUserBaseForm.Meta.fields + ['is_active']
@@ -350,30 +349,6 @@ class BasicEditEmployeeForm(BasicEditEmployeesBaseForm):
 class DetailedEditEmployeeForm(DetailedEditEmployeesBaseForm):
     class Meta(DetailedEditEmployeesBaseForm.Meta):
         model = Profile
-
-
-# TODO only Administrator can edit company
-class EditCompanyForm(forms.ModelForm):
-    class Meta:
-        model = Company
-        fields = [
-            "name",
-            "leave_days_per_year",
-            "transferable_leave_days",
-            "location",
-            "leave_approver",
-            "transferable_leave_days",
-            "minimum_leave_notice",
-            "maximum_leave_days_per_request",
-            "working_on_local_holidays",
-        ]
-
-    # def clean(self):
-    #     cleaned_data = super().clean()
-    #     if 'location' in cleaned_data and not cleaned_data.get('time_zone'):
-    #         # If a location is set but no time zone, suggest one
-    #         cleaned_data['time_zone'] = self.instance.suggest_time_zone()
-    #     return cleaned_data
 
 
 class DeleteUserForm(forms.Form):

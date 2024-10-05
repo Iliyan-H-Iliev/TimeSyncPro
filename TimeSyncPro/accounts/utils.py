@@ -10,10 +10,7 @@ def generate_unique_slug(full_name, max_length):
     return unique_slug[:max_length]
 
 
-def format_email(email):
-    if email is None:
-        return None
-    return email.lower()
+
 
 
 def capitalize_words(string):

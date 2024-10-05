@@ -47,3 +47,20 @@ class MultiplePermissionsRequiredMixin(AccessMixin):
             return self.handle_no_permission()
         return super().dispatch(request, *args, **kwargs)
 
+
+# TODO remove company_name and company_slug
+class CompanyContextMixin():
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        company = self.request.user.company
+
+        if company:
+            context['company'] = company
+            context['company_name'] = company.name
+            context['company_slug'] = company.slug
+        else:
+            context['company'] = None
+            context['company_name'] = None
+            context['company_slug'] = None
+
+        return context

@@ -1,17 +1,123 @@
 from django.contrib.auth import get_user_model
+from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.contrib.auth.mixins import PermissionRequiredMixin
 
-from .models import ShiftPattern, Team
+from .models import ShiftPattern, Team, Company
 from .forms import CreateShiftPatternForm, CreateShiftBlockFormSet, CreateTeamForm, EditTeamForm, \
-    UpdateShiftPatternForm, UpdateShiftBlockForm, UpdateShiftBlockFormSet
+    UpdateShiftPatternForm, UpdateShiftBlockForm, UpdateShiftBlockFormSet, EditCompanyForm
 from django.views import generic as views
 
 from .utils import handle_shift_pattern_post
-from ..core.views_mixins import NotAuthenticatedMixin, CompanyCheckMixin
+from ..core.views_mixins import NotAuthenticatedMixin, CompanyCheckMixin, MultiplePermissionsRequiredMixin, \
+    CompanyContextMixin
 
 UserModel = get_user_model()
+
+
+class DetailsCompanyProfileView(
+    NotAuthenticatedMixin,
+    MultiplePermissionsRequiredMixin,
+    CompanyContextMixin,
+    views.DetailView
+):
+
+    model = Company
+    template_name = "accounts/../../templates/management/company_profile.html"
+    context_object_name = 'company'
+    permissions_required = [
+        'accounts.view_company',
+    ]
+
+    def get_object(self, queryset=None):
+        user = self.request.user
+        company = get_object_or_404(self.model, id=user.profile.company.id)
+        return user.profile.company
+
+
+class EditCompanyView(NotAuthenticatedMixin, views.UpdateView):
+    model = Company
+    template_name = 'accounts/../../templates/management/edit_company.html'
+    form_class = EditCompanyForm
+    permissions_required = [
+        'accounts.change_company',
+    ]
+
+    def get_object(self, queryset=None):
+        user = self.request.user
+
+        try:
+            return self.model.objects.get(id=user.company.id)
+        except Company.DoesNotExist:
+            return None
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        company = self.get_object()
+        context['company'] = company
+        return context
+
+    def get_success_url(self):
+        company = self.object
+        return reverse('company profile', kwargs={'company_slug': company.slug})
+
+
+class CompanyMembersView(NotAuthenticatedMixin, CompanyContextMixin, views.ListView):
+    model = Company
+    template_name = "accounts/../../templates/management/company_members.html"
+    context_object_name = 'company'
+
+    def get_object(self, queryset=None):
+        user = self.request.user
+        queryset = self.get_queryset()
+
+        try:
+            return queryset.get(id=user.company.id)
+        except Company.DoesNotExist:
+            return None
+
+    def get(self, request, *args, **kwargs):
+        company = self.get_object()
+
+        if not company:
+            messages.error(request, "User does not belong to any company.")
+            return redirect('index')
+        return super().get(request, *args, **kwargs)
+
+    # # TODO check if this is the right way to fetch related models for the user profile
+    # def get_context_data(self, **kwargs):
+    #     context = super().get_context_data(**kwargs)
+    #     company = self.object
+    #
+    #     context['company'] = company if company else None
+    #     context['employees'] = Employee.objects.filter(company=company) if company else None
+    #
+    #     return context
+
+
+# TODO add permision for delete
+# TODO Create logic for delete company
+class DeleteCompanyView(CompanyCheckMixin, views.DeleteView):
+    model = Company
+    queryset = model.objects.all()
+    template_name = 'accounts/../../templates/management/delete_company.html'
+    success_url = reverse_lazy('index')
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        company = user.profile.company
+        if not company:
+            messages.error(request, "Company not found.")
+            return redirect('index')
+        return super().get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        company = user.profile.company
+        company.delete()
+        messages.success(request, "Company deleted successfully.")
+        return redirect(self.success_url)
 
 
 class ShiftPatternCreateViewNot(NotAuthenticatedMixin, PermissionRequiredMixin, views.View):
