@@ -1,0 +1,14 @@
+<div class="navbar side-nav authenticated-navbar">
+    <nav class="side-navbar navbar-static-side">
+    <ul class="navbar-ul authenticated-navbar-ul">
+        <li><a href="{% url 'company profile' company_slug=user.profile.company.slug %}"
+               class="nav-button">Company</a></li>
+        <li><a href="{% url 'signup administrator' %}" class="nav-button">Management</a></li>
+        <li>
+            <a href="{% url 'company members' company_slug=user.profile.company.slug %}">Employees</a>
+        </li>
+
+        <li><a href="{% url 'signup administrator' %}" class="nav-button">Reports</a></li>
+    </ul>
+        </nav>
+</div>

@@ -1,0 +1,37 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TimeSyncPro</title>
+    <link rel="stylesheet" href="{% static 'styles/site.css' %}">
+</head>
+<body>
+<div class="site-wrapper">
+    <div class="nav-wrapper">
+        <div class="logo-wrapper container-logo">
+            <a href="{% url 'index' %}"><img src="{% static 'images/logo-blue.png' %}"
+                                             alt="TimeSyncPro"></a>
+        </div>
+        {% include "side_nav.html" %}
+    </div>
+    <div class="content-wrapper">
+        <header class="main-header">
+            {% include "dropdown-menu.html" %}
+        </header>
+
+        <main class="main-content">
+            {% block content %}
+            {% endblock %}
+        </main>
+
+        <footer class="main-footer site-footer">
+            {% include "footer.html" %}
+        </footer>
+    </div>
+</div>
+
+</body>
+</html>

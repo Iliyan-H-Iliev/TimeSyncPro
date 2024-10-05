@@ -51,7 +51,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='employee',
             name='date_of_hire',
-            field=models.DateField(blank=True, null=True, validators=[TimeSyncPro.accounts.validators.validate_date_of_hire]),
+            field=models.DateField(blank=True, null=True, validators=[TimeSyncPro.accounts.validators.DateRangeValidator]),
         ),
         migrations.AlterField(
             model_name='employee',

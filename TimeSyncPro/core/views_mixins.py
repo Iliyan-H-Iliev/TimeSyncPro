@@ -5,30 +5,13 @@ from django.shortcuts import redirect, get_object_or_404
 # from TimeSyncPro.accounts.utils import get_obj_company, get_user_by_slug
 # TODO move to accounts
 
-class AuthenticatedViewMixin(object):
+class NotAuthenticatedMixin(object):
     def dispatch(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
             return redirect('signin user')
 
-        return super(AuthenticatedViewMixin, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
-
-# class CompanyCheckMixin:
-#     redirect_url = 'index'  # Default redirect URL
-#
-#     def dispatch(self, request, *args, **kwargs):
-#         queryset = self.queryset
-#         user = request.user
-#         user_slug = self.kwargs['slug']
-#         # obj_to_check = get_user_by_slug(user_slug)
-#         obj_to_check = queryset.get(employee__slug=user_slug)
-#
-#         if user.company != get_obj_company(obj_to_check):
-#             return redirect(self.get_redirect_url())
-#         return super().dispatch(request, *args, **kwargs)
-#
-#     def get_redirect_url(self):
-#         return self.redirect_url
 
 class CompanyCheckMixin:
     redirect_url = 'index'  # Default redirect URL

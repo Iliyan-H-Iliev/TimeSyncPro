@@ -6,8 +6,6 @@ from django.urls import reverse
 from TimeSyncPro.accounts.models import Profile
 
 
-# TODO check THIS
-
 class OwnerRequiredMixin(AccessMixin):
 
     def _handle_no_permission(self):
@@ -24,10 +22,11 @@ class OwnerRequiredMixin(AccessMixin):
         return super().get(*args, **kwargs)
 
 
+# TODO remove company_name and company_slug
 class CompanyContextMixin():
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        company = self.request.user.profile.company
+        company = self.request.user.company
 
         if company:
             context['company'] = company
@@ -39,11 +38,6 @@ class CompanyContextMixin():
             context['company_name'] = None
             context['company_slug'] = None
             context['employees'] = None
-
-        # context['company'] = company if company else None
-        # context['company_name'] = company.name if company else None
-        # context['company_slug'] = company.slug if company else None
-        # context['employees'] = Profile.objects.filter(company=company) if company else None
 
         return context
 
@@ -72,37 +66,6 @@ class SuccessUrlMixin:
             )
         return reverse(self.success_url)
 
-    # def get_success_url(self):
-    #     user = self.request.user
-    #     # Ensure the user is authenticated before accessing attributes
-    #     if user.is_authenticated:
-    #         return reverse(
-    #             'profile',
-    #             kwargs={
-    #                 'slug': user.slug,
-    #                 "company_slug": user.profile.company.slug
-    #             }
-    #         )
-    #     return reverse(self.success_url)
-
-
-# class UserGroupRequiredMixin(UserPassesTestMixin):
-#     allowed_groups = []
-#
-#     def test_func(self):
-#         return (
-#                 self.request.user.is_authenticated and
-#                 self.request.user.groups.filter(name__in=self.allowed_groups).exists()
-#         )
-#
-#     def handle_no_permission(self):
-#         if not self.request.user.is_authenticated:
-#             messages.info(self.request, "You are not authorized to access this page.")
-#             return redirect('signin user')
-#         else:
-#             messages.error(self.request, "Only HR and Company users can register employees.")
-#             return redirect('index')
-
 
 class DynamicPermissionMixin:
 
@@ -127,11 +90,6 @@ class DynamicPermissionMixin:
         print(all_permissions)
         return user.get_all_permissions()
 
-    # def get_action_permission_codename(self, obj, action: str):
-    #     permission = self.get_action_permission(obj, action)
-    #     print(permission)
-    #     return permission.split('.')[-1]
-
     def has_needed_permission(self, user, obj, action):
         try:
             needed_permission_codename = self.get_action_permission_codename(obj, action)
@@ -147,40 +105,29 @@ class DynamicPermissionMixin:
 
 
 # TODO Fix this
-def get_obj_company(obj_to_edit):
-    try:
-        return obj_to_edit.company
-    except AttributeError as e:
-        return obj_to_edit
-
-
-# TODO Fix this
 class IsAuthorizedUserMixin(UserPassesTestMixin):
+
+    @staticmethod
+    def _get_obj_company(obj_to_edit):
+        try:
+            return obj_to_edit.company
+        except AttributeError as e:
+            return obj_to_edit
 
     def test_func(self, *args, **kwargs):
         user = self.request.user
         obj_to_edit = self.get_object()
 
         return (
-                user.company == get_obj_company(obj_to_edit)
+                user.company == self._get_obj_company(obj_to_edit)
         )
 
     def handle_no_permission(self):
         messages.error(self.request, "You are not authorized to access this page.")
         return redirect('index')
 
-#
-# class IsCompanyUserMixin(UserPassesTestMixin):
-#     def test_func(self, *args, **kwargs):
-#         user = self.request.user
-#         return user.is_company
-#
-#     def handle_no_permission(self):
-#         messages.error(self.request, "You are not authorized to access this page.")
-#         return redirect('index')
 
-
-class IsAuthenticatedMixin:
+class AuthenticatedUserMixin:
     success_url = "profile"
 
     def dispatch(self, request, *args, **kwargs):

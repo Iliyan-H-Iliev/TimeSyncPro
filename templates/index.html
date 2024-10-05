@@ -1,16 +1,29 @@
-{% extends 'layout.html' %}
+{% extends 'home-layout.html' %}
+{% load static %}
 
 {% block content %}
-    {% if messages %}
-{#        <ul class="messages">#}
-{#            {% for message in messages %}#}
-{#                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>#}
-{#            {% endfor %}#}
-{#        </ul>#}
-    {% endif %}
-    {% if full_name %}
-        <p>Welcome, {{ full_name }}!</p>
-    {% else %}
-        <p>Welcome, guest!</p>
-    {% endif %}
+    <div class="title-background">
+        <div class="index-main-container">
+
+            <div class="img-container-1">
+                <img src="{% static 'images/men-on-pc1.png' %}" class="main-img" alt="image">
+            </div>
+
+            <div class="container-1">
+
+                <div class="index-text-container">
+                    <h1 class="head-text">Staff Leave Planner: Streamline Absence Management, Save Time, Reduce
+                        Hassle</h1>
+                </div>
+
+                <div class="navbar signup-login-container">
+                    {% include "partials/sign_up_button.html" %}
+                    {% include "partials/learn_more_button.html" %}
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
 {% endblock %}

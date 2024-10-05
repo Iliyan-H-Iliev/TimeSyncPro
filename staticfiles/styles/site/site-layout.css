@@ -78,3 +78,13 @@ body {
 .content-wrap {
   flex: 1 0 auto;
 }
+
+/*.site-main {*/
+/*    display: flex;*/
+/*    flex-direction: row;*/
+/*}*/
+
+/*.content-container {*/
+/*            margin-left: 250px;*/
+/*            padding: 20px;*/
+/*        }*/

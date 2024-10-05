@@ -2,15 +2,15 @@ from django.urls import path, include
 from django.contrib.auth import views as auth_views
 
 from TimeSyncPro.accounts.views import (
-    SignInUserView, signout_user, IndexView, about, terms_and_conditions, terms_of_use, privacy_policy,
-    DetailsOwnProfileView, SignupEmployeeView, SignupCompanyAdministratorView, BasicEditProfileView, CompanyMembersView,
+    SignInUserView, signout_user, IndexUser, about, terms_and_conditions, terms_of_use, privacy_policy,
+    DetailsOwnProfileView, SignupEmployeeView, SignupCompanyAdministratorUser, BasicEditProfileView, CompanyMembersView,
     DetailedEditProfileView, DetailsEmployeesProfileView, DeleteEmployeeView, DeleteCompanyView,
     DetailsCompanyProfileView, EditCompanyView, PasswordResetView, PasswordChangeView, CustomPasswordResetConfirmView,
     ActivateAndSetPasswordView,
 )
 
 urlpatterns = [
-    path("", IndexView.as_view(), name="index"),
+    path("", IndexUser.as_view(), name="index"),
     # path('signup-login/', SignupAndLoginView.as_view(), name='signup_login'),
     # path('api/signup/', SignUpView.as_view(), name='api_signup'),
     # path('api/login/', LoginView.as_view(), name='api_login'),
@@ -20,7 +20,7 @@ urlpatterns = [
     path("privacy-policy/", privacy_policy, name="privacy policy"),
     path("login/", SignInUserView.as_view(), name="signin user"),
     path("logout/", signout_user, name="signout user"),
-    path("register-company/", SignupCompanyAdministratorView.as_view(), name="signup administrator"),
+    path("register-company/", SignupCompanyAdministratorUser.as_view(), name="signup administrator"),
     path('password_reset/', PasswordResetView.as_view(), name='password reset'),
     path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password reset done'),
     path('reset/<uidb64>/<token>/', CustomPasswordResetConfirmView.as_view(), name='password reset confirm'),
@@ -30,6 +30,7 @@ urlpatterns = [
     path('activate-set-password/<str:token>/', ActivateAndSetPasswordView.as_view(), name='activate and set password'),
     path(
         "<str:company_slug>/", include([
+            path("company-members/", CompanyMembersView.as_view(), name="company members"),
             path("register-employee/", SignupEmployeeView.as_view(), name="register employee"),
             path("company-profile/", DetailsCompanyProfileView.as_view(), name="company profile"),
             path("edit/", EditCompanyView.as_view(), name="update company profile"),
@@ -37,7 +38,6 @@ urlpatterns = [
             path("profile/<slug:slug>/", DetailsOwnProfileView.as_view(), name="profile"),
             path("profile/<slug:slug>/edit/", BasicEditProfileView.as_view(), name="edit profile"),
             path("profile/<slug:slug>/delete/", DeleteEmployeeView.as_view(), name="delete profile"),
-            path("company-members/", CompanyMembersView.as_view(), name="company members"),
             path("company-members/<slug:slug>/", DetailsEmployeesProfileView.as_view(), name="company employee profile"),
             path("company-members/<slug:slug>/edit/", DetailedEditProfileView.as_view(), name="full profile update"),
         ])

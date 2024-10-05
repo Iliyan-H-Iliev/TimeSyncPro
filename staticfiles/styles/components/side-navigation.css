@@ -1,0 +1,68 @@
+.nav-wrapper {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--primary-dark);
+}
+
+.side-nav {
+    padding: 1em;
+}
+
+.side-navbar ul {
+    display: flex;
+    flex-direction: column;
+}
+
+.site-wrapper {
+  display: flex;
+  flex-grow: 1;
+  height: 100%;
+}
+
+/* Sidebar (left side navigation) */
+/*.nav-wrapper {*/
+/*  width: 250px;*/
+/*  background-color: var(--primary-dark); !* Sidebar background color *!*/
+/*  position: fixed; !* Keeps the side-nav fixed *!*/
+/*  top: 0;*/
+/*  left: 0;*/
+/*  bottom: 0; !* Make it stretch from top to bottom *!*/
+/*  display: flex;*/
+/*  flex-direction: column;*/
+/*}*/
+
+/* Main content area */
+.content-wrapper {
+    min-height: 100vh;
+  /*margin-left: 250px; !* To prevent overlap with the sidebar *!*/
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Main content and footer wrapper */
+.main-content {
+  flex-grow: 1; /* Allows the main content to grow and push the footer down */
+  padding: 20px;
+}
+
+.main-footer {
+  /*background-color: var(--text-color); !* Footer background color *!*/
+  color: white;
+  padding: 10px;
+  text-align: center;
+}
+
+/* If you need additional styling for the side nav (e.g. logo-wrapper) */
+.logo-wrapper {
+  width: 100px; /* Set the logo wrapper to take 80% of the parent container */
+  margin: 0 auto; /* Center the logo wrapper horizontally */
+  display: flex;
+  justify-content: center; /* Center the logo/image inside the wrapper */
+  padding: 10px 0; /* Optional: Add some padding */
+}
+
+.logo-wrapper img {
+  max-width: 100%; /* Ensure the image scales within the logo wrapper */
+  height: auto; /* Maintain the aspect ratio of the logo */
+}

@@ -20,7 +20,7 @@ from .utils import generate_unique_slug, format_email
 
 # from .proxy_models import ManagerProxy, HRProxy, TeamLeaderProxy, StaffProxy
 
-from .validators import IsDigitsValidator, DateValidator
+from .validators import IsDigitsValidator, DateRangeValidator, DateOfBirthValidator
 
 
 class TimeSyncProUser(auth_models.AbstractBaseUser, auth_models.PermissionsMixin):
@@ -334,7 +334,7 @@ class Profile(CreatedModifiedMixin):
 
     date_of_hire = models.DateField(
         validators=[
-            DateValidator,
+            DateRangeValidator,
         ],
         blank=True,
         null=True,
@@ -343,6 +343,7 @@ class Profile(CreatedModifiedMixin):
     days_off_left = models.PositiveSmallIntegerField(
         blank=True,
         null=True,
+        default=0,
     )
 
     phone_number = models.CharField(
@@ -360,7 +361,7 @@ class Profile(CreatedModifiedMixin):
 
     date_of_birth = models.DateField(
         validators=[
-            DateValidator(min_age=MIN_AGE),
+            DateOfBirthValidator,
         ],
         blank=True,
         null=True,

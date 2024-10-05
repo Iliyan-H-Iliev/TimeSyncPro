@@ -1,7 +1,7 @@
-{% extends 'layout.html' %}
+{% extends 'auth-layout.html' %}
 
 {% block content %}
-    <h1>Profile Details Company</h1>
+    <h2>Profile Details Company</h2>
 
 {#{% if user %}#}
 {#    <p>Username: {{ user.related_instance.full_name }}</p><br>#}
@@ -32,5 +32,7 @@
     {% if company_name %}
         <h2>Company: {{ company_name }}</h2>
     {% endif %}
+    
+
 {% endif %}
 {% endblock %}

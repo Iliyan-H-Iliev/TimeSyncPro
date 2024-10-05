@@ -1,26 +1,127 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Title</title>
-</head>
-<body>
-
-
-             {% if current_user.is_authenticated %}
-                    <div class="dropdown">
-                        <a class="nav-item nav-link dropdown-toggle" href="#" id="navbarDropdown"
-                           role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            {{ current_user.username }}
-                            <img class="rounded-circle" src="{% profile_picture %}" title="profile" alt="image" height="30" width="30">
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="{% url 'profile' slug=user.slug company=user.get_company %}">Profile</a></li>
-                            <li><a class="dropdown-item" href="{% url 'password change' %}">Change Password</a></li>
-                            <li><a class="dropdown-item" href="{% url 'signout user' %}">log out</a></li>
-                        </ul>
-                    </div>
-                {% else %}
-</body>
-</html>
+<main>
+    <div class="feature1">
+        <div class="row g-0">
+            <div class="col-12 col-md-6 d-block d-md-none"
+                 style="background: url('https://www.leavewizard.com/wp-content/themes/leavewizard/img/leave-management-dashboard.jpg') no-repeat center center; background-size: 100% auto; min-height: 15em;"></div>
+            <div class="col-12 col-md-6">
+                <div class="feature-copy">
+                    <h2>Increase Productivity</h2>
+                    <p>Approving leave requests takes moments, not minutes, with all of the data you need at your
+                        fingertips. Streamline the process of booking holiday with all requests, entitlement and absence
+                        in one&nbsp;place.</p>
+                    <a href="/increase-productivity" class="button full">Learn more</a>
+                    <a href="https://app.leavewizard.com/register?plan=50" class="button border">Sign up</a>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 d-none d-md-block"
+                 style="background:url('https://www.leavewizard.com/wp-content/themes/leavewizard/img/leave-management-dashboard.jpg') no-repeat center center; background-size: 100% auto;"></div>
+        </div>
+    </div>
+    <div class="feature2">
+        <div class="row">
+            <div class="col-12 col-md-6"
+                 style="background: url('https://www.leavewizard.com/wp-content/themes/leavewizard/img/leave-management-customisation.jpg') no-repeat center center; background-size: 100% auto; min-height: 15em;"></div>
+            <div class="col-12 col-md-6">
+                <div class="feature-copy">
+                    <h2>Tailor the Experience</h2>
+                    <p>See your organisational structure at a glance, and personalise your workflows to suit your teams.
+                        Manage leave your way. You can easily tailor the holiday request process using automation and
+                        adjust your setup as your organisation&nbsp;changes.</p>
+                    <a href="/tailor-the-experience" class="button full">Learn more</a>
+                    <a href="https://app.leavewizard.com/register?plan=50" class="button border">Sign up</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="feature3">
+        <div class="row">
+            <div class="col-12 col-md-6 d-md-none"
+                 style="background: url('https://www.leavewizard.com/wp-content/themes/leavewizard/img/leave-management-reports.jpg') no-repeat center center; background-size: 100% auto; min-height: 15em;"></div>
+            <div class="col-12 col-md-6">
+                <div class="feature-copy">
+                    <h2>Easy Reporting</h2>
+                    <p>Bespoke reports allow you to understand leave and absence within your organisation at a click of
+                        a button. Spot patterns of absence or annual leave that might affect the business and report
+                        against external&nbsp;indicators.</p>
+                    <a href="/easy-reporting" class="button full">Learn more</a>
+                    <a href="https://app.leavewizard.com/register?plan=50" class="button border">Sign up</a>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 d-none d-md-block"
+                 style="background: url('https://www.leavewizard.com/wp-content/themes/leavewizard/img/leave-management-reports.jpg') no-repeat center center; background-size: 100% auto;"></div>
+        </div>
+    </div>
+    <div class="feature4">
+        <div class="row">
+            <div class="col-12 col-md-6"
+                 style="background: url('https://www.leavewizard.com/wp-content/themes/leavewizard/img/leave-management-stay-in-control.jpg') no-repeat center center; background-size: 100% auto; min-height: 15em;"></div>
+            <div class="col-12 col-md-6">
+                <div class="feature-copy">
+                    <h2>Stay in Control</h2>
+                    <p>Manage a variety of work patterns, different leave years, overtime and time off in lieu (TOIL),
+                        plus several carryover strategies. Ensure your organisation's process and policies are being
+                        followed and every employee gets their correct allowance. Also set organisational specific
+                        rules, such as specific people not being off&nbsp;simultaneously.</p>
+                    <a href="/stay-in-control" class="button full">Learn more</a>
+                    <a href="https://app.leavewizard.com/register?plan=50" class="button border">Sign up</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="feature5">
+        <div class="row">
+            <div class="col-12 col-md-6 d-md-none"
+                 style="background: url('https://www.leavewizard.com/wp-content/themes/leavewizard/img/leave-management-automation.jpg') no-repeat center center; background-size: 100% auto; min-height: 15em;"></div>
+            <div class="col-12 col-md-6">
+                <div class="feature-copy">
+                    <h2>Easy Automation</h2>
+                    <p>Employees can request leave and check their allowances on the app to save you time, automatic
+                        approval reminders ensure managers are notified about requests and local public holidays are
+                        automatically allocated. Save hours per employee, per year, by having the automated processes,
+                        allowing you to get on with running your&nbsp;business</p>
+                    <a href="/easy-automation" class="button full">Learn more</a>
+                    <a href="https://app.leavewizard.com/register?plan=50" class="button border">Sign up</a>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 d-none d-md-block"
+                 style="background: url('https://www.leavewizard.com/wp-content/themes/leavewizard/img/leave-management-automation.jpg') no-repeat center center; background-size: 100% auto;"></div>
+        </div>
+    </div>
+    <div class="all-features angled-top-bottom mt-4">
+        <div class="container">
+            <h1 class="text-center mb-5">All Features</h1>
+            <div class="row">
+                <div class="col-12 col-md-6 feature">
+                    <h2>Increase Productivity</h2>
+                    <p>Approving leave requests takes moments, not minutes, with all of the data you need at your&nbsp;fingertips.</p>
+                    <a href="/increase-productivity" class="button full">Learn more</a>
+                </div>
+                <div class="col-12 col-md-6 feature">
+                    <h2>Tailor the Experience</h2>
+                    <p>See your organisational structure at a glance, and personalise your workflows to suit your teams.
+                        Manage leave your&nbsp;way.</p>
+                    <a href="/tailor-the-experience" class="button full">Learn more</a>
+                </div>
+                <div class="col-12 col-md-6 feature">
+                    <h2>Easy Reporting</h2>
+                    <p>Bespoke reports allow you to understand leave and absence within your organisation at a click of
+                        a&nbsp;button.</p>
+                    <a href="/easy-reporting" class="button full">Learn more</a>
+                </div>
+                <div class="col-12 col-md-6 feature">
+                    <h2>Stay in Control</h2>
+                    <p>Manage a variety of work patterns, different leave years, overtime and time off in lieu (TOIL),
+                        plus several carryover&nbsp;strategies.</p>
+                    <a href="/stay-in-control" class="button full">Learn more</a>
+                </div>
+                <div class="col-12 col-md-6 feature">
+                    <h2>Easy Automation</h2>
+                    <p>Employees can request leave and check their allowances on the app to save you time, automatic
+                        approval reminders ensure managers are notified about requests and local public holidays are
+                        automatically&nbsp;allocated.</p>
+                    <a href="/easy-automation" class="button full">Learn more</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>

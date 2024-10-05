@@ -3,50 +3,61 @@
 
 }
 .container-header {
-    background-color: #1f2025;
-    border-bottom: 1px solid #181818;
+    /*background-color: #1f2025;*/
+    background-color: var(--heather-color);
+    /*border-bottom: 3px solid #181818;*/
 }
 
 .container-navigation {
     /*width: 80%;*/
-    max-width: 80vw;
+    max-width: 70vw;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1em 2.5em;
+    padding: 0.5em 2.5em;
     margin: 0 auto;
     /*background-color: #282828;*/
 
 }
 
 .container-logo {
-    width: 140px;
+    width: 100px;
+}
+
+.central-nav {
+    max-width: 40%;
+    flex: 1 1 auto;
 }
 
 .navbar-ul {
     display: flex;
     list-style: none;
-    gap: 5em;
-    /*font-size: 2em;*/
+    justify-content: space-between;
 }
 
 .navbar-ul a {
     text-decoration: none;
     color: whitesmoke;
-    font-size: 1.5em;
+    font-size: 1.2em;
+    display: flex;
 }
 
+
 .central-nav :hover {
-    color: #ff5733;
+    color: #95d0f8;
 }
 
 .central-nav :active {
-    color: #da080f;
+    color: #3498db;
 }
 
 .signup-login-container {
     display: flex;
     gap: 1em;
+}
+
+.signup-login-container a:hover {
+
 }
 
 
@@ -65,7 +76,7 @@
     border: none; /* Remove default border */
     border-radius: 0.5em; /* Rounded corners */
     text-transform: uppercase; /* Uppercase text */
-    font-size: 1.4em; /* Font size */
+    font-size: 1em; /* Font size */
     font-weight: 600; /* Font weight */
     cursor: pointer; /* Pointer cursor */
     text-decoration: none; /* Remove underline from the text */
@@ -102,33 +113,48 @@
 }
 
 .signup-button::before {
-    background: linear-gradient(to right, #da080f, #ff5733, #da080f);
+    /*background: linear-gradient(to right, #da080f, #ff5733, #da080f);*/
+    background-color: var(--button-sup-bg-color);
       border-radius: 0.3em 1.2em;
 }
 
 .signup-button:hover::before {
-    background: linear-gradient(to right, #ff5733, #da080f, #ff5733);
-    border-radius: 1.35em 0.4em;
+    /*background: linear-gradient(to right, #ff5733, #da080f, #ff5733);*/
+    /*background-color: var(--button-sup-bg-color-hover);*/
+    /*border-radius: 1.35em 0.4em;*/
+    border-radius: 0.4em 1.35em;
+    font-size: 1.2em;
+
 }
 
+
 .signin-button::before {
-    background-color: #1f2025;
-    border: 2px solid #ff5733; /* Transparent border */
+    /*background-color: #1f2025;*/
+    /*background-color: var(--heather-color);*/
+    border: 2px solid #3498db; /* Transparent border */
+    background-color: transparent;
     /*background: linear-gradient(to right, #082698, #103ff5, #082698);*/
-      border-radius: 1.2em 0.3em;
+    border-radius: 1.2em 0.3em;
 }
 
 .signin-button:hover::before {
-    background-color: #373738;
+    /*background-color: #373738;*/
+    /*background-color: var(--button-lin-bg-color-hover);*/
     /*background: linear-gradient(to right, #103ff5, #082698, #103ff5);*/
-    border-radius: 0.4em 1.35em;
+    border-radius: 1.35em 0.4em ;
     /*border: 2px solid #ff5733;*/
-    border-color: #da080f;
+    /*border-color: var(--button-sup-bg-color-hover);*/
+    /*background-color: #3498db;*/
 }
 
-.signin-button:hover {
-    color: #dedede;
-}
+/*.signin-button:hover {*/
+/*    color: #95d0f8;*/
+/*}*/
+
+
+/*.signin-button:hover {*/
+/*    color: #dedede;*/
+/*}*/
 
 .authenticated-navbar-ul li {
     justify-items: start;
@@ -206,7 +232,7 @@
 .rounded-circle {
     border-radius: 50%;
     /*margin-left: 10px;*/
-    background-color: #1f2025;
+    /*background-color: #1f2025;*/
 }
 
 .rounded-circle.hovered {

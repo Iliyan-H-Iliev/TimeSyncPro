@@ -60,7 +60,7 @@
     height: 650px;
 }
 
-h2 {
+.signup-container h2 {
     font-size: 2em;
     color: #ffffff;
     text-align: center;

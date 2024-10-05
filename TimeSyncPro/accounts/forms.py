@@ -10,7 +10,7 @@ from django.utils.text import slugify
 # from django.urls import reverse
 from django.utils.timezone import now
 
-from .form_mixins import ReadonlyFieldsFormMixin, CleanEmailMixin
+from .form_mixins import ReadonlyFieldsFormMixin, CleanEmailMixin, RequiredFieldsFormMixin, CleanCompanyNameMixin
 # from .tasks import send_welcome_email, send_password_reset_email, send_activation_email
 from .utils import format_email
 from .models import Company, Profile
@@ -21,50 +21,30 @@ logger = logging.getLogger(__name__)
 UserModel = get_user_model()
 
 
-# TODO Autintication request
-class SignupCompanyAdministratorForm(CleanEmailMixin, UserCreationForm):
-    first_name = forms.CharField(
-        max_length=Profile.MAX_FIRST_NAME_LENGTH,
-        min_length=Profile.MIN_FIRST_NAME_LENGTH,
-        required=True,
-    )
+# TODO add TeamLeader role
+# TODO new Employee to chose from existing teams
+class SignupCompanyAdministratorForm(CleanCompanyNameMixin, CleanEmailMixin, UserCreationForm):
 
-    last_name = forms.CharField(
-        max_length=Profile.MAX_LAST_NAME_LENGTH,
-        min_length=Profile.MIN_LAST_NAME_LENGTH,
-        required=True,
-    )
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-    company_name = forms.CharField(
-        max_length=Company.MAX_COMPANY_NAME_LENGTH,
-        min_length=Company.MIN_COMPANY_NAME_LENGTH,
-        required=True,
-    )
+        profile_fields = forms.models.fields_for_model(Profile, fields=['first_name', 'last_name'])
+        self.fields.update(profile_fields)
+
+        company_fields = forms.models.fields_for_model(Company, fields=['name'])
+        self.fields.update(company_fields)
+        #
+        # self.fields['company_name'] = self.fields.pop('name')
 
     class Meta:
         model = UserModel
-        fields = ["first_name", "last_name", "email", "company_name", "password1", "password2"]
-
-    # def clean_email(self):
-    #     email = self.cleaned_data.get('email')
-    #     if email:
-    #         email = format_email(email)
-    #         if UserModel.objects.filter(email=email).exists():
-    #             raise ValidationError("A user with this email already exists.")
-    #     return email
+        fields = ["email", "password1", "password2"]
 
     def clean_email(self):
-        # Call the mixin method and pass in the User model
         return super().clean_email()
 
-    def clean_company_name(self):
-        company_name = self.cleaned_data.get('company_name')
-
-        if company_name:
-            slug_name = slugify(company_name)
-            if Company.objects.filter(slug=slug_name).exists():
-                raise ValidationError("A company with this name already exists.")
-        return company_name
+    def clean_name(self):
+        return super().clean_name()
 
     def save(self, commit=True):
         try:
@@ -80,7 +60,7 @@ class SignupCompanyAdministratorForm(CleanEmailMixin, UserCreationForm):
                 user.save(first_name=first_name, last_name=last_name)
 
                 company = Company.objects.create(
-                    name=self.cleaned_data["company_name"],
+                    name=self.cleaned_data["name"],
                 )
 
                 employee = Profile.objects.create(
@@ -99,6 +79,9 @@ class SignupCompanyAdministratorForm(CleanEmailMixin, UserCreationForm):
                     logger.info(
                         f"Successfully created administrator account for {user.email} at company {company.name}")
 
+                company.leave_approver = employee
+                company.save()
+
                 # send_welcome_email.delay(user.email)
 
                 return user
@@ -113,92 +96,33 @@ class SignupCompanyAdministratorForm(CleanEmailMixin, UserCreationForm):
             return None  # Return None in case of an error
 
 
-# TODO add TeamLeader role
-# TODO new Employee to chose from existing teams
-# TODO use Employee as as fields model
-class SignupEmployeeForm(CleanEmailMixin, UserCreationForm):
+class SignupEmployeeForm(RequiredFieldsFormMixin, CleanEmailMixin, UserCreationForm):
     employee_role = []
+    required_fields = (
+        "first_name",
+        "last_name",
+        "role",
+        "employee_id",
+        "date_of_hire",
+        "days_off_left",
+    )
+
+    not_required_fields = (
+        "password1",
+        "password2",
+        "department",
+        "manages_departments",
+        "shift_pattern",
+        "team",
+    )
 
     class Meta:
         model = UserModel
         fields = [
-            "first_name",
-            "last_name",
             "email",
-            "role",
-            "employee_id",
-            "department",
-            "manages_departments",
-            "shift_pattern",
-            "team",
-            "date_of_hire",
-            "days_off_left",
+            "password1",
+            "password2",
         ]
-
-    email = forms.EmailField(
-        required=True
-    )
-
-    password1 = forms.CharField(
-        widget=forms.PasswordInput,
-        required=False,
-    )
-    password2 = forms.CharField(
-        widget=forms.PasswordInput,
-        required=False,
-    )
-
-    first_name = forms.CharField(
-        max_length=Profile.MAX_FIRST_NAME_LENGTH,
-        min_length=Profile.MIN_FIRST_NAME_LENGTH,
-        required=True,
-    )
-
-    last_name = forms.CharField(
-        max_length=Profile.MAX_LAST_NAME_LENGTH,
-        min_length=Profile.MIN_LAST_NAME_LENGTH,
-        required=True,
-    )
-
-    role = forms.ChoiceField(
-        choices=employee_role,
-        required=True,
-    )
-
-    employee_id = forms.CharField(
-        max_length=Profile.MAX_EMPLOYEE_ID_LENGTH,
-        min_length=Profile.MIN_EMPLOYEE_ID_LENGTH,
-        required=True,
-    )
-
-    department = forms.ModelChoiceField(
-        queryset=None,
-        required=False,
-    )
-
-    manages_departments = forms.ModelMultipleChoiceField(
-        queryset=None,
-        required=False,
-    )
-
-    shift_pattern = forms.ModelChoiceField(
-        queryset=None,
-        required=False,
-    )
-
-    team = forms.ModelChoiceField(
-        queryset=None,
-        required=False,
-    )
-
-    date_of_hire = forms.DateField(
-        required=True,
-        initial=now().date(),
-    )
-
-    days_off_left = forms.IntegerField(
-        required=True,
-    )
 
     def clean_email(self):
         return super().clean_email()
@@ -213,7 +137,6 @@ class SignupEmployeeForm(CleanEmailMixin, UserCreationForm):
         company_departments = company_with_departments.departments.all()
         role = cleaned_data.get("role")
 
-        # Role-specific validation
         if company_departments.exists() and (role == "Staff" or role == "Team Leader"):
             if not cleaned_data.get("department"):
                 self.add_error("department", "Please select a department for the Employee role")
@@ -233,8 +156,27 @@ class SignupEmployeeForm(CleanEmailMixin, UserCreationForm):
         return cleaned_data
 
     def __init__(self, *args, **kwargs):
-        self.request = kwargs.get("request", None)
+        self.request = kwargs.pop("request", None)
         super().__init__(*args, **kwargs)
+
+        profile_fields = forms.models.fields_for_model(
+            Profile,
+            fields=[
+                            "first_name",
+                            "last_name",
+                            "role",
+                            "employee_id",
+                            "department",
+                            "manages_departments",
+                            "shift_pattern",
+                            "team",
+                            "date_of_hire",
+                            "days_off_left",
+            ])
+
+        self.fields.update(profile_fields)
+        self._apply_required_on_fields()
+        self._apply_not_required_on_fields()
 
         if not self.request:
             raise forms.ValidationError("You must be authenticated to register employees.")
@@ -245,22 +187,6 @@ class SignupEmployeeForm(CleanEmailMixin, UserCreationForm):
 
         if not company:
             raise forms.ValidationError("You must be associated with a company to register employees")
-
-        # all_user_related_data = UserModel.objects.prefetch_related(
-        #     Prefetch('profile', queryset=Profile.objects.all()),
-        #     Prefetch('company', queryset=Company.objects.all()),
-        #     Prefetch('team', queryset=Team.objects.all()),
-        #     Prefetch('department', queryset=Department.objects.all()),
-        #     Prefetch('shift_pattern', queryset=ShiftPattern.objects.all()),
-        # ).get(id=user.id)
-
-        # company_with_related_data = Company.objects.select_related(
-        #     'user'
-        # ).prefetch_related(
-        #     Prefetch('teams', queryset=Team.objects.all()),
-        #     Prefetch('shift_patterns', queryset=ShiftPattern.objects.all()),
-        #     Prefetch('departments', queryset=Department.objects.all()),
-        # ).get(id=company.id)
 
         company_with_related_data = Company.objects.prefetch_related(
             Prefetch('teams', queryset=Team.objects.all()),
@@ -294,12 +220,12 @@ class SignupEmployeeForm(CleanEmailMixin, UserCreationForm):
     def save(self, commit=True):
         try:
             with transaction.atomic():
-                # Start transaction: create user and employee records
                 company = self.request.user.company
                 user = UserModel.objects.create_user(
                     email=self.cleaned_data["email"],
-                    password=make_password(UserModel.objects.make_random_password()),
-                    is_active=False,
+                    # password=make_password(UserModel.objects.make_random_password()),
+                    # is_active=False,
+                    password="ilich3"
                 )
 
                 activation_token = user.generate_activation_token()
@@ -363,6 +289,7 @@ class BasicEditTimeSyncProUserForm(EditTimeSyncProUserBaseForm):
 
 
 class DetailedEditTimeSyncProUserForm(EditTimeSyncProUserBaseForm):
+
     class Meta(EditTimeSyncProUserBaseForm.Meta):
         model = UserModel
         fields = EditTimeSyncProUserBaseForm.Meta.fields + ['is_active']

@@ -1,0 +1,33 @@
+{% load static %}
+
+
+
+            <div class="container-header" id="container-header">
+
+                <div class="container-navigation" id="container-navigation">
+
+                    <div class="container-logo" id="tsp-logo">
+                        <a href="{% url 'index' %}"><img src="{% static 'images/logo-blue.png' %}"
+                                                         alt="TimeSyncPro"></a>
+                    </div>
+
+                    {% if not request.user.is_authenticated %}
+
+                        <div class="navbar central-nav">
+                            <ul class="navbar-ul">
+                                <li><a href="{% url 'signin user' %}" class="nav-button">Features</a></li>
+                                <li><a href="{% url 'signup administrator' %}" class="nav-button">Pricing</a></li>
+                                <li><a href="{% url 'signup administrator' %}" class="nav-button">Contact</a></li>
+                            </ul>
+                        </div>
+
+                        <div class="navbar signup-login-container">
+                            {% include "partials/sign_up_button.html" %}
+                            {% include "partials/log_in_button.html" %}
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+            </div>

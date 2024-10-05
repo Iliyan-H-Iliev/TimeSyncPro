@@ -1,9 +1,13 @@
 from django.core.exceptions import ValidationError, ImproperlyConfigured
+from django import forms
+from django.db.models import Q
+from django.utils.text import slugify
+from django.utils.translation import gettext_lazy as _
 
-from TimeSyncPro.accounts.utils import format_email
+from TimeSyncPro.accounts.models import Company
 
 
-class ReadonlyFieldsFormMixin:
+class ReadonlyFieldsFormMixin(forms.ModelForm):
     readonly_fields = ()
 
     def _apply_readonly_on_fields(self):
@@ -13,26 +17,94 @@ class ReadonlyFieldsFormMixin:
 
     @property
     def readonly_field_names(self):
-        if self.readonly_fields == "__all__":
+        if self.readonly_fields[0] == "__all__":
             return self.fields.keys()
 
         return self.readonly_fields
 
 
-class CleanEmailMixin:
+class RequiredFieldsFormMixin(forms.ModelForm):
+    required_fields = ()
+    not_required_fields = ()
+
+    def _apply_required_on_fields(self):
+        for field_name in self.required_field_names:
+            self.fields[field_name].required = True
+
+    def _apply_not_required_on_fields(self):
+        for field_name in self.not_required_field_names:
+            self.fields[field_name].required = False
+
+    @property
+    def required_field_names(self):
+        if self.required_fields[0] == "__all__":
+            return self.fields.keys()
+
+        return self.required_fields
+
+    @property
+    def not_required_field_names(self):
+        if self.not_required_fields[0] == "__all__":
+            return self.fields.keys()
+
+        return self.not_required_fields
+
+
+class CleanEmailMixin(forms.ModelForm):
     def clean_email(self):
         email = self.cleaned_data.get('email')
-        if email:
-            email = format_email(email)
+        if not email:
+            return email
 
-            # Ensure Meta and model are properly defined
-            if not hasattr(self, 'Meta') or not hasattr(self.Meta, 'model'):
-                raise ImproperlyConfigured(
-                    "The 'Meta' class or 'model' attribute is missing in the form."
-                )
+        email = self.format_email(email)
 
-            model = self.Meta.model
+        if not hasattr(self, 'Meta') or not hasattr(self.Meta, 'model'):
+            raise ImproperlyConfigured(
+                _("The 'Meta' class or 'model' attribute is missing in the form.")
+            )
 
-            if model.objects.filter(email=email).exists():
-                raise ValidationError("A user with this email already exists.")
+        model = self.Meta.model
+
+        # Check if this is an update for an existing instance
+        exclude_id = self.instance.id if self.instance and self.instance.pk else None
+
+        if model.objects.filter(Q(email=email) & ~Q(id=exclude_id)).exists():
+            raise ValidationError(_("A user with this email already exists."))
+
         return email
+
+    @staticmethod
+    def format_email(email):
+        if email is None:
+            return None
+        return email.lower().strip()
+
+
+class CleanCompanyNameMixin(forms.ModelForm):
+    def clean_name(self):
+        name = self.cleaned_data.get('name')
+        if not name:
+            return name
+
+        name = self.format_name(name)
+
+        if not hasattr(self, 'Meta') or not hasattr(self.Meta, 'model'):
+            raise ValidationError(
+                _("The 'Meta' class or 'model' attribute is missing in the form.")
+            )
+
+        # model = self.Meta.model
+
+        exclude_id = self.instance.id if self.instance and self.instance.pk else None
+
+        if Company.objects.filter(Q(slug=name) & ~Q(id=exclude_id)).exists():
+            raise ValidationError(_("A company with this name already exists."))
+
+        return name
+
+    @staticmethod
+    def format_name(name):
+        if name is None:
+            return None
+        return slugify(name)
+

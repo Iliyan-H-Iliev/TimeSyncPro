@@ -1,0 +1,42 @@
+:root {
+    --heather-color: #2c3e50;
+
+    --button-sup-bg-color: #3498db;
+    --button-sup-bg-color-hover: #da080f;
+    --button-lin-bg-color-hover: #2ecc71;
+
+
+    --bitton-text-color: #ffffff;
+    /*--button-background-color-signup: #ff5733;*/
+    /*--button-background-color-signup-hover: #da080f;*/
+
+
+      /* Primary Colors */
+  --primary-blue: #3498db;
+  --primary-dark: #2c3e50;
+
+  /* Secondary Colors */
+  --secondary-green: #2ecc71;
+  --secondary-red: #e74c3c;
+
+  /* Neutral Colors */
+  --neutral-light: #ecf0f1;
+  --neutral-medium: #bdc3c7;
+  --neutral-dark: #7f8c8d;
+
+  /* Text Colors */
+  --text-primary: #333333;
+  --text-secondary: #666666;
+
+  /* Background Colors */
+  --background-main: #ffffff;
+  --background-alt: #f9f9f9;
+
+
+
+
+  /* Accent Colors */
+  --error-color: #e74c3c; /* Red for errors or warnings */
+  --success-color: #2ecc71; /* Green for success actions */
+  --highlight-color: #f1c40f; /* Yellow for highlights or important information */
+}

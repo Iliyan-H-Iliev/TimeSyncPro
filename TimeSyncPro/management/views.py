@@ -9,12 +9,12 @@ from .forms import CreateShiftPatternForm, CreateShiftBlockFormSet, CreateTeamFo
 from django.views import generic as views
 
 from .utils import handle_shift_pattern_post
-from ..core.views_mixins import AuthenticatedViewMixin, CompanyCheckMixin
+from ..core.views_mixins import NotAuthenticatedMixin, CompanyCheckMixin
 
 UserModel = get_user_model()
 
 
-class ShiftPatternCreateView(AuthenticatedViewMixin, PermissionRequiredMixin, views.View):
+class ShiftPatternCreateViewNot(NotAuthenticatedMixin, PermissionRequiredMixin, views.View):
     template_name = 'create_shiftpattern_form.html'
     form_class = CreateShiftPatternForm
     formset_class = CreateShiftBlockFormSet
@@ -33,7 +33,7 @@ class ShiftPatternCreateView(AuthenticatedViewMixin, PermissionRequiredMixin, vi
         return handle_shift_pattern_post(request, form, formset, None, self.template_name, self.redirect_url)
 
 
-class ShiftPatternEditView(CompanyCheckMixin, PermissionRequiredMixin,AuthenticatedViewMixin, views.View):
+class ShiftPatternEditViewNot(CompanyCheckMixin, PermissionRequiredMixin, NotAuthenticatedMixin, views.View):
     template_name = 'edit_shiftpattern_form.html'
     form_class = UpdateShiftPatternForm
     formset_class = UpdateShiftBlockFormSet
@@ -58,7 +58,7 @@ class ShiftPatternEditView(CompanyCheckMixin, PermissionRequiredMixin,Authentica
         return handle_shift_pattern_post(request, form, formset, pk, self.template_name, self.redirect_url)
 
 
-class ShiftPatternListView(AuthenticatedViewMixin, PermissionRequiredMixin, views.ListView):
+class ShiftPatternListViewNot(NotAuthenticatedMixin, PermissionRequiredMixin, views.ListView):
     model = ShiftPattern
     template_name = 'management/shiftpattern_list.html'
     context_object_name = 'shift_patterns'
@@ -71,7 +71,7 @@ class ShiftPatternListView(AuthenticatedViewMixin, PermissionRequiredMixin, view
         return self.get_queryset()
 
 
-class ShiftPatternDetailView(AuthenticatedViewMixin, PermissionRequiredMixin, views.DetailView):
+class ShiftPatternDetailViewNot(NotAuthenticatedMixin, PermissionRequiredMixin, views.DetailView):
     model = ShiftPattern
     template_name = 'management/shiftpattern_detail.html'
     context_object_name = 'shift_pattern'
@@ -94,7 +94,7 @@ class ShiftPatternDetailView(AuthenticatedViewMixin, PermissionRequiredMixin, vi
         return context
 
 
-class ShiftPatternDeleteView(CompanyCheckMixin, AuthenticatedViewMixin, PermissionRequiredMixin, views.DeleteView):
+class ShiftPatternDeleteViewNot(CompanyCheckMixin, NotAuthenticatedMixin, PermissionRequiredMixin, views.DeleteView):
     model = ShiftPattern
     template_name = 'management/delete_shiftpattern.html'
     permission_required = 'team_management.can_delete_shift_pattern'
@@ -115,7 +115,7 @@ class ShiftPatternDeleteView(CompanyCheckMixin, AuthenticatedViewMixin, Permissi
         return super().post(request, *args, **kwargs)
 
 
-class TeamListView(AuthenticatedViewMixin, PermissionRequiredMixin, views.ListView):
+class TeamListViewNot(NotAuthenticatedMixin, PermissionRequiredMixin, views.ListView):
     model = Team
     template_name = 'management/team_list.html'
     permission_required = 'team_management.can_view_team'
@@ -133,7 +133,7 @@ class TeamListView(AuthenticatedViewMixin, PermissionRequiredMixin, views.ListVi
         return context
 
 
-class TeamCreateView(AuthenticatedViewMixin, PermissionRequiredMixin, views.CreateView):
+class TeamCreateViewNot(NotAuthenticatedMixin, PermissionRequiredMixin, views.CreateView):
     model = Team
     form_class = CreateTeamForm
     template_name = 'management/create_team_form.html'
@@ -151,7 +151,7 @@ class TeamCreateView(AuthenticatedViewMixin, PermissionRequiredMixin, views.Crea
         return kwargs
 
 
-class TeamEditView(CompanyCheckMixin, AuthenticatedViewMixin, PermissionRequiredMixin, views.UpdateView):
+class TeamEditViewNot(CompanyCheckMixin, NotAuthenticatedMixin, PermissionRequiredMixin, views.UpdateView):
     model = Team
     form_class = EditTeamForm
     template_name = 'management/edti_team.html'
@@ -175,7 +175,7 @@ class TeamEditView(CompanyCheckMixin, AuthenticatedViewMixin, PermissionRequired
         return self.get_queryset().get(pk=self.kwargs.get('pk'))
 
 
-class TeamDeleteView(CompanyCheckMixin, AuthenticatedViewMixin, PermissionRequiredMixin, views.DeleteView):
+class TeamDeleteViewNot(CompanyCheckMixin, NotAuthenticatedMixin, PermissionRequiredMixin, views.DeleteView):
     model = Team
     template_name = 'management/delete_team.html'
     permission_required = 'team_management.can_delete_team'

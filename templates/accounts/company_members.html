@@ -1,12 +1,17 @@
-{% extends 'layout.html' %}
+{% extends 'auth-layout.html' %}
 
 {% block content %}
     <h1>Company Members</h1>
     
-
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
 
 {% if company %}
-    <p>Username: {{ user.email }}</p>
     <!-- Display company details -->
     {% if company %}
         <h2>Company: {{ company.company_name }}</h2>
