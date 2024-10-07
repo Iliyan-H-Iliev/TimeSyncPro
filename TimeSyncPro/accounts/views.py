@@ -2,7 +2,7 @@ import logging
 
 from django.contrib import messages
 from django.contrib.auth import views as auth_views, login, logout, authenticate, get_user_model
-from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin
 from django.contrib.auth.models import Group
 from django.contrib.auth.views import PasswordResetConfirmView
 from django.contrib.auth.forms import SetPasswordForm
@@ -22,11 +22,11 @@ from django.views import generic as views
 # from .serializers import LoginSerializer, SignupCompanySerializer
 
 from TimeSyncPro.accounts.forms import SignupEmployeeForm, SignupCompanyAdministratorForm, \
-    BasicEditTimeSyncProUserForm, DetailedEditTimeSyncProUserForm, CustomSetPasswordForm, \
-    DetailedEditEmployeesBaseForm, BasicEditEmployeeForm
+    BasicEditTSPUserForm, DetailedEditTSPUserForm, CustomSetPasswordForm, \
+    DetailedEditProfileForm, BasicEditProfileForm
 from TimeSyncPro.accounts.view_mixins import OwnerRequiredMixin, \
     DynamicPermissionMixin, UserBySlugMixin, SuccessUrlMixin, AuthenticatedUserMixin
-from TimeSyncPro.core.utils import format_email
+# from TimeSyncPro.core.utils import format_email
 from TimeSyncPro.core.views_mixins import NotAuthenticatedMixin, CompanyCheckMixin, \
     MultiplePermissionsRequiredMixin
 
@@ -70,7 +70,7 @@ class SignupCompanyAdministratorUser(AuthenticatedUserMixin, views.CreateView):
                 return HttpResponseRedirect(reverse('index'))
 
             return HttpResponseRedirect(
-                reverse('profile', kwargs={'slug': user_slug, 'company_slug': company_slug})
+                reverse('profile', kwargs={'slug': user_slug})
             )
 
         except Exception as e:
@@ -96,12 +96,12 @@ class SignInUserView(auth_views.LoginView):
                 self.success_url,
                 kwargs={
                     'slug': user.slug,
-                    'company_slug': user.company.slug,
+                    # 'company_slug': user.company.slug,
                 })
         return super().get_redirect_url()
 
     def form_valid(self, form):
-        username = format_email(form.cleaned_data.get('username'))
+        username = UserModel.format_email(form.cleaned_data.get('username'))
         password = form.cleaned_data.get('password')
         remember_me = form.cleaned_data.get('remember_me')
         user = authenticate(
@@ -119,7 +119,7 @@ class SignInUserView(auth_views.LoginView):
                 self.request.session.set_expiry(0)  # Browser close
 
             return HttpResponseRedirect(
-                reverse('profile', kwargs={'slug': user.slug, "company_slug": user.company.slug})
+                reverse('profile', kwargs={'slug': user.slug})
             )
         else:
             form.add_error(None, "Invalid username or password")
@@ -178,41 +178,35 @@ class SignupEmployeeView(MultiplePermissionsRequiredMixin, NotAuthenticatedMixin
         return super().form_invalid(form)
 
 
-class DetailsProfileBaseView(DynamicPermissionMixin, views.DetailView):
+class DetailsProfileBaseView(LoginRequiredMixin, DynamicPermissionMixin, views.DetailView):
     model = UserModel
-    # template_name = "accounts/details_company_employee.html"
-    context_object_name = 'user'
-    queryset = model.objects.select_related(
-        'profile__company'  # Fetch employee and company in one query
-    ).prefetch_related(
-        Prefetch(
-            'groups',
-            queryset=Group.objects.prefetch_related('permissions')),  # Prefetch permissions through groups
-        'user_permissions'  # Prefetch individual user permissions
-    )
+
+    context_object_name = "user_to_view"
+
+    def get_queryset(self):
+        return self.model.objects.select_related('profile__company').prefetch_related(
+            Prefetch('groups', queryset=Group.objects.prefetch_related('permissions')),
+            'user_permissions'
+        )
 
     def get_template_names(self):
-        user = self.request.user
-        user_to_view = self.get_object()
-
-        if user == user_to_view:
+        if self.request.user == self.get_object():
             return ["accounts/details_profile.html"]
-        else:
-            return ["accounts/details_company_employee.html"]
+        return ["management/details_employee_profile.html"]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
         user = self.request.user
-        user_to_view = get_object_or_404(self.queryset, slug=self.kwargs.get('slug'))
+        user_to_view = self.object
+
+        all_permissions = set(user.get_all_permissions())
 
         company_slug = user.company.slug
 
-        # Get all permissions at once
-        all_permissions = list(user.get_all_permissions())
-
         context.update({
-            'user_to_view': user_to_view,
-            'company_slug': company_slug,
+            # 'user_to_view': user_to_view,
+            'company_slug': company_slug if company_slug else None,
             'has_detailed_change_permission': self.get_action_permission(user_to_view, "change") in all_permissions,
             'has_delete_permission': self.get_action_permission(user_to_view, "delete") in all_permissions,
         })
@@ -229,12 +223,13 @@ class DetailsProfileBaseView(DynamicPermissionMixin, views.DetailView):
 
 
 class DetailsOwnProfileView(OwnerRequiredMixin, DetailsProfileBaseView):
-    template_name = "accounts/details_profile.html"
+    # template_name = "accounts/details_profile.html"
 
     # TODO check get_object
     def get_object(self, queryset=None):
-        self.object = self.request.user
-        return self.object
+        # self.object = self.request.user
+        # return self.object
+        return self.request.user
 
 
 class DetailsEmployeesProfileView(
@@ -244,18 +239,13 @@ class DetailsEmployeesProfileView(
     DetailsProfileBaseView
 ):
 
-    template_name = "accounts/../../templates/management/details_company_employee.html"
-    def get_object(self, queryset=None):
-        user_slug = self.kwargs.get('slug')
-        # Fetch the object based on slug or raise a 404 if not found
-        self.object = get_object_or_404(self.queryset, slug=user_slug)
-        return self.object
-
-    def dispatch(self, request, *args, **kwargs):
+    def get_permission_required(self):
         user_to_view = self.get_object()
-        permission = self.get_action_permission(user_to_view, "view")
-        self.permission_required = permission
-        return super().dispatch(request, *args, **kwargs)
+        return [self.get_action_permission(user_to_view, "view")]
+
+    def get_object(self, queryset=None):
+        queryset = self.get_queryset() if queryset is None else queryset
+        return get_object_or_404(queryset, slug=self.kwargs.get('slug'))
 
 
 class EditProfileBaseView(NotAuthenticatedMixin, views.View):
@@ -280,7 +270,7 @@ class EditProfileBaseView(NotAuthenticatedMixin, views.View):
 
     @staticmethod
     def _get_additional_form_class(detailed_edit=False):
-        form_class = DetailedEditEmployeesBaseForm if detailed_edit else BasicEditEmployeeForm
+        form_class = DetailedEditProfileForm if detailed_edit else BasicEditProfileForm
         return form_class
 
     def get_success_url(self, slug, company_slug):
@@ -340,7 +330,7 @@ class EditProfileBaseView(NotAuthenticatedMixin, views.View):
 
 class BasicEditProfileView(OwnerRequiredMixin, EditProfileBaseView):
     template_name = 'accounts/edit_profile.html'
-    form_class = BasicEditTimeSyncProUserForm
+    form_class = BasicEditTSPUserForm
     success_url = 'profile'
     detailed_edit = False
 
@@ -370,7 +360,7 @@ class BasicEditProfileView(OwnerRequiredMixin, EditProfileBaseView):
 
 class DetailedEditProfileView(PermissionRequiredMixin, DynamicPermissionMixin, EditProfileBaseView):
     template_name = 'accounts/full_profile_edit.html'
-    form_class = DetailedEditTimeSyncProUserForm
+    form_class = DetailedEditTSPUserForm
     success_url = 'company employee profile'
     detailed_edit = True
 
@@ -469,9 +459,6 @@ class DeleteEmployeeView(
         user_to_delete.delete()
         messages.success(request, "User deleted successfully.")
         return redirect(self.get_success_url())
-
-
-
 
 
 class PasswordResetView(auth_views.PasswordResetView):

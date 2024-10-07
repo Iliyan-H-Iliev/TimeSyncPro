@@ -68,6 +68,10 @@ class CompanyMembersView(NotAuthenticatedMixin, CompanyContextMixin, views.ListV
     template_name = "accounts/../../templates/management/company_members.html"
     context_object_name = 'company'
 
+    # def get_queryset(self):
+    #     user = self.request.user
+    #     return Company.objects.filter(id=user.profile.company.id)
+
     def get_object(self, queryset=None):
         user = self.request.user
         queryset = self.get_queryset()
@@ -86,14 +90,13 @@ class CompanyMembersView(NotAuthenticatedMixin, CompanyContextMixin, views.ListV
         return super().get(request, *args, **kwargs)
 
     # # TODO check if this is the right way to fetch related models for the user profile
-    # def get_context_data(self, **kwargs):
-    #     context = super().get_context_data(**kwargs)
-    #     company = self.object
-    #
-    #     context['company'] = company if company else None
-    #     context['employees'] = Employee.objects.filter(company=company) if company else None
-    #
-    #     return context
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        company = self.get_object()
+
+        context['employees'] = Company.objects.get(id=company.id).employees.all()
+
+        return context
 
 
 # TODO add permision for delete

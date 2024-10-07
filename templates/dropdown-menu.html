@@ -18,7 +18,7 @@
             {% if user.is_company %}
                 <a href="{% url 'company profile'  slug=user.slug company_slug=user.profile.company.slug %}">Profile</a>
             {% else %}
-                <a href="{% url 'profile'  slug=user.slug company_slug=user.profile.company.slug %}">Profile</a>
+                <a href="{% url 'profile'  slug=user.slug  %}">Profile</a>
             {% endif %}
         </li>
         <li><a class="dropdown-item" href="{% url 'password change' %}">Change Password</a></li>

@@ -4,28 +4,26 @@ from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import Model, Q
 from django.utils.crypto import get_random_string
+import uuid
+
 from django.utils.text import slugify
-import pytz
 
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import models as auth_models
 
 from django.utils import timezone
-from django_countries.fields import CountryField
 
-from TimeSyncPro.core.model_mixins import CreatedModifiedMixin
+from TimeSyncPro.core.model_mixins import CreatedModifiedMixin, EmailFormatingMixin
 
 from .managers import TimeSyncProUserManager
-from .utils import generate_unique_slug
 
 
 # from .proxy_models import ManagerProxy, HRProxy, TeamLeaderProxy, StaffProxy
 
 from .validators import IsDigitsValidator, DateRangeValidator, DateOfBirthValidator
-from ..core.utils import format_email
 
 
-class TimeSyncProUser(auth_models.AbstractBaseUser, auth_models.PermissionsMixin):
+class TimeSyncProUser(EmailFormatingMixin, auth_models.AbstractBaseUser, auth_models.PermissionsMixin):
     MAX_SLUG_LENGTH = 100
 
     groups = models.ManyToManyField(
@@ -91,15 +89,15 @@ class TimeSyncProUser(auth_models.AbstractBaseUser, auth_models.PermissionsMixin
             else:
                 full_name = self.email.split('@')[0]
 
-            slug = generate_unique_slug(full_name, self.MAX_SLUG_LENGTH)
+            slug = self.generate_unique_slug(full_name, self.MAX_SLUG_LENGTH)
 
             while TimeSyncProUser.objects.filter(slug=slug).exists():
-                slug = generate_unique_slug(full_name, self.MAX_SLUG_LENGTH)
+                slug = self.generate_unique_slug(full_name, self.MAX_SLUG_LENGTH)
 
             self.slug = slug
 
         if self.email:
-            self.email = format_email(self.email)
+            self.email = self.formated_email(self.email)
         super().save(*args, **kwargs)
 
     def generate_activation_token(self):
@@ -110,6 +108,13 @@ class TimeSyncProUser(auth_models.AbstractBaseUser, auth_models.PermissionsMixin
     def __str__(self):
         return f"{self.__class__.__name__} - {self.email}"
 
+    @staticmethod
+    def generate_unique_slug(full_name, max_length):
+        base_slug = slugify(full_name)[:max_length - 9]
+        unique_slug = f"{base_slug}-{uuid.uuid4().hex[:8]}"
+
+        return unique_slug[:max_length]
+
     @property
     def company(self):
         return self.profile.company
@@ -117,129 +122,6 @@ class TimeSyncProUser(auth_models.AbstractBaseUser, auth_models.PermissionsMixin
     USERNAME_FIELD = "email"
 
     objects = TimeSyncProUserManager()
-
-
-# class Company(CreatedModifiedMixin):
-#     MAX_COMPANY_NAME_LENGTH = 50
-#     MIN_COMPANY_NAME_LENGTH = 3
-#     DEFAULT_LEAVE_DAYS_PER_YEAR = 0
-#     DEFAULT_TRANSFERABLE_LEAVE_DAYS = 0
-#     RANDOM_STRING_LENGTH = 10
-#     MAX_LEAVE_DAYS_PER_REQUEST = 30
-#     MIN_LEAVE_NOTICE = 0
-#     MAX_TIMEZONE_LENGTH = 50
-#     MAX_SLUG_LENGTH = 100
-#
-#     name = models.CharField(
-#         max_length=MAX_COMPANY_NAME_LENGTH,
-#         validators=[MinLengthValidator(MIN_COMPANY_NAME_LENGTH)],
-#         unique=True,
-#         null=False,
-#         blank=False,
-#     )
-#
-#     email = models.EmailField(
-#         blank=True,
-#         null=True,
-#     )
-#
-#     leave_approver = models.ForeignKey(
-#         'accounts.Profile',
-#         on_delete=models.SET_NULL,
-#         null=True,
-#         blank=True,
-#         related_name='companies',
-#     )
-#
-#     location = CountryField(
-#         blank_label='(select country)',
-#         blank=True,
-#         null=True
-#     )
-#
-#     time_zone = models.CharField(
-#         max_length=MAX_TIMEZONE_LENGTH,
-#         choices=[(tz, tz) for tz in pytz.all_timezones],
-#         default='UTC',
-#         blank=False,
-#         null=False
-#     )
-#
-#     leave_days_per_year = models.PositiveIntegerField(
-#         default=DEFAULT_LEAVE_DAYS_PER_YEAR,
-#         null=False,
-#         blank=False,
-#     )
-#
-#     transferable_leave_days = models.PositiveIntegerField(
-#         default=DEFAULT_TRANSFERABLE_LEAVE_DAYS,
-#         null=False,
-#         blank=False,
-#     )
-#
-#     minimum_leave_notice = models.PositiveIntegerField(
-#         default=MIN_LEAVE_NOTICE,
-#         null=False,
-#         blank=False,
-#     )
-#
-#     maximum_leave_days_per_request = models.PositiveIntegerField(
-#         default=MAX_LEAVE_DAYS_PER_REQUEST,
-#         null=False,
-#         blank=False,
-#     )
-#
-#     working_on_local_holidays = models.BooleanField(
-#         default=False,
-#         null=False,
-#         blank=False,
-#     )
-#
-#     slug = models.SlugField(
-#         max_length=MAX_SLUG_LENGTH,
-#         unique=True,
-#         null=False,
-#         blank=True,
-#         editable=False,
-#     )
-#
-#     # TODO Add a method to suggest a timezone based on the location
-#     def suggest_time_zone(self):
-#         if self.location:
-#             country_timezones = pytz.country_timezones.get(self.location.code)
-#             if country_timezones:
-#                 return country_timezones[0]  # Return the first timezone for the country
-#         return 'UTC'
-#
-#     # TODO Check ii works correctly
-#     def save(self, *args, **kwargs):
-#         self.time_zone = self.suggest_time_zone()
-#
-#         if not self.slug:
-#             self.slug = slugify(self.name)[:self.MAX_SLUG_LENGTH]
-#
-#         if self.email:
-#             self.email = format_email(self.email)
-#         super().save(*args, **kwargs)
-#
-#     # # TODO FIX IT
-#     # def get_all_company_members(self):
-#     #     return Employee.objects.filter(company=self)
-#     #
-#     # def get_all_company_departments(self):
-#     #     return apps.get_model('management', 'Department').objects.filter(company=self)
-#     #
-#     # def get_all_company_teams(self):
-#     #     return apps.get_model('management', 'Team').objects.filter(company=self)
-#     #
-#     # def get_all_company_shift_patterns(self):
-#     #     return apps.get_model('management', 'ShiftPattern').objects.filter(company=self)
-#
-#     # def get_group_name(self):
-#     #     return 'Company'
-#
-#     def __str__(self):
-#         return f"{self.__class__.__name__} - {self.name}"
 
 
 class Profile(CreatedModifiedMixin):

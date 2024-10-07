@@ -1,5 +1,9 @@
+from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import AccessMixin
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import redirect, get_object_or_404
+
+UserModel = get_user_model()
 
 
 # from TimeSyncPro.accounts.utils import get_obj_company, get_user_by_slug
@@ -14,23 +18,23 @@ class NotAuthenticatedMixin(object):
 
 
 class CompanyCheckMixin:
-    redirect_url = 'index'  # Default redirect URL
 
     def dispatch(self, request, *args, **kwargs):
         user = request.user
         user_slug = self.kwargs['slug']
 
-        # Fetch the user with related Employee and Company in a single query
-        user_to_check = get_object_or_404(self.queryset, slug=user_slug)
+        if hasattr(self, 'get_queryset'):
+            queryset = self.get_queryset()
+        else:
+            queryset = UserModel.objects.all()
 
-        # Compare the user's company with the fetched object's company
-        if user.profile.company.id != user_to_check.profile.company.id:
-            return redirect(self.get_redirect_url())
+        user_to_check = get_object_or_404(queryset, slug=user_slug)
+
+        if user_to_check.company != request.user.company:
+            raise PermissionDenied("You can only view profiles within your own company.")
 
         return super().dispatch(request, *args, **kwargs)
 
-    def get_redirect_url(self):
-        return self.redirect_url
 
 
 class MultiplePermissionsRequiredMixin(AccessMixin):

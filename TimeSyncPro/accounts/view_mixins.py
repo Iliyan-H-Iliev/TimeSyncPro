@@ -22,9 +22,6 @@ class OwnerRequiredMixin(AccessMixin):
         return super().get(*args, **kwargs)
 
 
-
-
-
 class UserBySlugMixin:
     def get_object(self):
         queryset = self.queryset
@@ -121,7 +118,6 @@ class AuthenticatedUserMixin:
                     self.success_url,
                     kwargs={
                         'slug': user.slug,
-                        'company_slug': user.company.slug
                     }
                 )
             )

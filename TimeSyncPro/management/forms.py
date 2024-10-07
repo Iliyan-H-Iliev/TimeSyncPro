@@ -4,10 +4,11 @@ from django import forms
 from .models import ShiftPattern, ShiftBlock, Team, Company
 from django.forms.models import inlineformset_factory
 
+from ..core.form_mixins import CheckCompanyExistingSlugMixin, CheckExistingNamePerCompanyMixin
 
 
 # TODO only Administrator can edit company
-class EditCompanyForm(forms.ModelForm):
+class EditCompanyForm(CheckCompanyExistingSlugMixin, forms.ModelForm):
     class Meta:
         model = Company
         fields = [
@@ -35,8 +36,7 @@ class EditCompanyForm(forms.ModelForm):
     #     return cleaned_data
 
 
-
-class ShiftPatternBaseForm(forms.ModelForm):
+class ShiftPatternBaseForm(CheckExistingNamePerCompanyMixin, forms.ModelForm):
     # TODO is start_date is on week pattern should start from Monday!!!
     class Meta:
         model = ShiftPattern
@@ -212,7 +212,7 @@ class DeleteShiftPatternForm(forms.Form):
     pass
 
 
-class CreateTeamForm(forms.ModelForm):
+class CreateTeamForm(CheckExistingNamePerCompanyMixin, forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
@@ -240,7 +240,7 @@ class CreateTeamForm(forms.ModelForm):
         return team
 
 
-class EditTeamForm(forms.ModelForm):
+class EditTeamForm(CheckExistingNamePerCompanyMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
         company = kwargs.pop('company', None)

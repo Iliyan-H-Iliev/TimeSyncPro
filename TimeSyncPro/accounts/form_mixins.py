@@ -1,9 +1,13 @@
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError, ImproperlyConfigured
 from django import forms
 from django.db.models import Q
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
+from TimeSyncPro.accounts.models import Profile
+
+UserModel = get_user_model()
 
 
 class ReadonlyFieldsFormMixin(forms.ModelForm):
@@ -55,7 +59,7 @@ class CleanEmailMixin(forms.ModelForm):
         if not email:
             return email
 
-        email = self.format_email(email)
+        email = UserModel.formated_email(email)
 
         if not hasattr(self, 'Meta') or not hasattr(self.Meta, 'model'):
             raise ImproperlyConfigured(
@@ -72,11 +76,18 @@ class CleanEmailMixin(forms.ModelForm):
 
         return email
 
-    @staticmethod
-    def format_email(email):
-        if email is None:
-            return None
-        return email.lower().strip()
+
+class ProfileFieldsMixin(forms.ModelForm):
+    profile_fields = ()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        profile_fields = forms.models.fields_for_model(
+            Profile,
+            fields=self.profile_fields
+        )
+        self.fields.update(profile_fields)
 
 
 

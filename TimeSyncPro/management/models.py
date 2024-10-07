@@ -10,11 +10,10 @@ from TimeSyncPro.accounts.models import  Profile
 from datetime import date, timedelta
 from django.core.exceptions import ObjectDoesNotExist
 
-from TimeSyncPro.core.model_mixins import CreatedModifiedMixin
-from TimeSyncPro.core.utils import format_email
+from TimeSyncPro.core.model_mixins import CreatedModifiedMixin, EmailFormatingMixin
 
 
-class Company(CreatedModifiedMixin):
+class Company(EmailFormatingMixin, CreatedModifiedMixin):
     MAX_COMPANY_NAME_LENGTH = 50
     MIN_COMPANY_NAME_LENGTH = 3
     DEFAULT_LEAVE_DAYS_PER_YEAR = 0
@@ -111,10 +110,10 @@ class Company(CreatedModifiedMixin):
         self.time_zone = self.suggest_time_zone()
 
         if not self.slug:
-            self.slug = slugify(self.name)[:self.MAX_SLUG_LENGTH]
+            self.slug = self.slug_generator(self.name, self.MAX_SLUG_LENGTH)
 
         if self.email:
-            self.email = format_email(self.email)
+            self.email = self.formated_email(self.email)
         super().save(*args, **kwargs)
 
     # # TODO FIX IT
@@ -135,6 +134,10 @@ class Company(CreatedModifiedMixin):
 
     def __str__(self):
         return f"{self.__class__.__name__} - {self.name}"
+
+    @staticmethod
+    def slug_generator(name, max_length):
+        return slugify(name)[:max_length]
 
 
 class Department(models.Model):
@@ -412,7 +415,7 @@ class Date(models.Model):
         ]
 
     def is_holiday(self, company):
-        # Implement holiday check logic
+        #TODO Implement holiday check logic
         pass
 
     def is_working_day(self, shift_pattern):

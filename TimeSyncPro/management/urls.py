@@ -3,6 +3,8 @@ from .views import ShiftPatternCreateViewNot, ShiftPatternListViewNot, TeamCreat
     ShiftPatternDetailViewNot, \
     TeamEditViewNot, ShiftPatternEditViewNot, ShiftPatternDeleteViewNot, TeamDeleteViewNot, CompanyMembersView, \
     DetailsCompanyProfileView, EditCompanyView, DeleteCompanyView
+from ..accounts.views import SignupEmployeeView, DetailsEmployeesProfileView, DetailedEditProfileView, \
+    DeleteEmployeeView
 
 urlpatterns = [
     path(
