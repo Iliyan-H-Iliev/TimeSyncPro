@@ -12,3 +12,8 @@
 .dropdown {
     margin: 0.5em 1em 0 0 ;
 }
+
+.errorlist {
+    list-style-type: none;
+    color: red;
+}

@@ -28,6 +28,13 @@ class EditCompanyForm(CheckCompanyExistingSlugMixin, forms.ModelForm):
         # self.fields['leave_approver'].queryset = Profile.objects.filter(company=self.instance)
         self.fields['leave_approver'].queryset = Company.objects.get(pk=self.instance.pk).employees.all()
 
+    def clean_leave_approver(self):
+        leave_approver = self.cleaned_data.get('leave_approver')
+        if leave_approver is None:
+            raise forms.ValidationError("Leave approver is required.")
+        return leave_approver
+
+
     # def clean(self):
     #     cleaned_data = super().clean()
     #     if 'location' in cleaned_data and not cleaned_data.get('time_zone'):
@@ -161,6 +168,7 @@ class ShiftBlockBaseForm(forms.ModelForm):
 class CreateShiftPatternForm(ShiftPatternBaseForm):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
+        self.company = kwargs.pop('company', None)
         super(CreateShiftPatternForm, self).__init__(*args, **kwargs)
 
 

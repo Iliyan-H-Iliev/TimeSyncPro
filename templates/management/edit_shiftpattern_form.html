@@ -1,9 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Edit Shift Pattern</title>
-</head>
-<body>
+{% extends 'auth-layout.html' %}
+
+{% block content %}
     <h1>Edit Shift Pattern</h1>
     <form method="post">
         {% csrf_token %}
@@ -15,5 +12,4 @@
         {% endfor %}
         <button type="submit">Save</button>
     </form>
-</body>
-</html>
+{% endblock %}W

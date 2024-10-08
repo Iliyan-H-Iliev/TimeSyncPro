@@ -1,9 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Shift Patterns</title>
-</head>
-<body>
+{% extends 'auth-layout.html' %}
+
+{% block content %}
     <h1>Shift Patterns</h1>
     <ul>
         {% for pattern in shift_patterns %}
@@ -21,6 +18,5 @@
             </li>
         {% endfor %}
     </ul>
-    <a href="{% url 'shiftpattern create' %}">Create New Shift Pattern</a>
-</body>
-</html>
+    <a href="{% url 'shift pattern create' company_slug=user.company.slug%}">Create New Shift Pattern</a>
+{% endblock %}

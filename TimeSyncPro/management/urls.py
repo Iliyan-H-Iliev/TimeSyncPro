@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import ShiftPatternCreateViewNot, ShiftPatternListViewNot, TeamCreateViewNot, TeamListViewNot, \
+from .views import ShiftPatternCreateView, ShiftPatternListViewNot, TeamCreateViewNot, TeamListViewNot, \
     ShiftPatternDetailViewNot, \
     TeamEditViewNot, ShiftPatternEditViewNot, ShiftPatternDeleteViewNot, TeamDeleteViewNot, CompanyMembersView, \
     DetailsCompanyProfileView, EditCompanyView, DeleteCompanyView
@@ -23,7 +23,7 @@ urlpatterns = [
             #TODO: Optimize path
             path("shiftpatterns/", include([
                 path("", ShiftPatternListViewNot.as_view(), name="shift pattern list"),
-                path("create/", ShiftPatternCreateViewNot.as_view(), name="shift pattern create"),
+                path("create/", ShiftPatternCreateView.as_view(), name="shift pattern create"),
                 path("<int:pk>/", ShiftPatternDetailViewNot.as_view(), name="shift pattern detail"),
                 path("<int:pk>/edit/", ShiftPatternEditViewNot.as_view(), name="shift pattern edit"),
                 path("<int:pk>/delete/", ShiftPatternDeleteViewNot.as_view(), name="shift pattern delete"),

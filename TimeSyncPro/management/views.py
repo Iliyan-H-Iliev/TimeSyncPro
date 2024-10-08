@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
-from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin
 
 from .models import ShiftPattern, Team, Company
 from .forms import CreateShiftPatternForm, CreateShiftBlockFormSet, CreateTeamForm, EditTeamForm, \
@@ -63,7 +63,7 @@ class EditCompanyView(NotAuthenticatedMixin, views.UpdateView):
         return reverse('company profile', kwargs={'company_slug': company.slug})
 
 
-class CompanyMembersView(NotAuthenticatedMixin, CompanyContextMixin, views.ListView):
+class CompanyMembersView(LoginRequiredMixin, CompanyContextMixin, views.ListView):
     model = Company
     template_name = "accounts/../../templates/management/company_members.html"
     context_object_name = 'company'
@@ -101,7 +101,7 @@ class CompanyMembersView(NotAuthenticatedMixin, CompanyContextMixin, views.ListV
 
 # TODO add permision for delete
 # TODO Create logic for delete company
-class DeleteCompanyView(CompanyCheckMixin, views.DeleteView):
+class DeleteCompanyView(LoginRequiredMixin, CompanyCheckMixin, views.DeleteView):
     model = Company
     queryset = model.objects.all()
     template_name = 'accounts/../../templates/management/delete_company.html'
@@ -123,30 +123,69 @@ class DeleteCompanyView(CompanyCheckMixin, views.DeleteView):
         return redirect(self.success_url)
 
 
-class ShiftPatternCreateViewNot(NotAuthenticatedMixin, PermissionRequiredMixin, views.View):
-    template_name = 'create_shiftpattern_form.html'
+# class ShiftPatternCreateView(LoginRequiredMixin, PermissionRequiredMixin, views.View):
+#     template_name = 'create_shiftpattern_form.html'
+#     form_class = CreateShiftPatternForm
+#     formset_class = CreateShiftBlockFormSet
+#     # permission_required = 'team_management.can_add_shift_pattern'
+#     permission_required = 'management.add_shiftpattern'
+#     redirect_url = 'shiftpattern list'
+#
+#     def get(self, request):
+#         form = CreateShiftPatternForm(request=request)
+#         formset = CreateShiftBlockFormSet()
+#         render_parameters = [request, self.template_name, {'form': form, 'formset': formset}]
+#         return render(*render_parameters)
+#
+#     def post(self, request):
+#         form = CreateShiftPatternForm(request.POST, request=request)
+#         formset = CreateShiftBlockFormSet(request.POST)
+#         return handle_shift_pattern_post(request, form, formset, None, self.template_name, self.redirect_url)
+
+
+class ShiftPatternCreateView(LoginRequiredMixin, PermissionRequiredMixin, CompanyContextMixin, views.View):
+    template_name = 'management/create_shiftpattern_form.html'
     form_class = CreateShiftPatternForm
     formset_class = CreateShiftBlockFormSet
-    permission_required = 'team_management.can_add_shift_pattern'
+    permission_required = 'management.add_shiftpattern'
     redirect_url = 'shiftpattern list'
 
-    def get(self, request):
-        form = CreateShiftPatternForm(request=request)
-        formset = CreateShiftBlockFormSet()
-        render_parameters = [request, self.template_name, {'form': form, 'formset': formset}]
-        return render(*render_parameters)
+    def dispatch(self, request, *args, **kwargs):
+        self.company = self.get_company()
+        return super().dispatch(request, *args, **kwargs)
 
-    def post(self, request):
-        form = CreateShiftPatternForm(request.POST, request=request)
-        formset = CreateShiftBlockFormSet(request.POST)
-        return handle_shift_pattern_post(request, form, formset, None, self.template_name, self.redirect_url)
+    def get_company(self):
+        company_slug = self.kwargs.get('company_slug')
+        return get_object_or_404(Company, slug=company_slug)
+
+    def get(self, request, company_slug, *args, **kwargs):
+        form = self.form_class(request=request, company=self.company)
+        formset = self.formset_class()
+        context = {'form': form, 'formset': formset, 'company': self.company}
+        return render(request, self.template_name, context)
+
+    def post(self, request, company_slug, *args, **kwargs):
+        form = self.form_class(request.POST, request=request, company=self.company)
+        formset = self.formset_class(request.POST)
+        if form.is_valid() and formset.is_valid():
+            shift_pattern = form.save(commit=False)
+            shift_pattern.company = self.company
+            shift_pattern.save()
+            formset.instance = shift_pattern
+            formset.save()
+            return redirect(self.get_success_url())
+        context = {'form': form, 'formset': formset, 'company': self.company}
+        return render(request, self.template_name, context)
+
+    def get_success_url(self):
+        return reverse(self.redirect_url, kwargs={'company_slug': self.company.slug})
 
 
-class ShiftPatternEditViewNot(CompanyCheckMixin, PermissionRequiredMixin, NotAuthenticatedMixin, views.View):
+class ShiftPatternEditViewNot(CompanyCheckMixin, PermissionRequiredMixin, LoginRequiredMixin, views.View):
     template_name = 'edit_shiftpattern_form.html'
     form_class = UpdateShiftPatternForm
     formset_class = UpdateShiftBlockFormSet
-    permission_required = "team_management.can_change_shift_pattern"
+    permission_required = "management.change_shiftpattern"
     redirect_url = 'shiftpattern list'
 
     def get_object(self):
@@ -171,10 +210,10 @@ class ShiftPatternListViewNot(NotAuthenticatedMixin, PermissionRequiredMixin, vi
     model = ShiftPattern
     template_name = 'management/shiftpattern_list.html'
     context_object_name = 'shift_patterns'
-    permission_required = 'team_management.can_view_shift_pattern'
+    permission_required = 'management.view_shiftpattern'
 
     def get_queryset(self):
-        return ShiftPattern.objects.filter(company=self.request.user.get_company)
+        return ShiftPattern.objects.filter(company=self.request.user.company)
 
     def get_object(self, queryset=None):
         return self.get_queryset()
@@ -184,7 +223,7 @@ class ShiftPatternDetailViewNot(NotAuthenticatedMixin, PermissionRequiredMixin, 
     model = ShiftPattern
     template_name = 'management/shiftpattern_detail.html'
     context_object_name = 'shift_pattern'
-    permission_required = 'team_management.can_view_shift_pattern'
+    permission_required = 'management.view_shiftpattern'
 
     def get_queryset(self):
         return super().get_queryset().prefetch_related(
@@ -206,7 +245,7 @@ class ShiftPatternDetailViewNot(NotAuthenticatedMixin, PermissionRequiredMixin, 
 class ShiftPatternDeleteViewNot(CompanyCheckMixin, NotAuthenticatedMixin, PermissionRequiredMixin, views.DeleteView):
     model = ShiftPattern
     template_name = 'management/delete_shiftpattern.html'
-    permission_required = 'team_management.can_delete_shift_pattern'
+    permission_required = 'management.delete_shiftpattern'
     success_url = reverse_lazy('shiftpattern list')
 
     def get_object(self, queryset=None):
@@ -227,11 +266,11 @@ class ShiftPatternDeleteViewNot(CompanyCheckMixin, NotAuthenticatedMixin, Permis
 class TeamListViewNot(NotAuthenticatedMixin, PermissionRequiredMixin, views.ListView):
     model = Team
     template_name = 'management/team_list.html'
-    permission_required = 'team_management.can_view_team'
+    permission_required = 'management.view_team'
     context_object_name = 'teams'
 
     def get_queryset(self):
-        return Team.objects.filter(company=self.request.user.get_company)
+        return Team.objects.filter(company=self.request.user.company)
 
     def get_object(self, queryset=None):
         return self.get_queryset()
@@ -246,17 +285,17 @@ class TeamCreateViewNot(NotAuthenticatedMixin, PermissionRequiredMixin, views.Cr
     model = Team
     form_class = CreateTeamForm
     template_name = 'management/create_team_form.html'
-    permission_required = 'team_management.can_add_team'
+    permission_required = 'management.add_team'
     success_url = reverse_lazy('team list')
 
     def form_valid(self, form):
-        form.instance.company = self.request.user.get_company
+        form.instance.company = self.request.user.company
         return super().form_valid(form)
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['user'] = self.request.user
-        kwargs['company'] = self.request.user.get_company
+        kwargs['company'] = self.request.user.company
         return kwargs
 
 
@@ -264,11 +303,11 @@ class TeamEditViewNot(CompanyCheckMixin, NotAuthenticatedMixin, PermissionRequir
     model = Team
     form_class = EditTeamForm
     template_name = 'management/edti_team.html'
-    permission_required = 'team_management.can_change_team'
+    permission_required = 'management.change_team'
     success_url = reverse_lazy('team list')
 
     def dispatch(self, request, *args, **kwargs):
-        if self.get_object().company != self.request.user.get_company:
+        if self.get_object().company != self.request.user.company:
             return redirect('team list')
 
         return super().dispatch(request, *args, **kwargs)
@@ -276,7 +315,7 @@ class TeamEditViewNot(CompanyCheckMixin, NotAuthenticatedMixin, PermissionRequir
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['user'] = self.request.user
-        kwargs['company'] = self.request.user.get_company
+        kwargs['company'] = self.request.user.company
         kwargs['team'] = self.object
         return kwargs
 
@@ -287,7 +326,7 @@ class TeamEditViewNot(CompanyCheckMixin, NotAuthenticatedMixin, PermissionRequir
 class TeamDeleteViewNot(CompanyCheckMixin, NotAuthenticatedMixin, PermissionRequiredMixin, views.DeleteView):
     model = Team
     template_name = 'management/delete_team.html'
-    permission_required = 'team_management.can_delete_team'
+    permission_required = 'management.delete_team'
     success_url = reverse_lazy('team list')
 
     def get_object(self, queryset=None):

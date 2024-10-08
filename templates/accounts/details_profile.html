@@ -4,6 +4,10 @@
     <h1>Profile Details</h1>
 
 {% if user %}
+    <p>Permissions</p>
+        {% for permission in permissions %}
+            <p>{{ permission }}</p>
+        {% endfor %}
     <p>Company: {{ user.company.slug }}</p>
     <p>Email: {{ user.email }}</p>
     <p>Full Name: {{ user.profile.full_name }}</p>

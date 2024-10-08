@@ -231,6 +231,12 @@ class DetailsOwnProfileView(OwnerRequiredMixin, DetailsProfileBaseView):
         # return self.object
         return self.request.user
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['user'] = self.request.user
+        context["permissions"] = self.request.user.get_all_permissions()
+        return context
+
 
 class DetailsEmployeesProfileView(
     NotAuthenticatedMixin,
