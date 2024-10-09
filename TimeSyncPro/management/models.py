@@ -60,25 +60,25 @@ class Company(EmailFormatingMixin, CreatedModifiedMixin):
     )
 
     leave_days_per_year = models.PositiveIntegerField(
-        default=DEFAULT_LEAVE_DAYS_PER_YEAR,
+        # default=DEFAULT_LEAVE_DAYS_PER_YEAR,
         null=False,
         blank=False,
     )
 
     transferable_leave_days = models.PositiveIntegerField(
-        default=DEFAULT_TRANSFERABLE_LEAVE_DAYS,
+        # default=DEFAULT_TRANSFERABLE_LEAVE_DAYS,
         null=False,
         blank=False,
     )
 
     minimum_leave_notice = models.PositiveIntegerField(
-        default=MIN_LEAVE_NOTICE,
+        # default=MIN_LEAVE_NOTICE,
         null=False,
         blank=False,
     )
 
     maximum_leave_days_per_request = models.PositiveIntegerField(
-        default=MAX_LEAVE_DAYS_PER_REQUEST,
+        # default=MAX_LEAVE_DAYS_PER_REQUEST,
         null=False,
         blank=False,
     )

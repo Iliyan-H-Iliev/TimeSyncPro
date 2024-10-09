@@ -183,8 +183,8 @@ class Profile(CreatedModifiedMixin):
         to='management.Company',
         on_delete=models.DO_NOTHING,
         related_name="employees",
-        blank=False,
-        null=False,
+        blank=True,
+        null=True,
     )
 
     first_name = models.CharField(

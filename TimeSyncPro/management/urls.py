@@ -2,11 +2,12 @@ from django.urls import path, include
 from .views import ShiftPatternCreateView, ShiftPatternListViewNot, TeamCreateViewNot, TeamListViewNot, \
     ShiftPatternDetailViewNot, \
     TeamEditViewNot, ShiftPatternEditViewNot, ShiftPatternDeleteViewNot, TeamDeleteViewNot, CompanyMembersView, \
-    DetailsCompanyProfileView, EditCompanyView, DeleteCompanyView
+    DetailsCompanyProfileView, EditCompanyView, DeleteCompanyView, CreateCompanyView
 from ..accounts.views import SignupEmployeeView, DetailsEmployeesProfileView, DetailedEditProfileView, \
     DeleteEmployeeView
 
 urlpatterns = [
+    path("create-company/", CreateCompanyView.as_view(), name="create company"),
     path(
         "<slug:company_slug>/", include([
             path("register-employee/", SignupEmployeeView.as_view(), name="register employee"),

@@ -4,7 +4,45 @@ from django import forms
 from .models import ShiftPattern, ShiftBlock, Team, Company
 from django.forms.models import inlineformset_factory
 
+from ..accounts.form_mixins import RequiredFieldsFormMixin
 from ..core.form_mixins import CheckCompanyExistingSlugMixin, CheckExistingNamePerCompanyMixin
+
+
+# TODO Move RequiredFieldsFormMixin to TimeSyncPro/core/form_mixins.py
+class CreateCompanyForm(RequiredFieldsFormMixin, forms.ModelForm):
+    required_fields = [
+        "name",
+        "leave_days_per_year",
+        "transferable_leave_days",
+        "minimum_leave_notice",
+        "maximum_leave_days_per_request",
+    ]
+
+    class Meta:
+        model = Company
+        fields = [
+            "name",
+            "leave_days_per_year",
+            "transferable_leave_days",
+            "location",
+            "minimum_leave_notice",
+            "maximum_leave_days_per_request",
+            "working_on_local_holidays",
+        ]
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        # if not self.request or not self.request.user.is_authenticated:
+        #     raise ValueError("User must be authenticated to create a company")
+
+    def save(self, commit=True):
+        company = super().save(commit=False)
+        user = self.user
+        company.leave_approver = user.profile
+        if commit:
+            company.save()
+        return company
 
 
 # TODO only Administrator can edit company
@@ -34,7 +72,6 @@ class EditCompanyForm(CheckCompanyExistingSlugMixin, forms.ModelForm):
             raise forms.ValidationError("Leave approver is required.")
         return leave_approver
 
-
     # def clean(self):
     #     cleaned_data = super().clean()
     #     if 'location' in cleaned_data and not cleaned_data.get('time_zone'):
@@ -47,7 +84,7 @@ class ShiftPatternBaseForm(CheckExistingNamePerCompanyMixin, forms.ModelForm):
     # TODO is start_date is on week pattern should start from Monday!!!
     class Meta:
         model = ShiftPattern
-        fields = ['name', 'description', 'rotation_weeks', 'start_date',]
+        fields = ['name', 'description', 'rotation_weeks', 'start_date', ]
 
     def clean(self):
         cleaned_data = super().clean()
@@ -59,7 +96,7 @@ class ShiftPatternBaseForm(CheckExistingNamePerCompanyMixin, forms.ModelForm):
             self.add_error('name', 'Shift pattern with this name already exists for your company.')
 
         if rotation_weeks < 1:
-            self.add_error("rotation_weeks","Rotation weeks must be at least 1.")
+            self.add_error("rotation_weeks", "Rotation weeks must be at least 1.")
 
         return cleaned_data
 
@@ -298,7 +335,8 @@ class EditTeamForm(CheckExistingNamePerCompanyMixin, forms.ModelForm):
         model = Team
         fields = ['name', 'shift_pattern', 'team_members']
 
-#TODO TeamListView
+
+# TODO TeamListView
 
 
 class DeleteTeamForm(forms.Form):

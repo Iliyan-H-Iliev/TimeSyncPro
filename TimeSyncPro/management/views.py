@@ -6,7 +6,7 @@ from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMix
 
 from .models import ShiftPattern, Team, Company
 from .forms import CreateShiftPatternForm, CreateShiftBlockFormSet, CreateTeamForm, EditTeamForm, \
-    UpdateShiftPatternForm, UpdateShiftBlockForm, UpdateShiftBlockFormSet, EditCompanyForm
+    UpdateShiftPatternForm, UpdateShiftBlockForm, UpdateShiftBlockFormSet, EditCompanyForm, CreateCompanyForm
 from django.views import generic as views
 
 from .utils import handle_shift_pattern_post
@@ -14,6 +14,56 @@ from ..core.views_mixins import NotAuthenticatedMixin, CompanyCheckMixin, Multip
     CompanyContextMixin
 
 UserModel = get_user_model()
+
+
+class CreateCompanyView(LoginRequiredMixin, views.CreateView):
+    model = Company
+    template_name = "management/create_company.html"
+    form_class = CreateCompanyForm
+    success_url = reverse_lazy('company profile')
+
+    def form_valid(self, form):
+        company = form.save(commit=False)
+        company.save()
+        self.request.user.profile.company = company
+        self.request.user.profile.save()
+        return redirect(self.get_success_url())
+
+    def get_success_url(self):
+        return reverse('company_profile', kwargs={'company_slug': self.object.slug})
+
+    def dispatch(self, request, *args, **kwargs):
+        self.request = request
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        self.redirect_assign_to_company_profile()
+        return super().get(request, *args, **kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
+    # def get_context_data(self, **kwargs):
+    #     context = super().get_context_data(**kwargs)
+    #     context['user'] = self.request.user
+    #     return context
+
+    def post(self, request, *args, **kwargs):
+        self.redirect_assign_to_company_profile()
+        return super().post(request, *args, **kwargs)
+
+    def redirect_assign_to_company_profile(self):
+        if self.request.user.profile.company:
+            messages.error(self.request, "User already belongs to a company.")
+            user = self.request.user
+            return reverse(
+                "company profile",
+                kwargs={
+
+                    'company_slug': user.company.slug,
+                })
 
 
 class DetailsCompanyProfileView(
@@ -27,7 +77,7 @@ class DetailsCompanyProfileView(
     template_name = "accounts/../../templates/management/company_profile.html"
     context_object_name = 'company'
     permissions_required = [
-        'accounts.view_company',
+        'management.view_company',
     ]
 
     def get_object(self, queryset=None):

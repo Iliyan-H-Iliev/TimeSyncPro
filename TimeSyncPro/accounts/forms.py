@@ -23,7 +23,19 @@ UserModel = get_user_model()
 
 # TODO add TeamLeader role
 # TODO new Employee to chose from existing teams
-class SignupCompanyAdministratorForm(CheckCompanyExistingSlugMixin, CleanEmailMixin, UserCreationForm):
+class SignupCompanyAdministratorForm(
+    RequiredFieldsFormMixin,
+    CheckCompanyExistingSlugMixin,
+    CleanEmailMixin,
+    UserCreationForm
+):
+
+    required_fields = (
+        "email",
+        "first_name",
+        "last_name",
+        # "name",
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -31,8 +43,8 @@ class SignupCompanyAdministratorForm(CheckCompanyExistingSlugMixin, CleanEmailMi
         profile_fields = forms.models.fields_for_model(Profile, fields=['first_name', 'last_name'])
         self.fields.update(profile_fields)
 
-        company_fields = forms.models.fields_for_model(Company, fields=['name'])
-        self.fields.update(company_fields)
+        # company_fields = forms.models.fields_for_model(Company, fields=['name'])
+        # self.fields.update(company_fields)
         #
         # self.fields['company_name'] = self.fields.pop('name')
 
@@ -59,13 +71,13 @@ class SignupCompanyAdministratorForm(CheckCompanyExistingSlugMixin, CleanEmailMi
                 # Pass the first_name and last_name to the user save method
                 user.save(first_name=first_name, last_name=last_name)
 
-                company = Company.objects.create(
-                    name=self.cleaned_data["name"],
-                )
+                # company = Company.objects.create(
+                #     name=self.cleaned_data["name"],
+                # )
 
                 employee = Profile.objects.create(
                     user=user,
-                    company=company,
+                    # company=company,
                     first_name=self.cleaned_data["first_name"],
                     last_name=self.cleaned_data["last_name"],
                     role=Profile.EmployeeRoles.ADMINISTRATOR,
@@ -73,14 +85,14 @@ class SignupCompanyAdministratorForm(CheckCompanyExistingSlugMixin, CleanEmailMi
                 )
 
                 if commit:
-                    company.save()
+                    # company.save()
                     employee.save()
 
                     logger.info(
-                        f"Successfully created administrator account for {user.email} at company {company.name}")
+                        f"Successfully created administrator account for {user.email}")
 
-                company.leave_approver = employee
-                company.save()
+                # company.leave_approver = employee
+                # company.save()
 
                 # send_welcome_email.delay(user.email)
 

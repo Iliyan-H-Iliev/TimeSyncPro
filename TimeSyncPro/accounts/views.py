@@ -64,9 +64,9 @@ class SignupCompanyAdministratorUser(AuthenticatedUserMixin, views.CreateView):
                 login(self.request, authenticated_user)
 
             user_slug = user.slug
-            company_slug = user.company.slug
+            # company_slug = user.company.slug
 
-            if user_slug is None or company_slug is None:
+            if user_slug is None:
                 return HttpResponseRedirect(reverse('index'))
 
             return HttpResponseRedirect(

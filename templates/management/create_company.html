@@ -1,0 +1,18 @@
+{% extends 'home-layout.html' %}
+
+{% block content %}
+    <h1>Create Company</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <div id="shiftblock-formset">
+            {{ formset.management_form }}
+            {% for form in formset %}
+                <div class="shiftblock-form">
+                    {{ form.as_p }}
+                </div>
+            {% endfor %}
+        </div>
+        <button type="submit" class="btn btn-primary">Save</button>
+    </form>
+{% endblock %}
