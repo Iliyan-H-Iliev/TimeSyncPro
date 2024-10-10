@@ -82,7 +82,7 @@ class DetailsCompanyProfileView(
 
     def get_object(self, queryset=None):
         user = self.request.user
-        company = get_object_or_404(self.model, id=user.profile.company.id)
+        company = get_object_or_404(self.model, pk=user.company.pk)
         return user.profile.company
 
 
@@ -98,7 +98,7 @@ class EditCompanyView(NotAuthenticatedMixin, views.UpdateView):
         user = self.request.user
 
         try:
-            return self.model.objects.get(id=user.company.id)
+            return self.model.objects.get(pk=user.company.pk)
         except Company.DoesNotExist:
             return None
 
@@ -127,7 +127,7 @@ class CompanyMembersView(LoginRequiredMixin, CompanyContextMixin, views.ListView
         queryset = self.get_queryset()
 
         try:
-            return queryset.get(id=user.company.id)
+            return queryset.get(pk=user.company.pk)
         except Company.DoesNotExist:
             return None
 
@@ -144,7 +144,7 @@ class CompanyMembersView(LoginRequiredMixin, CompanyContextMixin, views.ListView
         context = super().get_context_data(**kwargs)
         company = self.get_object()
 
-        context['employees'] = Company.objects.get(id=company.id).employees.all()
+        context['employees'] = Company.objects.get(kp=company.pk).employees.all()
 
         return context
 

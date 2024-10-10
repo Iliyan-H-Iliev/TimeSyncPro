@@ -1,32 +1,64 @@
 .title-background {
-        background-color: #d8d7d7;
+    position: relative;
+    background-image: url("../images/signup_background1 (2).png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 1;
+    overflow: hidden;
 }
+
+.title-background::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    pointer-events: none;
+}
+
 
 .index-main-container {
-    max-width: 65vw;
     margin: auto;
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     justify-content: space-around;
     align-items: center;
-    padding: 7em 0 2em 0;
+    padding: 10em 15em 7em 15em;
     flex-wrap: wrap;
+    gap: 8em;
 }
 
-.container-1 {
+.index-text-container {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 3em;
-    max-width: 50%;
-
+    gap: 1em;
 }
 
 .head-text {
-    font-size: 2.7rem;
-    color: #1d3460;
+    position: relative;
+    font-size: 3.2rem;
+    color: white;
     justify-self: end;
+    z-index: 2
+}
+
+.head-text-2 {
+    position: relative;
+    font-size: 2.5rem;
+    color: white;
+    justify-self: end;
+    z-index: 2;
+    font-weight: 600;
+}
+
+.head-text-2 span {
+    color: var(--primary-blue);
+    font-weight: 700;
 }
 
 .img-container-1 {
@@ -42,26 +74,43 @@
     justify-content: space-between;
 }
 
-.container-1 .signup-login-container {
+/*.signup-learn-more {*/
+/*    gap: 2em*/
+/*}*/
+
+
+
+
+.signup-learn-more {
     width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 1em;
+    gap: 5em;
 
 }
 
-/*.container-1 .signup-login-container .signup-button {*/
-/*    font-size: 2em;*/
-/*}*/
-
-.container-1 .signup-login-container .signup-login-button {
-    font-size: 1.2em;
-    /*color: #3498db;*/
+.learn-more-button {
+    color: white;
 }
 
-.learn-more {
-    color: #3498db;
+.learn-more-button::before {
+    border-color: white;
+}
+
+.learn-more-button:hover {
+
+    color: var(--primary-dark);
+}
+
+.learn-more-button:hover::before {
+    border: none;
+}
+
+.signup-learn-more .signup-button,
+.signup-learn-more .learn-more-button {
+    font-size: 1.3em;
+    padding: 0.5em 4em;
 }
 
 @media (max-width: 768px) {
@@ -97,10 +146,10 @@
     }
 }
 
-.learn-more::before {
+.learn-more-button::before {
     background-color: transparent;
 }
 
-.learn-more {
+.learn-more-button {
     text-transform: capitalize;
 }

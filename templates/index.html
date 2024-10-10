@@ -5,22 +5,14 @@
     <div class="title-background">
         <div class="index-main-container">
 
-            <div class="img-container-1">
-                <img src="{% static 'images/men-on-pc1.png' %}" class="main-img" alt="image">
+            <div class="index-text-container">
+                <h1 class="head-text">The Simple Way To Manage Employee Leave </h1>
+                <h2 class="head-text-2">Reduce The <span>Time</span>. Lower The <span>Cost</span>. Remove The <span>Stress</span>.</h2>
             </div>
 
-            <div class="container-1">
-
-                <div class="index-text-container">
-                    <h1 class="head-text">Staff Leave Planner: Streamline Absence Management, Save Time, Reduce
-                        Hassle</h1>
-                </div>
-
-                <div class="navbar signup-login-container">
-                    {% include "partials/sign_up_button.html" %}
-                    {% include "partials/learn_more_button.html" %}
-                </div>
-
+            <div class="navbar signup-login-container signup-learn-more">
+                {% include "partials/sign_up_button.html" %}
+                {% include "partials/learn_more_button.html" %}
             </div>
         </div>
     </div>

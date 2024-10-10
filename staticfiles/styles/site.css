@@ -18,7 +18,8 @@
 @import url('components/side-navigation.css');
 
 @import url('pages/page.css');
-@import url('pages/home.css');
+
 @import url('pages/about.css');
 @import url('pages/signup-login.css');
 @import url('site/auth-layout.css');
+@import url('pages/home.css');
