@@ -1,28 +1,87 @@
-{% extends 'home-layout.html' %}
+{% extends 'layout.html' %}
+{% load static %}
+{% load custom_tags %}
 
 {% block content %}
+    <div class="tac-background">
+        <div class="tac-main-container">
+            <div class="tac-main">
+                <div class="tac-text-container">
+                    <h1 class="tac-text">Privacy Policy</h1>
+                    <h2 class="tac-text-2">How <span class="span-ts">TimeSync<span class="span-p">Pro</span></span> collects, uses, and protects your information</h2>
+                </div>
+            </div>
 
-    <header>
-        <h1>Privacy Policy</h1>
-    </header>
+            <div class="tac-article-container">
+                <div class="tac-article-nav">
+                    <ul class="tac-article-nav-list">
+                        <li class="tac-article-nav-item"><a href="#1" class="tac-article-nav-link">1. Information We Collect</a></li>
+                        <li class="tac-article-nav-item"><a href="#2" class="tac-article-nav-link">2. How We Use Your Information</a></li>
+                        <li class="tac-article-nav-item"><a href="#3" class="tac-article-nav-link">3. Information Sharing and Disclosure</a></li>
+                        <li class="tac-article-nav-item"><a href="#4" class="tac-article-nav-link">4. Data Security</a></li>
+                        <li class="tac-article-nav-item"><a href="#5" class="tac-article-nav-link">5. Your Rights and Choices</a></li>
+                        <li class="tac-article-nav-item"><a href="#6" class="tac-article-nav-link">6. Changes to This Policy</a></li>
+                        <li class="tac-article-nav-item"><a href="#7" class="tac-article-nav-link">7. International Data Transfers</a></li>
+                        <li class="tac-article-nav-item"><a href="#8" class="tac-article-nav-link">8. Contact Us</a></li>
+                    </ul>
+                </div>
 
-    <main>
-        <p>At TimeSyncPro, we are committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your personal information.</p>
+                <article class="tac-article" id="1">
+                    <h2 class="tac-article-head">1. Information We Collect</h2>
+                    <div class="tac-article-text">
+                        <p>{% random_lorem_paragraphs %}</p>
+                    </div>
+                </article>
 
-        <h2>1. Information We Collect</h2>
-        <p>We collect information you provide directly to us, such as when you create an account, use our services, or contact us for support.</p>
+                <article class="tac-article" id="2">
+                    <h2 class="tac-article-head">2. How We Use Your Information</h2>
+                    <div class="tac-article-text">
+                        <p>{% random_lorem_paragraphs %}</p>
+                    </div>
+                </article>
 
-        <h2>2. How We Use Your Information</h2>
-        <p>We use the information we collect to provide, maintain, and improve our services, to communicate with you, and to comply with legal obligations.</p>
+                <article class="tac-article" id="3">
+                    <h2 class="tac-article-head">3. Information Sharing and Disclosure</h2>
+                    <div class="tac-article-text">
+                        <p>{% random_lorem_paragraphs %}</p>
+                    </div>
+                </article>
 
-        <h2>3. Information Sharing and Disclosure</h2>
-        <p>We do not sell or rent your personal information to third parties. We may share your information in limited circumstances, such as when required by law or with your consent.</p>
+                <article class="tac-article" id="4">
+                    <h2 class="tac-article-head">4. Data Security</h2>
+                    <div class="tac-article-text">
+                        <p>{% random_lorem_paragraphs %}</p>
+                    </div>
+                </article>
 
-        <h2>4. Data Security</h2>
-        <p>We implement appropriate technical and organizational measures to protect the security of your personal information.</p>
+                <article class="tac-article" id="5">
+                    <h2 class="tac-article-head">5. Your Rights and Choices</h2>
+                    <div class="tac-article-text">
+                        <p>{% random_lorem_paragraphs %}</p>
+                    </div>
+                </article>
 
-        <!-- Add more sections as needed -->
+                <article class="tac-article" id="6">
+                    <h2 class="tac-article-head">6. Changes to This Policy</h2>
+                    <div class="tac-article-text">
+                        <p>{% random_lorem_paragraphs %}</p>
+                    </div>
+                </article>
 
-    </main>
+                <article class="tac-article" id="7">
+                    <h2 class="tac-article-head">7. International Data Transfers</h2>
+                    <div class="tac-article-text">
+                        <p>{% random_lorem_paragraphs %}</p>
+                    </div>
+                </article>
 
+                <article class="tac-article" id="8">
+                    <h2 class="tac-article-head">8. Contact Us</h2>
+                    <div class="tac-article-text">
+                        <p>{% random_lorem_paragraphs %}</p>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </div>
 {% endblock %}

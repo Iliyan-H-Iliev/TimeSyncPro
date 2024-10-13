@@ -1,0 +1,91 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block content %}
+    <div class="tac-background">
+        <div class="tac-main-container">
+            <div class="tac-main">
+                <div class="tac-text-container">
+                    <h1 class="tac-text">Contact Us</h1>
+                    <h2 class="tac-text-2">Get in touch with the <span class="span-ts">TimeSync<span class="span-p">Pro</span></span> team</h2>
+                </div>
+            </div>
+
+            <div class="contact-content">
+                <div class="contact-info">
+                    <h3>Contact Information</h3>
+                    <p><strong>Address:</strong> 123 Business Street, Tech City, TC 12345</p>
+                    <p><strong>Email:</strong> support@timesyncpro.com</p>
+                    <p><strong>Phone:</strong> (555) 123-4567</p>
+                </div>
+                <div class="contact-info">
+                    <h4>Office Hours</h4>
+                    <p>Monday - Friday: 9:00 AM - 5:00 PM</p>
+                    <p>Saturday - Sunday: Closed</p>
+                </div>
+
+{#                <div class="contact-form">#}
+{#                    <h3>Send us a message</h3>#}
+{#                    <form action="#" method="post">#}
+{#                        {% csrf_token %}#}
+{#                        <div class="form-group">#}
+{#                            <label for="name">Name</label>#}
+{#                            <input type="text" id="name" name="name" required>#}
+{#                        </div>#}
+{#                        <div class="form-group">#}
+{#                            <label for="email">Email</label>#}
+{#                            <input type="email" id="email" name="email" required>#}
+{#                        </div>#}
+{#                        <div class="form-group">#}
+{#                            <label for="subject">Subject</label>#}
+{#                            <input type="text" id="subject" name="subject" required>#}
+{#                        </div>#}
+{#                        <div class="form-group">#}
+{#                            <label for="message">Message</label>#}
+{#                            <textarea id="message" name="message" rows="5" required></textarea>#}
+{#                        </div>#}
+{#                        <button type="submit" class="btn btn-primary">Send Message</button>#}
+{#                    </form>#}
+{#                </div>#}
+{#            </div>#}
+
+{#            <div class="map-container">#}
+{#                <h3>Our Location</h3>#}
+{#                <!-- Replace the following img tag with an actual map embed code -->#}
+{#                <img src="/api/placeholder/600/300" alt="Map placeholder" style="width: 100%; max-width: 600px; height: auto;">#}
+{#            </div>#}
+        </div>
+    </div>
+        </div>
+
+{#    <style>#}
+{#        .contact-content {#}
+{#            display: flex;#}
+{#            flex-wrap: wrap;#}
+{#            justify-content: space-between;#}
+{#            margin-top: 2em;#}
+{#        }#}
+{#        .contact-info, .contact-form {#}
+{#            flex-basis: 48%;#}
+{#        }#}
+{#        .form-group {#}
+{#            margin-bottom: 1em;#}
+{#        }#}
+{#        .form-group label {#}
+{#            display: block;#}
+{#            margin-bottom: 0.5em;#}
+{#        }#}
+{#        .form-group input, .form-group textarea {#}
+{#            width: 100%;#}
+{#            padding: 0.5em;#}
+{#        }#}
+{#        .map-container {#}
+{#            margin-top: 2em;#}
+{#        }#}
+{#        @media (max-width: 768px) {#}
+{#            .contact-info, .contact-form {#}
+{#                flex-basis: 100%;#}
+{#            }#}
+{#        }#}
+{#    </style>#}
+{% endblock %}

@@ -1,0 +1,9 @@
+.site-main {
+    padding-top: 70px;
+}
+
+.auth-main-container {
+    padding-top: 70px;
+    max-width: var(--max-width);
+    margin: 0 auto;
+}

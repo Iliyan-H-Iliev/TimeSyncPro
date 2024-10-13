@@ -1,4 +1,4 @@
-{#{% extends "home-layout.html" %}#}
+{#{% extends "layout.html" %}#}
 {#{% block content %}#}
 {##}
 {#    {% load filters %}#}
@@ -33,7 +33,7 @@
         <div class="container-logo-login-signup" id="tsp-logo">
 
             <div class="container-logo-tsp" id="tsp-logo">
-                <a href="{% url 'index' %}"><img src="{% static 'images/tsp-logo-withe-orange.png' %}"
+                <a href="{% url 'index' %}"><img src="{% static 'images/logo-blue.png' %}"
                                                  alt="TimeSyncPro"></a>
             </div>
 
@@ -105,5 +105,5 @@
     </div>
 </div>
 </body>
-<script src="{% static 'javascript/signup-login.js' %}"></script>
+<script src="{% static 'js/signup-login.js' %}"></script>
 </html>

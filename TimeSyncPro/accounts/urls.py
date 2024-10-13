@@ -6,7 +6,7 @@ from TimeSyncPro.accounts.views import (
     DetailsOwnProfileView, SignupEmployeeView, SignupCompanyAdministratorUser, BasicEditProfileView,
     DetailedEditProfileView, DetailsEmployeesProfileView, DeleteEmployeeView,
     PasswordResetView, PasswordChangeView, CustomPasswordResetConfirmView,
-    ActivateAndSetPasswordView,
+    ActivateAndSetPasswordView, contact, features,
 )
 from TimeSyncPro.management.views import CompanyMembersView, DetailsCompanyProfileView, EditCompanyView, \
     DeleteCompanyView
@@ -16,10 +16,12 @@ urlpatterns = [
     # path('signup-login/', SignupAndLoginView.as_view(), name='signup_login'),
     # path('api/signup/', SignUpView.as_view(), name='api_signup'),
     # path('api/login/', LoginView.as_view(), name='api_login'),
+    path("features/", features, name="features"),
     path("about/", about, name="about"),
     path("terms-and-conditions/", terms_and_conditions, name="terms and conditions"),
     path("terms-of-use/", terms_of_use, name="terms of use"),
     path("privacy-policy/", privacy_policy, name="privacy policy"),
+    path("contact/", contact, name="contact"),
     path("login/", SignInUserView.as_view(), name="signin user"),
     path("logout/", signout_user, name="signout user"),
     path("register-company/", SignupCompanyAdministratorUser.as_view(), name="signup administrator"),

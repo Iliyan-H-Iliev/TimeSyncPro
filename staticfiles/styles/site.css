@@ -13,9 +13,10 @@
 @import url('elements/forms.css');
 @import url('elements/tables.css');
 
-@import url('components/navigation.css');
+
 @import url('components/socials.css');
 @import url('components/side-navigation.css');
+@import url('components/navigation.css');
 
 @import url('pages/page.css');
 
@@ -23,3 +24,6 @@
 @import url('pages/signup-login.css');
 @import url('site/auth-layout.css');
 @import url('pages/home.css');
+@import url('pages/static_pages.css');
+@import url('site/main.css');
+

@@ -1,0 +1,27 @@
+<nav class="navbar central-nav auth-central-nav">
+    <ul class="navbar-ul authenticated-navbar-ul">
+        <li><a href="{% url 'company profile' company_slug=user.profile.company.slug %}"
+               class="nav-button">Company</a>
+        </li>
+
+        <li>
+            <a href="{% url 'company members' company_slug=user.company.slug %}" class="nav-button">Employees</a>
+        </li>
+        <li>
+            <a href="{% url 'register employee' company_slug=user.company.slug %}" class="nav-button">RegEmp</a>
+        </li>
+        <li>
+            <a href="{% url 'shift pattern list' company_slug=user.company.slug %}" class="nav-button">SPlist</a>
+        </li>
+        <li>
+            <a href="{% url 'shift pattern create' company_slug=user.company.slug %}" class="nav-button">SPCreate</a>
+        </li>
+        <li>
+            <a href="{% url 'team list' company_slug=user.company.slug %}" class="nav-button">TeamList</a>
+        </li>
+        <li>
+            <a href="{% url 'team create' company_slug=user.company.slug %}" class="nav-button">TeamCreate</a>
+        </li>
+    </ul>
+    
+</nav>

@@ -184,9 +184,9 @@
     cursor: pointer;
     font-size: 1em;
     color: #fff;
-    font-weight: 500;
-    background-color: #ec755a;
-    border: 2px solid #ec755a;
+    font-weight: 600;
+    background-color: var(--primary-blue);
+    border: 2px solid var(--primary-blue);
     transition: .3s;
 }
 
@@ -194,8 +194,8 @@
 .sign-up-button:hover {
     /*background-color: #373738;*/
     border-radius: 0.3em 1.2em;
-    border-color: #f55734;
-    background-color: #f55734;
+    border-color: var(--secondary-green);
+    background-color: var(--secondary-green);
     transition: .3s;
     /*background-color: #8c8a8a;*/
 
@@ -209,14 +209,14 @@
 }
 
 .register-link p a {
-    color: #ec755a;
+    color: var(--primary-blue);
     text-decoration: none;
     font-weight: 600;
 }
 
 .register-link p a:hover {
     text-decoration: underline;
-    color: #f55734
+    color: var(--secondary-green);
 }
 
 @media (max-width: 500px) {

@@ -64,7 +64,7 @@
 /*}*/
 
 body {
-    background-color: #dddddd;
+    background-color: var(--neutral-light);
 
     height: 100%;
 }
@@ -75,9 +75,9 @@ body {
   flex-direction: column;
 }
 
-.content-wrap {
-  flex: 1 0 auto;
-}
+/*.content-wrap {*/
+/*  flex: 1 0 auto;*/
+/*}*/
 
 /*.site-main {*/
 /*    display: flex;*/

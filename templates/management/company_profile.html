@@ -1,46 +1,60 @@
-{% extends 'auth-layout.html' %}
+{% extends 'layout.html' %}
 
 {% block content %}
-    <h1>Profile Details</h1>
+    <div class="auth-main-container">
 
-{% if user %}
-    <p>Email: {{ company.email }}</p>
+    <h2>Company Details</h2>
+
     <p>Company Name: {{ company.name }}</p>
-    <p>Phone Number: {{ company.location }}</p>
-    <p>Address: {{ user.address }}</p>
-    <p></p>
+    <p>Email: {% if company.email %} {{ company.email }} {% else %} - {% endif %}</p>
+    <p>Phone Number: {% if company.phone_number %} {{ company.phone_number }} {% else %} - {% endif %}</p>
+    <p>Address: {% if company.address %} {{ company.address }} {% else %} - {% endif %}</p>
+    
+                {% if request.user.is_authenticated %}
+                <div class="auth-main-container">
+                
+                <h1>Dashboard</h1>
+                
+                </div>
+            {% else %}
+
+            {% endif %}
+    
+
     <a href="{% url 'update company profile' company_slug=user.profile.company.slug %}">Edit</a>
     <a href="{% url 'delete company' slug=user.slug company_slug=user.profile.company.slug %}">Delete</a>
+    
+    </div>
     <!-- Display company details -->
 
     <!-- Display HRs related to the company -->
-{#    {% if hrs %}#}
-{#        <h3>HRs</h3>#}
-{#        <ul>#}
-{#            {% for hr in hrs %}#}
-{#                <li>{{ hr.full_name }}</li>#}
-{#            {% endfor %}#}
-{#        </ul>#}
-{#    {% endif %}#}
-{##}
-{#    <!-- Display Managers related to the company -->#}
-{#    {% if managers %}#}
-{#        <h3>Managers</h3>#}
-{#        <ul>#}
-{#            {% for manager in managers %}#}
-{#                <li>{{ manager.full_name }}</li>#}
-{#            {% endfor %}#}
-{#        </ul>#}
-{#    {% endif %}#}
+    {#    {% if hrs %}#}
+    {#        <h3>HRs</h3>#}
+    {#        <ul>#}
+    {#            {% for hr in hrs %}#}
+    {#                <li>{{ hr.full_name }}</li>#}
+    {#            {% endfor %}#}
+    {#        </ul>#}
+    {#    {% endif %}#}
+    {##}
+    {#    <!-- Display Managers related to the company -->#}
+    {#    {% if managers %}#}
+    {#        <h3>Managers</h3>#}
+    {#        <ul>#}
+    {#            {% for manager in managers %}#}
+    {#                <li>{{ manager.full_name }}</li>#}
+    {#            {% endfor %}#}
+    {#        </ul>#}
+    {#    {% endif %}#}
 
     <!-- Display Employees related to the company -->
-{#    {% if employees %}#}
-{#        <h3>Employees</h3>#}
-{#        <ul>#}
-{#            {% for employee in employees %}#}
-{#                <li>{{ employee.full_name }}</li>#}
-{#            {% endfor %}#}
-{#        </ul>#}
-{#    {% endif %}#}
-{% endif %}
+    {#    {% if employees %}#}
+    {#        <h3>Employees</h3>#}
+    {#        <ul>#}
+    {#            {% for employee in employees %}#}
+    {#                <li>{{ employee.full_name }}</li>#}
+    {#            {% endfor %}#}
+    {#        </ul>#}
+    {#    {% endif %}#}
+
 {% endblock %}

@@ -39,4 +39,6 @@
   --error-color: #e74c3c; /* Red for errors or warnings */
   --success-color: #2ecc71; /* Green for success actions */
   --highlight-color: #f1c40f; /* Yellow for highlights or important information */
+
+  --max-width: 1300px;
 }

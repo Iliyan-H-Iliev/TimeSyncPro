@@ -1,28 +1,95 @@
-{% extends 'home-layout.html' %}
+{% extends 'layout.html' %}
+{% load static %}
+{% load custom_tags %}
 
 {% block content %}
 
-    <header>
-        <h1>Terms and Conditions</h1>
-    </header>
+    <div class="tac-background">
 
-    <main>
-        <p>Welcome to TimeSyncPro. By using our service, you agree to comply with and be bound by the following terms and conditions:</p>
+        <div class="tac-main-container">
 
-        <h2>1. Acceptance of Terms</h2>
-        <p>By accessing or using TimeSyncPro, you agree to be bound by these Terms and Conditions and all applicable laws and regulations.</p>
 
-        <h2>2. Use of Service</h2>
-        <p>You agree to use TimeSyncPro only for lawful purposes and in a way that does not infringe the rights of, restrict or inhibit anyone else's use and enjoyment of the service.</p>
+            <div class="tac-main">
+                <div class="tac-text-container">
+                    <h1 class="tac-text">Terms and Conditions</h1>
+                    <h2 class="tac-text-2">Please read these terms carefully before using <span class="span-ts">TimeSync<span
+                            class="span-p">Pro</span></span></h2>
+                </div>
+            </div>
 
-        <h2>3. Modifications to Service</h2>
-        <p>We reserve the right to modify or discontinue, temporarily or permanently, the service with or without notice.</p>
 
-        <h2>4. Privacy</h2>
-        <p>Your use of TimeSyncPro is also governed by our Privacy Policy.</p>
+            <div class="tac-article-container">
 
-        <!-- Add more sections as needed -->
+                <div class="tac-article-nav">
+                    <ul class="tac-article-nav-list">
+                        <li class="tac-article-nav-item"><a href="#1" class="tac-article-nav-link">1. Acceptance of Terms</a></li>
+                        <li class="tac-article-nav-item"><a href="#2" class="tac-article-nav-link">2. Use of Service</a></li>
+                        <li class="tac-article-nav-item"><a href="#3" class="tac-article-nav-link">3. Privacy Policy</a></li>
+                        <li class="tac-article-nav-item"><a href="#4" class="tac-article-nav-link">4. Intellectual Property</a></li>
+                        <li class="tac-article-nav-item"><a href="#5" class="tac-article-nav-link">5. Termination</a></li>
+                        <li class="tac-article-nav-item"><a href="#6" class="tac-article-nav-link">6. Limitation of Liability</a></li>
+                        <li class="tac-article-nav-item"><a href="#7" class="tac-article-nav-link">7. Changes to Terms</a></li>
+                        <li class="tac-article-nav-item"><a href="#8" class="tac-article-nav-link">8. Contact Us</a></li>
+                    </ul>
+                </div>
 
-    </main>
+                <article class="tac-article" id="1">
+                    <h2 class="tac-article-head">1. Acceptance of Terms</h2>
+                    <div class="tac-article-text">
+                        <p>{% random_lorem_paragraphs %} </p>
+                    </div>
+                </article>
+
+                <article class="tac-article" id="2">
+                    <h2 class="tac-article-head">2. Use of Service</h2>
+                    <div class="tac-article-text">
+                        <p>{% random_lorem_paragraphs %} </p>
+                    </div>
+                </article>
+
+                <article class="tac-article" id="3">
+                    <h2 class="tac-article-head">3. Privacy Policy</h2>
+                    <div class="tac-article-text">
+                        <p>{% random_lorem_paragraphs %} </p>
+                    </div>
+                </article>
+
+                <article class="tac-article" id="4">
+                    <h2 class="tac-article-head">4. Intellectual Property</h2>
+                    <div class="tac-article-text">
+                        <p>{% random_lorem_paragraphs %} </p>
+                    </div>
+                </article>
+
+                <article class="tac-article" id="5">
+                    <h2 class="tac-article-head">5. Termination</h2>
+                    <div class="tac-article-text">
+                        <p>{% random_lorem_paragraphs %} </p>
+                    </div>
+                </article>
+
+                <article class="tac-article" id="6">
+                    <h2 class="tac-article-head">6. Limitation of Liability</h2>
+                    <div class="tac-article-text">
+                        <p>{% random_lorem_paragraphs %} </p>
+                    </div>
+                </article>
+
+                <article class="tac-article" id="7">
+                    <h2 class="tac-article-head">7. Changes to Terms</h2>
+                    <div class="tac-article-text">
+                        <p>{% random_lorem_paragraphs %} </p>
+                    </div>
+                </article>
+
+                <article class="tac-article" id="8">
+                    <h2 class="tac-article-head">8. Contact Us</h2>
+                    <div class="tac-article-text">
+                        <p>{% random_lorem_paragraphs %} </p>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </div>
 
 {% endblock %}

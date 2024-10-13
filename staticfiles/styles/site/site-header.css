@@ -1,3 +1,16 @@
+.sticky-top {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        z-index: 1000;
+        background-color: white;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    .container-header {
+        padding: 10px 0;
+    }
+
 .site-header {
     width: 100%;
 

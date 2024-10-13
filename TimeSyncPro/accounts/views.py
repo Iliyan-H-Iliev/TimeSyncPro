@@ -101,7 +101,7 @@ class SignInUserView(auth_views.LoginView):
         return super().get_redirect_url()
 
     def form_valid(self, form):
-        username = UserModel.format_email(form.cleaned_data.get('username'))
+        username = UserModel.formated_email(form.cleaned_data.get('username'))
         password = form.cleaned_data.get('password')
         remember_me = form.cleaned_data.get('remember_me')
         user = authenticate(
@@ -511,6 +511,14 @@ def terms_of_use(request):
 
 def privacy_policy(request):
     return render(request, 'static_html/privacy_policy.html')
+
+
+def contact(request):
+    return render(request, 'static_html/contact.html')
+
+
+def features(request):
+    return render(request, 'static_html/features.html')
 
 
 class ActivateAndSetPasswordView(views.View):

@@ -42,7 +42,10 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
 
     "TimeSyncPro.accounts.apps.AccountsConfig",
-    "TimeSyncPro.management.apps.ManagementConfig"
+    "TimeSyncPro.management.apps.ManagementConfig",
+    
+    "TimeSyncPro.core",
+
 ]
 
 MIDDLEWARE = [

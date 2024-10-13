@@ -1,0 +1,45 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TimeSyncPro</title>
+    <link rel="stylesheet" href="{% static 'styles/site.css' %}">
+    {% block style %}
+    {% endblock style %}
+</head>
+
+<body>
+<div class="page-container">
+
+    <div class="content-wrap">
+        <header class="site-header sticky-top">
+            {% include "header.html" %}
+        </header>
+
+        <main class="site-main">
+            <div class="content-container">
+
+                {% block content %}
+
+                {% endblock content %}
+            
+
+            </div>
+        </main>
+
+
+    </div>
+    <footer class="site-footer">
+        {% include "footer.html" %}
+    </footer>
+</div>
+
+{% block script %}
+{% endblock script %}
+</body>
+
+</html>

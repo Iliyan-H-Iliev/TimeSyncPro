@@ -144,7 +144,7 @@ class CompanyMembersView(LoginRequiredMixin, CompanyContextMixin, views.ListView
         context = super().get_context_data(**kwargs)
         company = self.get_object()
 
-        context['employees'] = Company.objects.get(kp=company.pk).employees.all()
+        context['employees'] = Company.objects.get(pk=company.pk).employees.all()
 
         return context
 

@@ -1,27 +1,87 @@
-{% extends 'home-layout.html' %}
+{% extends 'layout.html' %}
+{% load static %}
+{% load custom_tags %}
 
 {% block content %}
+    <div class="tac-background">
+        <div class="tac-main-container">
+            <div class="tac-main">
+                <div class="tac-text-container">
+                    <h1 class="tac-text">About TimeSyncPro</h1>
+                    <h2 class="tac-text-2">Revolutionizing <span class="span-p">Time Management</span> for Businesses</h2>
+                </div>
+            </div>
 
+            <div class="tac-article-container">
+                <div class="tac-article-nav">
+                    <ul class="tac-article-nav-list">
+                        <li class="tac-article-nav-item"><a href="#1" class="tac-article-nav-link">Our Story</a></li>
+                        <li class="tac-article-nav-item"><a href="#2" class="tac-article-nav-link">Our Mission</a></li>
+                        <li class="tac-article-nav-item"><a href="#3" class="tac-article-nav-link">Our Team</a></li>
+                        <li class="tac-article-nav-item"><a href="#4" class="tac-article-nav-link">Our Values</a></li>
+                    </ul>
+                </div>
+                
+                <article class="tac-article" id="1">
+                    <h2 class="tac-article-head">Our Story</h2>
+                    <div class="tac-article-text">
+                        <p>TimeSyncPro was founded in 2024 by a tech enthusiast who recognized the need for a more efficient and user-friendly time management solution in the corporate world. Our journey began with a simple idea: to create a tool that would simplify the complexities of employee scheduling and leave management.</p>
+                        <p>What started as a small project quickly grew into a comprehensive platform, driven by the positive feedback and growing demand from our early adopters. Today, TimeSyncPro serves thousands of businesses across the globe, continually evolving to meet the changing needs of modern workplaces.</p>
+                    </div>
+                </article>
 
-    <header>
-        <h1>About TimeSyncPro</h1>
-    </header>
+                <article class="tac-article" id="2">
+                    <h2 class="tac-article-head">Our Mission</h2>
+                    <div class="tac-article-text">
+                        <p>At TimeSyncPro, our mission is to empower businesses to maximize their productivity through intelligent time management solutions. We strive to:</p>
+                        <ul>
+                            <li>Simplify complex scheduling processes</li>
+                            <li>Enhance communication between employees and management</li>
+                            <li>Provide actionable insights through data-driven analytics</li>
+                            <li>Continuously innovate to meet the evolving needs of modern workplaces</li>
+                        </ul>
+                        <p>We believe that by streamlining time management, we can help organizations focus on what truly matters – growth, innovation, and employee satisfaction.</p>
+                    </div>
+                </article>
 
-    <main>
-        <p>TimeSyncPro is a cutting-edge time management and synchronization tool designed to help individuals and teams optimize their productivity and workflow.</p>
+                <article class="tac-article" id="3">
+                    <h2 class="tac-article-head">Our Team</h2>
+                    <div class="tac-article-text">
+                        <p>Behind TimeSyncPro is a diverse team of passionate professionals dedicated to creating the best time management solution possible. Our team includes:</p>
+                        <ul>
+                            <li>Experienced software developers pushing the boundaries of what's possible</li>
+                            <li>UX/UI designers ensuring our platform is intuitive and enjoyable to use</li>
+                            <li>Data scientists extracting valuable insights to drive product improvements</li>
+                            <li>Customer support specialists providing top-notch assistance to our users</li>
+                        </ul>
+                        <p>Together, we work tirelessly to deliver a product that exceeds expectations and makes a real difference in how businesses manage their time.</p>
+                    </div>
+                </article>
 
-        <h2>Our Mission</h2>
-        <p>At TimeSyncPro, we believe that effective time management is the key to success in both personal and professional life. Our mission is to provide intuitive and powerful tools that enable our users to make the most of their time, synchronize their efforts, and achieve their goals with ease.</p>
+                <article class="tac-article" id="4">
+                    <h2 class="tac-article-head">Our Values</h2>
+                    <div class="tac-article-text">
+                        <p>At TimeSyncPro, we are guided by a set of core values that shape everything we do:</p>
+                        <ul>
+                            <li><strong>Innovation:</strong> We constantly seek new ways to improve and evolve our platform.</li>
+                            <li><strong>User-Centric Design:</strong> We put our users first in every decision we make.</li>
+                            <li><strong>Integrity:</strong> We operate with honesty and transparency in all our dealings.</li>
+                            <li><strong>Collaboration:</strong> We believe in the power of teamwork, both within our company and with our clients.</li>
+                            <li><strong>Excellence:</strong> We strive for the highest quality in everything we do.</li>
+                        </ul>
+                        <p>These values drive us to continually improve TimeSyncPro and provide the best possible service to our clients.</p>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </div>
 
-        <h2>Key Features</h2>
-        <ul>
-            <li>Smart scheduling and calendar management</li>
-            <li>Team collaboration and task synchronization</li>
-            <li>Time tracking and productivity analytics</li>
-            <li>Customizable workflows and integrations</li>
-        </ul>
-
-        <p>Join the TimeSyncPro community today and take control of your time!</p>
-    </main>
-
+{#    <style>#}
+{#        .tac-article-text ul {#}
+{#            padding-left: 20px;#}
+{#        }#}
+{#        .tac-article-text li {#}
+{#            margin-bottom: 10px;#}
+{#        }#}
+{#    </style>#}
 {% endblock %}

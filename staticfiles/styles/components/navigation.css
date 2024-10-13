@@ -61,3 +61,36 @@
 /*  text-decoration: none;*/
 /*  font-size: 18px;*/
 /*}*/
+
+/*.auth-central-nav {*/
+/*    display: flex;*/
+/*    flex-direction: row;*/
+/*    justify-content: space-between;*/
+/*    align-items: center;*/
+/*    padding: 0 1em;*/
+/*    flex-grow: 1;*/
+/*}*/
+
+
+/*.authenticated-navbar-ul {*/
+/*    display: flex;*/
+/*    flex-direction: row;*/
+/*    justify-content: space-between;*/
+/*    align-items: center;*/
+
+/*}*/
+
+.auth-central-nav {
+    flex-grow: 1;            /* Allow the nav to take all free space */
+    text-align: center;      /* Center the navigation items horizontally */
+}
+
+.authenticated-navbar-ul {
+    display: flex;           /* Make the ul a flex container */
+    justify-content: center; /* Center the items horizontally */
+    gap: 20px;               /* Add some space between nav items */
+}
+
+.dropdown {
+    margin-left: 20px;       /* Ensure there's space between the navbar and the dropdown */
+}
