@@ -19,22 +19,17 @@
         </header>
 
         <main class="site-main">
-{##}
-{#            {% if request.user.is_authenticated %}#}
-{#                {% include "side_nav.html" %}#}
-{#            {% endif %}#}
-
             <div class="content-container">
                 {% block content %}
                 {% endblock content %}
             </div>
         </main>
+    
+
     </div>
-
-    <footer class="site-footer">
-        {% include "footer.html" %}
-    </footer>
-
+        <footer class="site-footer">
+            {% include "footer.html" %}
+        </footer>
 </div>
 </body>
 

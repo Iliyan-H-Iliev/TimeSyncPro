@@ -7,12 +7,102 @@
 
             <div class="index-text-container">
                 <h1 class="head-text">The Simple Way To Manage Employee Leave </h1>
-                <h2 class="head-text-2">Reduce The <span>Time</span>. Lower The <span>Cost</span>. Remove The <span>Stress</span>.</h2>
+                <h2 class="head-text-2">Reduce The <span>Time</span>. Lower The <span>Cost</span>. Remove The <span>Stress</span>.
+                </h2>
             </div>
 
             <div class="navbar signup-login-container signup-learn-more">
                 {% include "partials/sign_up_button.html" %}
-                {% include "partials/learn_more_button.html" %}
+                {% include "partials/learn_more_button.html" with url="#" %}
+            </div>
+        </div>
+    </div>
+    <div class="home-article-container">
+        <article class="tsp-article">
+            <h3 class="tsp-article-head">Why Choose <span>TimeSync<span>Pro</span></span>?</h3>
+            <div class="tsp-article-text">
+                <p>TimeSyncPro is an intuitive and cost-effective leave management solution designed to simplify
+                    employee leave tracking, attendance monitoring, and performance management. With TimeSyncPro, you
+                    can streamline your leave management process, reduce time and costs, minimize errors and compliance
+                    risks, and eliminate the stress of manual leave handling.</p>
+                <p>Our user-friendly, paperless system automates leave requests, tracks staff absenteeism, and provides
+                    insights into leave trends—all while ensuring compliance with company policies. Quick to set up and
+                    easy to use, TimeSyncPro lets you focus on what really matters—managing your team, not their
+                    paperwork.</p>
+            </div>
+        </article>
+    </div>
+    
+    <div class="content-3-container">
+
+        <div class="content-3">
+            <h3 class="content-3-head">Features</h3>
+
+
+            <div class="c3-content">
+
+                <div class="c3-container">
+
+                    <div class="c3-image">
+                        <img src="{% static 'images/bulb-icon.png' %}" alt="Leave Balance">
+                    </div>
+
+                    <div class="c3-text">
+                        <h4>Boost Productivity</h4>
+                        <p>Approving leave requests in moments, with all of the data you need at your fingertips using
+                            our
+                            leave management system.</p>
+                        {% include "partials/learn_more_button.html" %}
+                    </div>
+
+                </div>
+
+                <div class="c3-container">
+
+                    <div class="c3-image">
+                        <img src="{% static 'images/gear-Icon.png' %}" alt="Leave Balance">
+                    </div>
+
+                    <div class="c3-text">
+                        <h4>Customize Your Experience</h4>
+                        <p>See your organizational structure at a glance and personalise your workflows to suit your
+                            teams with our leave planner online.</p>
+                        {% include "partials/learn_more_button.html" %}
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="c3-content">
+
+                <div class="c3-container">
+
+                    <div class="c3-image">
+                        <img src="{% static 'images/reports-icon.png' %}" alt="Leave Balance">
+                    </div>
+
+                    <div class="c3-text">
+                        <h4>Easy Reporting</h4>
+                        <p>Bespoke reports allow you to understand leave and absence within your organisation via our
+                            leave management solution.</p>
+                        {% include "partials/learn_more_button.html" %}
+                    </div>
+
+                </div>
+
+                <div class="c3-container">
+
+                    <div class="c3-image">
+                        <img src="{% static 'images/control-icon.png' %}" alt="Leave Balance">
+                    </div>
+
+                    <div class="c3-text">
+                        <h4>Stay in Control</h4>
+                        <p>Online leave management of work patterns, different leave years, overtime, and time off.</p>
+                        {% include "partials/learn_more_button.html" %}
+                    </div>
+
+                </div>
             </div>
         </div>
     </div>
