@@ -13,14 +13,14 @@
             </div>
 
             <div class="tac-article-container">
-                <div class="tac-article-nav">
+                <nav class="tac-article-nav">
                     <ul class="tac-article-nav-list">
                         <li class="tac-article-nav-item"><a href="#1" class="tac-article-nav-link">Our Story</a></li>
                         <li class="tac-article-nav-item"><a href="#2" class="tac-article-nav-link">Our Mission</a></li>
                         <li class="tac-article-nav-item"><a href="#3" class="tac-article-nav-link">Our Team</a></li>
                         <li class="tac-article-nav-item"><a href="#4" class="tac-article-nav-link">Our Values</a></li>
                     </ul>
-                </div>
+                </nav>
                 
                 <article class="tac-article" id="1">
                     <h2 class="tac-article-head">Our Story</h2>
@@ -84,4 +84,8 @@
 {#            margin-bottom: 10px;#}
 {#        }#}
 {#    </style>#}
+{% endblock %}
+
+{% block script %}
+    <script src="{% static 'js/scroll-to-id.js' %}"></script>
 {% endblock %}

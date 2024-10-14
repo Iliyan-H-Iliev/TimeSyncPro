@@ -88,25 +88,7 @@
     gap: 5em;
 }
 
-.learn-more-button {
-    color: white;
-}
-
-.learn-more-button::before {
-    border-color: white;
-}
-
-.learn-more-button:hover {
-
-    color: var(--primary-dark);
-}
-
-.learn-more-button:hover::before {
-    border: none;
-}
-
-.signup-learn-more .signup-button,
-.signup-learn-more .learn-more-button {
+.signup-learn-more .tsp-button {
     font-size: 1.3em;
     padding: 0.5em 4em;
 }
@@ -198,7 +180,7 @@
     flex: 1;
 }
 
-.c3-text .learn-more-button {
+.c3-text .learn-more {
     align-self: flex-end;
     margin-top: auto;
 }
@@ -237,7 +219,7 @@
      text-transform: uppercase;
 }
 
-.tsp-article .signup-button {
+.tsp-article .sign-up {
     font-size: 1.1em;
     padding: 0.5em 5em;
     margin-top: 3em;
@@ -279,12 +261,4 @@
         min-width: 150px;
         max-width: 250px;
     }
-}
-
-.learn-more-button::before {
-    background-color: transparent;
-}
-
-.learn-more-button {
-    text-transform: capitalize;
 }

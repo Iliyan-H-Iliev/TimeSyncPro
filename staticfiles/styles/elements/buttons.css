@@ -6,10 +6,109 @@
 /*    border-radius: 0.3em;*/
 /*}*/
 
-.login-button {
+/*.login-button {*/
+/*    display: inline-block;*/
+/*    background: #369;*/
+/*    color: #fff;*/
+/*    padding: 0.5em 0.8em;*/
+/*    border-radius: 0.3em;*/
+/*}*/
+
+
+.tsp-button {
+    padding: 0.3em 2em;
+    font-size: 1.1em;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
     display: inline-block;
-    background: #369;
-    color: #fff;
-    padding: 0.5em 0.8em;
-    border-radius: 0.3em;
+    position: relative;
+    overflow: hidden;
+    border-radius: 5px; /* Changed from 10px to 5px */
 }
+
+/* Sign In - Liquid Fill */
+.sign-in {
+    background-color: transparent;
+    color: var(--primary-blue);
+    border: 3px solid var(--primary-blue);
+    z-index: 1;
+}
+
+.sign-in::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--primary-blue);
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+    transition: transform .4s ease-out;
+    z-index: -1;
+    border-radius: 3px; /* Changed from 8px to 3px */
+}
+
+.sign-in:hover {
+    color: white;
+}
+
+.sign-in:hover::before {
+    transform: scaleX(1);
+}
+
+/* Sign Up - Pulse */
+.sign-up {
+    background-color: var(--primary-blue);
+    color: white;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(0, 140, 186, 0.7);
+    }
+    70% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 12px rgba(0, 140, 186, 0);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(0, 140, 186, 0);
+    }
+}
+
+.sign-up:hover {
+    animation: pulse .8s infinite;
+    color: var(--primary-dark);
+}
+
+ .learn-more {
+            background-color: transparent;
+            color: white;
+            border: 1px solid white;
+            z-index: 1;
+        }
+        .learn-more::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: white;
+            transform: scaleX(0);
+            transform-origin: 0 50%;
+            transition: transform .4s ease-out;
+            z-index: -1;
+            border-radius: 3px;
+        }
+        .learn-more:hover {
+            color: var(--primary-dark); /* Dark Blue */
+        }
+        .learn-more:hover::before {
+            transform: scaleX(1);
+        }
