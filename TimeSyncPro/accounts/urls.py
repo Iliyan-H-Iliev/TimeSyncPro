@@ -6,7 +6,7 @@ from TimeSyncPro.accounts.views import (
     DetailsOwnProfileView, SignupEmployeeView, SignupCompanyAdministratorUser, BasicEditProfileView,
     DetailedEditProfileView, DetailsEmployeesProfileView, DeleteEmployeeView,
     PasswordResetView, PasswordChangeView, CustomPasswordResetConfirmView,
-    ActivateAndSetPasswordView, contact, features,
+    ActivateAndSetPasswordView, contact, features, DetailedOwnEditProfileView,
 )
 from TimeSyncPro.management.views import CompanyMembersView, DetailsCompanyProfileView, EditCompanyView, \
     DeleteCompanyView
@@ -36,6 +36,7 @@ urlpatterns = [
     path("users/profile/<slug:slug>/", include([
         path("", DetailsOwnProfileView.as_view(), name="profile"),
         path("edit/", BasicEditProfileView.as_view(), name="edit profile"),
+        path("detailed-edit/", DetailedOwnEditProfileView.as_view(), name="full edit profile"),
     ])),
 
 

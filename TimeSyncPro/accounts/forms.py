@@ -346,9 +346,18 @@ class BasicEditProfileForm(ReadonlyFieldsFormMixin, EditEmployeeBaseForm):
         self._apply_readonly_on_fields()
 
 
-class DetailedEditProfileForm(EditEmployeeBaseForm):
+class DetailedEditProfileForm(RequiredFieldsFormMixin, EditEmployeeBaseForm):
+
+    not_required_fields = (
+        "manages_departments"
+    )
+
     class Meta(EditEmployeeBaseForm.Meta):
         model = Profile
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._apply_not_required_on_fields()
 
 
 class DeleteUserForm(forms.Form):

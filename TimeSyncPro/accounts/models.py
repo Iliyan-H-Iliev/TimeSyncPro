@@ -269,7 +269,6 @@ class Profile(CreatedModifiedMixin):
     manages_departments = models.ManyToManyField(
         'management.Department',
         related_name="managers",
-
     )
 
     shift_pattern = models.ForeignKey(

@@ -155,7 +155,6 @@ class SignupEmployeeView(MultiplePermissionsRequiredMixin, NotAuthenticatedMixin
         return kwargs
 
     def form_valid(self, form):
-
         employee = form.save(commit=False)
 
         user = self.request.user
@@ -259,6 +258,8 @@ class EditProfileBaseView(NotAuthenticatedMixin, views.View):
     detailed_edit = False
     model = UserModel
 
+    # TODO USE GET_QUERYSET
+
     queryset = model.objects.select_related(
         'profile__company'  # Fetch employee and company in one query
     ).prefetch_related(
@@ -269,9 +270,10 @@ class EditProfileBaseView(NotAuthenticatedMixin, views.View):
     )
 
     def get_user_to_edit(self, slug):
-        user_to_edit = self.queryset.filter(slug=slug).first()
-        if not user_to_edit:
-            raise Http404("User not found")
+        # user_to_edit = self.queryset.filter(slug=slug).first()
+        # if not user_to_edit:
+        #     raise Http404("User not found")
+        user_to_edit = get_object_or_404(self.queryset, slug=slug)
         return user_to_edit
 
     @staticmethod
@@ -280,7 +282,9 @@ class EditProfileBaseView(NotAuthenticatedMixin, views.View):
         return form_class
 
     def get_success_url(self, slug, company_slug):
-        return reverse(self.success_url, kwargs={'slug': slug, 'company_slug': company_slug})
+        if company_slug:
+            return reverse("company members", kwargs={'company_slug': company_slug})
+        return reverse("profile", kwargs={'slug': slug})
 
     def get_additional_form_class(self, detailed_edit):
         try:
@@ -317,7 +321,7 @@ class EditProfileBaseView(NotAuthenticatedMixin, views.View):
                 if additional_form:
                     additional_form.save()
                 messages.success(self.request, 'Profile updated successfully.')
-                return redirect(self.get_success_url(user.slug, user.company_slug))
+                return redirect(self.get_success_url(user.slug, user.company.slug))
         except Exception as e:
             logger.error(f"Error updating profile: {e}")
             messages.error(self.request, "An unexpected error occurred while saving the profile.")
@@ -339,6 +343,9 @@ class BasicEditProfileView(OwnerRequiredMixin, EditProfileBaseView):
     form_class = BasicEditTSPUserForm
     success_url = 'profile'
     detailed_edit = False
+
+    def get_success_url(self, slug, company_slug):
+        return reverse("profile", kwargs={'slug': slug})
 
     def get(self, request, *args, **kwargs):
         user = request.user
@@ -370,6 +377,9 @@ class DetailedEditProfileView(PermissionRequiredMixin, DynamicPermissionMixin, E
     success_url = 'company employee profile'
     detailed_edit = True
 
+    def get_success_url(self, slug, company_slug):
+        return reverse("company members", kwargs={"company_slug": company_slug})
+
     def dispatch(self, request, *args, **kwargs):
         user = request.user
         user_to_edit = self.get_user_to_edit(slug=self.kwargs['slug'])
@@ -393,7 +403,7 @@ class DetailedEditProfileView(PermissionRequiredMixin, DynamicPermissionMixin, E
     def post(self, request, *args, **kwargs):
         user = request.user
         user_to_edit = self.get_user_to_edit(slug=self.kwargs['slug'])
-        company_slug = user.profile.company.slug
+        company_slug = user.company.slug
 
         user_form = self.form_class(request.POST or None, instance=user_to_edit)
         additional_form = self.get_additional_form(user_to_edit, request)
@@ -408,6 +418,19 @@ class DetailedEditProfileView(PermissionRequiredMixin, DynamicPermissionMixin, E
         return self.form_invalid(user_form, additional_form, context)
 
 
+class DetailedOwnEditProfileView(OwnerRequiredMixin, DetailedEditProfileView):
+
+    template_name = 'accounts/own_full_profile_edit.html'
+    form_class = DetailedEditTSPUserForm
+    detailed_edit = True
+
+    def get_success_url(self, slug, company_slug):
+        return reverse("profile", kwargs={"slug": slug})
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+
 class DeleteEmployeeView(
     SuccessUrlMixin,
     NotAuthenticatedMixin,
@@ -416,7 +439,6 @@ class DeleteEmployeeView(
     DynamicPermissionMixin,
     views.DeleteView
 ):
-
     model = UserModel
     queryset = model.objects.select_related(
         'profile__company'  # Fetch employee and company in one query

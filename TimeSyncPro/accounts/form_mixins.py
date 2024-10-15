@@ -35,6 +35,8 @@ class RequiredFieldsFormMixin(forms.ModelForm):
             self.fields[field_name].required = True
 
     def _apply_not_required_on_fields(self):
+        a = self.not_required_field_names
+        print(a)
         for field_name in self.not_required_field_names:
             self.fields[field_name].required = False
 
@@ -50,7 +52,7 @@ class RequiredFieldsFormMixin(forms.ModelForm):
         if self.not_required_fields[0] == "__all__":
             return self.fields.keys()
 
-        return self.not_required_fields
+        return list(self.not_required_fields) if isinstance(self.not_required_fields, (list, tuple)) else [self.not_required_fields]
 
 
 class CleanEmailMixin(forms.ModelForm):

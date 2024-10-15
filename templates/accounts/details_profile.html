@@ -1,28 +1,105 @@
 {% extends 'layout.html' %}
 
-{% block content %}
-    <h1>Profile Details</h1>
+{#{% block content %}#}
+{#    <h1>Profile Details</h1>#}
+{##}
+{#{% if user %}#}
+{#    <p>Permissions</p>#}
+{#        {% for permission in permissions %}#}
+{#            <p>{{ permission }}</p>#}
+{#        {% endfor %}#}
+{#    <p>Company: {{ user.company.slug }}</p>#}
+{#    <p>Email: {{ user.email }}</p>#}
+{#    <p>Full Name: {{ user.profile.full_name }}</p>#}
+{#    <p>Role: {{ user.profile.role }}</p>#}
+{#    <p>Phone Number: {{ user.related_instance.phone_number }}</p>#}
+{#    <p>Address: {{ user.address }}</p>#}
+{#    <p></p>#}
+{#    <!-- Display company details -->#}
+{#    {% if company_name %}#}
+{#        <h2>Company: {{ company_name }}</h2>#}
+{#    {% endif %}#}
+{#    #}
+{#    {% if has_detailed_change_permission %}#}
+{#        <a href="{% url 'full profile update' slug=user_to_view.slug company_slug=user.profile.company.slug %}">Edit</a>#}
+{#        {% elif user == user_to_view%}#}
+{#        <a href="{% url 'edit profile' slug=user_to_view.slug %}">Edit</a>#}
+{#    {% endif %}#}
+{#    {% if has_delete_permission %}#}
+{#        <a href="{% url 'delete profile' slug=user_to_view.slug company_slug=user.profile.company.slug %}">Delete</a>#}
+{#    {% endif %}#}
+{#    <!-- Display company details -->#}
+{#    {% if company_name %}#}
+{#        <h2>Company: {{ company_name }}</h2>#}
+{#    {% endif %}#}
+{#    #}
+{##}
+{#{% endif %}#}
+{#{% endblock %}#}
 
-{% if user %}
-    <p>Permissions</p>
-        {% for permission in permissions %}
-            <p>{{ permission }}</p>
-        {% endfor %}
-    <p>Company: {{ user.company.slug }}</p>
-    <p>Email: {{ user.email }}</p>
-    <p>Full Name: {{ user.profile.full_name }}</p>
-    <p>Role: {{ user.profile.role }}</p>
-    <p>Phone Number: {{ user.related_instance.phone_number }}</p>
-    <p>Address: {{ user.address }}</p>
-    <p></p>
-    <!-- Display company details -->
-    {% if company_name %}
-        <h2>Company: {{ company_name }}</h2>
-    {% endif %}
+{% block content %}
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     
-    {% if has_detailed_change_permission %}
+    <div class="site-main">
+
+    <div class="container auth-main-container">
+        <div class="profile-card">
+            <div class="profile-header">
+                <img src="{{ user.profile.avatar.url }}" alt="{{ user.profile.full_name }}" class="avatar">
+                <div class="user-info">
+                    <h2 class="user-name">{{ user.profile.full_name }}</h2>
+                    <p class="user-occupation">
+                        <i data-feather="briefcase" class="icon"></i>
+                        {{ user.profile.role }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="details-grid">
+                <div class="detail-item">
+                    <i data-feather="mail" class="icon"></i>
+                    <span>{{ user.email }}</span>
+                </div>
+                <div class="detail-item">
+                    <i data-feather="phone" class="icon"></i>
+                    <span>{{ user.profile.phone|default:"-" }}</span>
+                </div>
+                <div class="detail-item">
+                    <i data-feather="map-pin" class="icon"></i>
+                    <span>{{ user.profile.address }}</span>
+                </div>
+                <div class="detail-item">
+                    <i data-feather="calendar" class="icon"></i>
+                    <span>Joined {{ user.date_joined|date:"F Y" }}</span>
+                </div>
+            </div>
+
+            <div class="skills-section">
+                <h3>Skills</h3>
+                <div class="skills-list">
+                    {% for skill in user.profile.skills.all %}
+                        <span class="skill-tag">{{ skill.name }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="bio-section">
+                <button class="bio-toggle" onclick="toggleBio()">
+                    <span>Bio</span>
+                    <i data-feather="chevron-down" id="bioIcon"></i>
+                </button>
+                <p id="bioContent" class="bio-content">
+                    {{ user.profile.bio }}
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    {% if has_detailed_change_permission and user == user_to_view %}
+                <a href="{% url 'full edit profile' slug=user.slug %}">Edit</a>
+    {% elif has_detailed_change_permission %}
         <a href="{% url 'full profile update' slug=user_to_view.slug company_slug=user.profile.company.slug %}">Edit</a>
-        {% elif user == user_to_view%}
+    {% elif user == user_to_view%}
         <a href="{% url 'edit profile' slug=user_to_view.slug %}">Edit</a>
     {% endif %}
     {% if has_delete_permission %}
@@ -32,7 +109,25 @@
     {% if company_name %}
         <h2>Company: {{ company_name }}</h2>
     {% endif %}
-    
+    </div>
 
-{% endif %}
+{% endblock %}
+
+{% block script %}
+
+    <script>
+        feather.replace();
+
+        function toggleBio() {
+            var bioContent = document.getElementById('bioContent');
+            var bioIcon = document.getElementById('bioIcon');
+            bioContent.classList.toggle('visible');
+            if (bioContent.classList.contains('visible')) {
+                bioIcon.setAttribute('data-feather', 'chevron-up');
+            } else {
+                bioIcon.setAttribute('data-feather', 'chevron-down');
+            }
+            feather.replace();
+        }
+    </script>
 {% endblock %}
