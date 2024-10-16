@@ -1,4 +1,5 @@
 from django.contrib.auth.mixins import UserPassesTestMixin, AccessMixin
+from django.core.exceptions import ImproperlyConfigured
 from django.shortcuts import redirect
 from django.contrib import messages
 from django.urls import reverse
@@ -107,18 +108,3 @@ class IsAuthorizedUserMixin(UserPassesTestMixin):
         return redirect('index')
 
 
-class AuthenticatedUserMixin:
-    success_url = "profile"
-
-    def dispatch(self, request, *args, **kwargs):
-        if self.request.user.is_authenticated:
-            user = self.request.user
-            return redirect(
-                reverse(
-                    self.success_url,
-                    kwargs={
-                        'slug': user.slug,
-                    }
-                )
-            )
-        return super().dispatch(request, *args, **kwargs)

@@ -1,17 +1,20 @@
 from django.contrib.auth import get_user_model
 from django.contrib import messages
+from django.db import transaction
+from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin
 
 from .models import ShiftPattern, Team, Company
 from .forms import CreateShiftPatternForm, CreateShiftBlockFormSet, CreateTeamForm, EditTeamForm, \
-    UpdateShiftPatternForm, UpdateShiftBlockForm, UpdateShiftBlockFormSet, EditCompanyForm, CreateCompanyForm
+    UpdateShiftPatternForm, UpdateShiftBlockFormSet, EditCompanyForm, CreateCompanyForm
 from django.views import generic as views
 
 from .utils import handle_shift_pattern_post
-from ..core.views_mixins import NotAuthenticatedMixin, CompanyCheckMixin, MultiplePermissionsRequiredMixin, \
+from TimeSyncPro.common.views_mixins import NotAuthenticatedMixin, CompanyCheckMixin, MultiplePermissionsRequiredMixin, \
     CompanyContextMixin
+from ..common.forms import AddressForm
 
 UserModel = get_user_model()
 
@@ -20,53 +23,58 @@ class CreateCompanyView(LoginRequiredMixin, views.CreateView):
     model = Company
     template_name = "management/create_company.html"
     form_class = CreateCompanyForm
-    success_url = reverse_lazy('company profile')
+    address_form_class = AddressForm
 
-    def form_valid(self, form):
-        company = form.save(commit=False)
-        company.save()
-        self.request.user.profile.company = company
-        self.request.user.profile.save()
-        return redirect(self.get_success_url())
-
-    def get_success_url(self):
-        return reverse('company_profile', kwargs={'company_slug': self.object.slug})
-
-    def dispatch(self, request, *args, **kwargs):
-        self.request = request
-        return super().dispatch(request, *args, **kwargs)
-
-    def get(self, request, *args, **kwargs):
-        self.redirect_assign_to_company_profile()
-        return super().get(request, *args, **kwargs)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if 'address_form' not in context:
+            context['address_form'] = self.address_form_class()
+        return context
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['user'] = self.request.user
         return kwargs
 
-    # def get_context_data(self, **kwargs):
-    #     context = super().get_context_data(**kwargs)
-    #     context['user'] = self.request.user
-    #     return context
-
     def post(self, request, *args, **kwargs):
-        self.redirect_assign_to_company_profile()
-        return super().post(request, *args, **kwargs)
+        self.object = None
+        form = self.get_form()
+        address_form = self.address_form_class(request.POST)
+        if form.is_valid() and address_form.is_valid():
+            return self.form_valid(form, address_form)
+        else:
+            return self.form_invalid(form, address_form)
 
-    def redirect_assign_to_company_profile(self):
-        if self.request.user.profile.company:
-            messages.error(self.request, "User already belongs to a company.")
-            user = self.request.user
-            return reverse(
-                "company profile",
-                kwargs={
+    @transaction.atomic
+    def form_valid(self, form, address_form):
+        try:
+            self.object = form.save(commit=False)
+            self.object.address = address_form.save()
+            self.object.save()
+            self.request.user.profile.company = self.object
+            self.request.user.profile.save()
+            messages.success(self.request, "Company created successfully.")
+            return redirect(self.get_success_url())
+        except Exception as e:
+            messages.error(self.request, f"An error occurred while creating the company: {e}")
+            return self.form_invalid(form, address_form)
 
-                    'company_slug': user.company.slug,
-                })
+    def form_invalid(self, form, address_form):
+        return self.render_to_response(
+            self.get_context_data(form=form, address_form=address_form)
+        )
+
+    def get_success_url(self):
+        return reverse('company_profile', kwargs={'company_slug': self.object.slug})
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.profile.company:
+            messages.error(request, "User already belongs to a company.")
+            return redirect(reverse('company_profile', kwargs={'company_slug': request.user.profile.company.slug}))
+        return super().dispatch(request, *args, **kwargs)
 
 
-class DetailsCompanyProfileView(
+class DetailsCompanyView(
     NotAuthenticatedMixin,
     MultiplePermissionsRequiredMixin,
     CompanyContextMixin,
@@ -193,12 +201,12 @@ class DeleteCompanyView(LoginRequiredMixin, CompanyCheckMixin, views.DeleteView)
 #         return handle_shift_pattern_post(request, form, formset, None, self.template_name, self.redirect_url)
 
 
-class ShiftPatternCreateView(LoginRequiredMixin, PermissionRequiredMixin, CompanyContextMixin, views.View):
+class CreateShiftPatternView(LoginRequiredMixin, PermissionRequiredMixin, CompanyContextMixin, views.View):
     template_name = 'management/create_shiftpattern_form.html'
     form_class = CreateShiftPatternForm
     formset_class = CreateShiftBlockFormSet
     permission_required = 'management.add_shiftpattern'
-    redirect_url = 'shiftpattern list'
+    redirect_url = 'all_shift_patterns'
 
     def dispatch(self, request, *args, **kwargs):
         self.company = self.get_company()
@@ -231,7 +239,7 @@ class ShiftPatternCreateView(LoginRequiredMixin, PermissionRequiredMixin, Compan
         return reverse(self.redirect_url, kwargs={'company_slug': self.company.slug})
 
 
-class ShiftPatternEditViewNot(CompanyCheckMixin, PermissionRequiredMixin, LoginRequiredMixin, views.View):
+class EditShiftPatternView(CompanyCheckMixin, PermissionRequiredMixin, LoginRequiredMixin, views.View):
     template_name = 'edit_shiftpattern_form.html'
     form_class = UpdateShiftPatternForm
     formset_class = UpdateShiftBlockFormSet
@@ -256,7 +264,7 @@ class ShiftPatternEditViewNot(CompanyCheckMixin, PermissionRequiredMixin, LoginR
         return handle_shift_pattern_post(request, form, formset, pk, self.template_name, self.redirect_url)
 
 
-class ShiftPatternListViewNot(NotAuthenticatedMixin, PermissionRequiredMixin, views.ListView):
+class ShiftPatternsView(NotAuthenticatedMixin, PermissionRequiredMixin, views.ListView):
     model = ShiftPattern
     template_name = 'management/shiftpattern_list.html'
     context_object_name = 'shift_patterns'
@@ -269,7 +277,7 @@ class ShiftPatternListViewNot(NotAuthenticatedMixin, PermissionRequiredMixin, vi
         return self.get_queryset()
 
 
-class ShiftPatternDetailViewNot(NotAuthenticatedMixin, PermissionRequiredMixin, views.DetailView):
+class DetailsShiftPatternView(NotAuthenticatedMixin, PermissionRequiredMixin, views.DetailView):
     model = ShiftPattern
     template_name = 'management/shiftpattern_detail.html'
     context_object_name = 'shift_pattern'
@@ -292,11 +300,11 @@ class ShiftPatternDetailViewNot(NotAuthenticatedMixin, PermissionRequiredMixin, 
         return context
 
 
-class ShiftPatternDeleteViewNot(CompanyCheckMixin, NotAuthenticatedMixin, PermissionRequiredMixin, views.DeleteView):
+class DeleteShiftPatternView(CompanyCheckMixin, NotAuthenticatedMixin, PermissionRequiredMixin, views.DeleteView):
     model = ShiftPattern
     template_name = 'management/delete_shiftpattern.html'
     permission_required = 'management.delete_shiftpattern'
-    success_url = reverse_lazy('shiftpattern list')
+    success_url = reverse_lazy("all_shift_patterns")
 
     def get_object(self, queryset=None):
         return self.get_queryset().get(pk=self.kwargs.get('pk'))
@@ -313,7 +321,7 @@ class ShiftPatternDeleteViewNot(CompanyCheckMixin, NotAuthenticatedMixin, Permis
         return super().post(request, *args, **kwargs)
 
 
-class TeamListViewNot(NotAuthenticatedMixin, PermissionRequiredMixin, views.ListView):
+class TeamsView(NotAuthenticatedMixin, PermissionRequiredMixin, views.ListView):
     model = Team
     template_name = 'management/team_list.html'
     permission_required = 'management.view_team'
@@ -331,7 +339,7 @@ class TeamListViewNot(NotAuthenticatedMixin, PermissionRequiredMixin, views.List
         return context
 
 
-class TeamCreateViewNot(NotAuthenticatedMixin, PermissionRequiredMixin, views.CreateView):
+class CreateTeamView(NotAuthenticatedMixin, PermissionRequiredMixin, views.CreateView):
     model = Team
     form_class = CreateTeamForm
     template_name = 'management/create_team_form.html'
@@ -349,7 +357,7 @@ class TeamCreateViewNot(NotAuthenticatedMixin, PermissionRequiredMixin, views.Cr
         return kwargs
 
 
-class TeamEditViewNot(CompanyCheckMixin, NotAuthenticatedMixin, PermissionRequiredMixin, views.UpdateView):
+class EditTeamView(CompanyCheckMixin, NotAuthenticatedMixin, PermissionRequiredMixin, views.UpdateView):
     model = Team
     form_class = EditTeamForm
     template_name = 'management/edti_team.html'
@@ -373,7 +381,7 @@ class TeamEditViewNot(CompanyCheckMixin, NotAuthenticatedMixin, PermissionRequir
         return self.get_queryset().get(pk=self.kwargs.get('pk'))
 
 
-class TeamDeleteViewNot(CompanyCheckMixin, NotAuthenticatedMixin, PermissionRequiredMixin, views.DeleteView):
+class DeleteTeamView(CompanyCheckMixin, NotAuthenticatedMixin, PermissionRequiredMixin, views.DeleteView):
     model = Team
     template_name = 'management/delete_team.html'
     permission_required = 'management.delete_team'

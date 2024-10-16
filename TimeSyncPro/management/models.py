@@ -7,10 +7,9 @@ from django_countries.fields import CountryField
 import pytz
 
 from TimeSyncPro.accounts.models import  Profile
-from datetime import date, timedelta
-from django.core.exceptions import ObjectDoesNotExist
+from datetime import timedelta
 
-from TimeSyncPro.core.model_mixins import CreatedModifiedMixin, EmailFormatingMixin
+from TimeSyncPro.common.model_mixins import CreatedModifiedMixin, EmailFormatingMixin
 
 
 class Company(EmailFormatingMixin, CreatedModifiedMixin):
@@ -37,6 +36,14 @@ class Company(EmailFormatingMixin, CreatedModifiedMixin):
         null=True,
     )
 
+    address = models.OneToOneField(
+        "common.Address",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='company',
+    )
+
     leave_approver = models.ForeignKey(
         'accounts.Profile',
         on_delete=models.SET_NULL,
@@ -48,7 +55,7 @@ class Company(EmailFormatingMixin, CreatedModifiedMixin):
     location = CountryField(
         blank_label='(select country)',
         blank=True,
-        null=True
+        null=True,
     )
 
     time_zone = models.CharField(
@@ -56,7 +63,7 @@ class Company(EmailFormatingMixin, CreatedModifiedMixin):
         choices=[(tz, tz) for tz in pytz.all_timezones],
         default='UTC',
         blank=False,
-        null=False
+        null=False,
     )
 
     leave_days_per_year = models.PositiveIntegerField(

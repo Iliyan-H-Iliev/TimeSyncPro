@@ -1,21 +1,51 @@
-{% extends "layout.html" %}
+{% extends "layout/layout.html" %}
+{% load filters %}
 
 {% block content %}
 
-{% load filters %}
+    <div class="form-container">
+        <h2>{{ form_title|default:"Form Title" }}</h2>
 
-<form action="{% url 'edit profile'  slug=user.slug %}" method="post" enctype="multipart/form-data">
-    <table>
-    {{ user_form.as_table }}
-    {% if additional_form %}
-      {{ additional_form.as_table }}
-    {% endif %}
-    </table>
-    <button type="submit">Save</button>
-{#    {% if user.is_company and user_to_edit == None %} }}#}
-{#    <a href="{% url 'delete company'  slug=user.slug company_name=user.get_company_name %}">Delete Company</a>#}
-{#    {% endif %}#}
-    {% csrf_token %}
-</form>
-    
-    {% endblock %}
+        <form action="{% url 'edit profile'  slug=user.slug %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+            {% for field in user_form %}
+                <div class="form-group">
+                    {{ field.label_tag }}
+                    {{ field }}
+                    {% if field.errors %}
+                        {% for error in field.errors %}
+                            <p class="error-message">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            {% endfor %}
+            {% for field in additional_form %}
+                <div class="form-group">
+                    {{ field.label_tag }}
+                    {{ field }}
+                    {% if field.errors %}
+                        {% for error in field.errors %}
+                            <p class="error-message">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            {% endfor %}
+            <div class="form-group">
+                <input type="submit" value="{{ submit_text|default:'Submit' }}">
+            </div>
+        </form>
+    </div>
+
+    {#    {{ user_form.as_table }}#}
+    {#    {% if additional_form %}#}
+    {#      {{ additional_form.as_table }}#}
+    {#    {% endif %}#}
+    {#    <button type="submit">Save</button>#}
+    {#    {% if user.is_company and user_to_edit == None %} }}#}
+    {#    <a href="{% url 'delete company'  slug=user.slug company_name=user.get_company_name %}">Delete Company</a>#}
+    {#    {% endif %}#}
+    {#    {% csrf_token %}#}
+    {#</form>#}
+    {#    #}
+{% endblock %}

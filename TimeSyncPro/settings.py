@@ -43,8 +43,7 @@ INSTALLED_APPS = [
 
     "TimeSyncPro.accounts.apps.AccountsConfig",
     "TimeSyncPro.management.apps.ManagementConfig",
-    
-    "TimeSyncPro.core",
+    "TimeSyncPro.common.apps.CommonConfig"
 
 ]
 

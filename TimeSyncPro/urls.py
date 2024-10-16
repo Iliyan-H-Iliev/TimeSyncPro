@@ -19,6 +19,7 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path("", include("TimeSyncPro.common.urls")),
     path("", include("TimeSyncPro.accounts.urls")),
     path("", include("TimeSyncPro.management.urls")),
 ]

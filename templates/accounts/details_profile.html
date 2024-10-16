@@ -1,4 +1,4 @@
-{% extends 'layout.html' %}
+{% extends 'layout/layout.html' %}
 
 {#{% block content %}#}
 {#    <h1>Profile Details</h1>#}
@@ -96,14 +96,14 @@
     </div>
     
     {% if has_detailed_change_permission and user == user_to_view %}
-                <a href="{% url 'full edit profile' slug=user.slug %}">Edit</a>
+                <a href="{% url 'detailed_update_own_profile' slug=user.slug %}">Edit</a>
     {% elif has_detailed_change_permission %}
-        <a href="{% url 'full profile update' slug=user_to_view.slug company_slug=user.profile.company.slug %}">Edit</a>
+        <a href="{% url 'update_employee' slug=user_to_view.slug company_slug=user.profile.company.slug %}">Edit</a>
     {% elif user == user_to_view%}
-        <a href="{% url 'edit profile' slug=user_to_view.slug %}">Edit</a>
+        <a href="{% url 'update_profile' slug=user_to_view.slug %}">Edit</a>
     {% endif %}
     {% if has_delete_permission %}
-        <a href="{% url 'delete profile' slug=user_to_view.slug company_slug=user.profile.company.slug %}">Delete</a>
+        <a href="{% url 'delete_employee' slug=user_to_view.slug company_slug=user.profile.company.slug %}">Delete</a>
     {% endif %}
     <!-- Display company details -->
     {% if company_name %}

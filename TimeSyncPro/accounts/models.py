@@ -2,7 +2,7 @@ from django.apps import apps
 from django.contrib.auth.models import Group, Permission
 from django.core.validators import MinLengthValidator
 from django.db import models
-from django.db.models import Model, Q
+from django.db.models import Model
 from django.utils.crypto import get_random_string
 import uuid
 
@@ -13,7 +13,7 @@ from django.contrib.auth import models as auth_models
 
 from django.utils import timezone
 
-from TimeSyncPro.core.model_mixins import CreatedModifiedMixin, EmailFormatingMixin
+from TimeSyncPro.common.model_mixins import CreatedModifiedMixin, EmailFormatingMixin
 
 from .managers import TimeSyncProUserManager
 
@@ -239,9 +239,13 @@ class Profile(CreatedModifiedMixin):
         blank=True,
         null=True)
 
-    address = models.TextField(
+    address = models.OneToOneField(
+        'common.Address',
+        on_delete=models.SET_NULL,
+        related_name="employee",
         blank=True,
-        null=True)
+        null=True,
+    )
 
     date_of_birth = models.DateField(
         validators=[

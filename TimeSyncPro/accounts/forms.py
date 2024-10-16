@@ -2,18 +2,14 @@ import logging
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm, SetPasswordForm
-from django.contrib.auth.hashers import make_password
 from django.db import transaction, IntegrityError
 from django.db.models import Prefetch
-from django.core.exceptions import ValidationError
-from django.utils.text import slugify
 # from django.urls import reverse
-from django.utils.timezone import now
 
 from .form_mixins import ReadonlyFieldsFormMixin, CleanEmailMixin, RequiredFieldsFormMixin
 # from .tasks import send_welcome_email, send_password_reset_email, send_activation_email
 from .models import Profile
-from ..core.form_mixins import CheckCompanyExistingSlugMixin
+from TimeSyncPro.common.form_mixins import CheckCompanyExistingSlugMixin
 from ..management.models import Team, ShiftPattern, Department, Company
 
 logger = logging.getLogger(__name__)

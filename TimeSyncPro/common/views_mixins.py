@@ -2,6 +2,10 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import AccessMixin
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import redirect, get_object_or_404
+from django.contrib.auth.mixins import UserPassesTestMixin
+from django.shortcuts import redirect
+from django.urls import reverse
+from django.core.exceptions import ImproperlyConfigured
 
 UserModel = get_user_model()
 
@@ -36,7 +40,6 @@ class CompanyCheckMixin:
         return super().dispatch(request, *args, **kwargs)
 
 
-
 class MultiplePermissionsRequiredMixin(AccessMixin):
     permissions_required = []
 
@@ -68,3 +71,31 @@ class CompanyContextMixin():
             context['company_slug'] = None
 
         return context
+
+
+class AuthenticatedUserMixin(UserPassesTestMixin):
+    success_url_name = "profile"
+    redirect_field_name = None  # Prevents appending ?next= to the URL
+
+    def test_func(self):
+        return not self.request.user.is_authenticated
+
+    def get_success_url(self):
+        if not self.success_url_name:
+            raise ImproperlyConfigured(
+                "No success URL name specified. Define {0}.success_url_name "
+                "or override {0}.get_success_url().".format(
+                    self.__class__.__name__
+                )
+            )
+
+        user = self.request.user
+        if hasattr(user, 'slug'):
+            return reverse(self.success_url_name, kwargs={'slug': user.slug})
+        elif hasattr(user, 'username'):
+            return reverse(self.success_url_name, kwargs={'username': user.username})
+        else:
+            return reverse(self.success_url_name)
+
+    def handle_no_permission(self):
+        return redirect(self.get_success_url())

@@ -8,10 +8,9 @@ from django.contrib.auth.views import PasswordResetConfirmView
 from django.contrib.auth.forms import SetPasswordForm
 from django.db import transaction
 from django.db.models import Prefetch
-from django.http import HttpResponseRedirect, Http404
+from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
-from django.utils.text import slugify
 from django.views import generic as views
 
 # from rest_framework import generics, status
@@ -25,10 +24,10 @@ from TimeSyncPro.accounts.forms import SignupEmployeeForm, SignupCompanyAdminist
     BasicEditTSPUserForm, DetailedEditTSPUserForm, CustomSetPasswordForm, \
     DetailedEditProfileForm, BasicEditProfileForm
 from TimeSyncPro.accounts.view_mixins import OwnerRequiredMixin, \
-    DynamicPermissionMixin, UserBySlugMixin, SuccessUrlMixin, AuthenticatedUserMixin
+    DynamicPermissionMixin, SuccessUrlMixin
 # from TimeSyncPro.core.utils import format_email
-from TimeSyncPro.core.views_mixins import NotAuthenticatedMixin, CompanyCheckMixin, \
-    MultiplePermissionsRequiredMixin
+from TimeSyncPro.common.views_mixins import NotAuthenticatedMixin, CompanyCheckMixin, \
+    MultiplePermissionsRequiredMixin, AuthenticatedUserMixin
 
 # TODO Employee not see another employee profile
 
@@ -37,15 +36,10 @@ logger = logging.getLogger(__name__)
 UserModel = get_user_model()
 
 
-class IndexUser(AuthenticatedUserMixin, views.TemplateView):
-    template_name = "index.html"
-    success_url = "profile"
-
-
 class SignupCompanyAdministratorUser(AuthenticatedUserMixin, views.CreateView):
     template_name = "accounts/signup_company_administrator.html"
     form_class = SignupCompanyAdministratorForm
-    success_url = "profile"
+    success_url = "create company"
 
     @transaction.atomic
     def form_valid(self, form):
@@ -69,9 +63,7 @@ class SignupCompanyAdministratorUser(AuthenticatedUserMixin, views.CreateView):
             if user_slug is None:
                 return HttpResponseRedirect(reverse('index'))
 
-            return HttpResponseRedirect(
-                reverse('profile', kwargs={'slug': user_slug})
-            )
+            return redirect("create company")
 
         except Exception as e:
             logger.error(f"Error in form_valid: {str(e)}")
@@ -519,28 +511,6 @@ def signout_user(request):
     return redirect('index')
 
 
-def about(request):
-    return render(request, 'static_html/about.html')
-
-
-def terms_and_conditions(request):
-    return render(request, 'static_html/terms_and_conditions.html')
-
-
-def terms_of_use(request):
-    return render(request, 'static_html/terms_of_use.html')
-
-
-def privacy_policy(request):
-    return render(request, 'static_html/privacy_policy.html')
-
-
-def contact(request):
-    return render(request, 'static_html/contact.html')
-
-
-def features(request):
-    return render(request, 'static_html/features.html')
 
 
 class ActivateAndSetPasswordView(views.View):

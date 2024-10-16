@@ -5,11 +5,12 @@ from .models import ShiftPattern, ShiftBlock, Team, Company
 from django.forms.models import inlineformset_factory
 
 from ..accounts.form_mixins import RequiredFieldsFormMixin
-from ..core.form_mixins import CheckCompanyExistingSlugMixin, CheckExistingNamePerCompanyMixin
+from TimeSyncPro.common.form_mixins import CheckCompanyExistingSlugMixin, CheckExistingNamePerCompanyMixin
 
 
 # TODO Move RequiredFieldsFormMixin to TimeSyncPro/core/form_mixins.py
 class CreateCompanyForm(RequiredFieldsFormMixin, forms.ModelForm):
+
     required_fields = [
         "name",
         "leave_days_per_year",
@@ -22,6 +23,8 @@ class CreateCompanyForm(RequiredFieldsFormMixin, forms.ModelForm):
         model = Company
         fields = [
             "name",
+            "email",
+            "address",
             "leave_days_per_year",
             "transferable_leave_days",
             "location",

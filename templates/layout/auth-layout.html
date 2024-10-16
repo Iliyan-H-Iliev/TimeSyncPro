@@ -15,11 +15,11 @@
             <a href="{% url 'index' %}"><img src="{% static 'images/logo-blue.png' %}"
                                              alt="TimeSyncPro"></a>
         </div>
-        {% include "auth_nav.html" %}
+        {% include "layout/auth_header.html" %}
     </div>
     <div class="content-wrapper">
         <header class="main-header">
-            {% include "dropdown-menu.html" %}
+            {% include "layout/dropdown-menu.html" %}
         </header>
 
         <main class="main-content">
@@ -28,7 +28,7 @@
         </main>
 
         <footer class="main-footer site-footer">
-            {% include "footer.html" %}
+            {% include "layout/footer.html" %}
         </footer>
     </div>
 </div>
