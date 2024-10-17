@@ -10,7 +10,7 @@
 
 {#<form action="{% url 'register employee' company_slug=company_slug%}?next={{ next }}" method="post">#}
 {% load filters %}
-<form action="{% url 'register employee' company_slug=company_slug%}" method="post">
+<form action="{% url 'register_employee' company_slug=company_slug%}" method="post">
 {#                <p>#}
 {#                    {{ form.username|placeholder:"Email" }}#}
 {#                </p>#}

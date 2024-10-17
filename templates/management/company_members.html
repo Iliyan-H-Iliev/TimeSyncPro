@@ -23,8 +23,8 @@
         <ul>
             {% for employee in employees %}
                 <li>{{ employee.full_name }}</li>
-                <a href="{% url 'employee profile' company_slug=company_slug slug=employee.user.slug %}">Profile</a>
-                <a href="{% url 'full profile update' company_slug=company_slug slug=employee.user.slug %}">Edit</a>
+                <a href="{% url 'employee_profile' company_slug=company_slug slug=employee.user.slug %}">Profile</a>
+                <a href="{% url 'update_employee' company_slug=company_slug slug=employee.user.slug %}">Edit</a>
             {% endfor %}
         </ul>
     {% endif %}

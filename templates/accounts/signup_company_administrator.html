@@ -41,7 +41,7 @@
 
         <h2>Sign Up</h2>
 
-        <form action="/register-company/" method="post">
+        <form action="{% url 'sign_up_administrator' %}" method="post">
             {% csrf_token %}
 
             <div class="input-box">
@@ -98,7 +98,7 @@
             <button class="sign-up-button" type="submit">Register</button>
 
             <div class="register-link">
-                <p>Already a member? <a href="{% url 'signin user' %}">Log in</a></p>
+                <p>Already a member? <a href="{% url 'sign_in' %}">Log in</a></p>
             </div>
 
         </form>

@@ -17,11 +17,11 @@ class CheckCompanyCreateMiddleware:
             # Assuming 'company' is a related field or a property of the user model
             if not hasattr(request.user, 'company') or not request.user.company:
                 # Get the URL for the 'setup_company' page
-                create_company_url = reverse('create company')
+                create_company_url = reverse('create_company')
 
                 # Allow access only to the 'setup_company' page
                 if request.path != create_company_url:
-                    return redirect('create company')
+                    return redirect('create_company')
 
         # Proceed with the response if the user is not authenticated or has a company
         response = self.get_response(request)

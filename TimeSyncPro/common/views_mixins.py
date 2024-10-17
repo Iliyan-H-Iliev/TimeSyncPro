@@ -75,7 +75,7 @@ class CompanyContextMixin():
 
 class AuthenticatedUserMixin(UserPassesTestMixin):
     success_url_name = "profile"
-    redirect_field_name = None  # Prevents appending ?next= to the URL
+    # redirect_field_name = None  # Prevents appending ?next= to the URL
 
     def test_func(self):
         return not self.request.user.is_authenticated

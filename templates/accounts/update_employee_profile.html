@@ -8,7 +8,7 @@
         <div class="form-container">
             <h2>{{ form_title|default:"Form Title" }}</h2>
 
-            <form action="{% url 'full profile update' slug=user_to_edit.slug company_slug=user.profile.company.slug %}"
+            <form action="{% url 'update_employee' slug=user_to_edit.slug company_slug=user.profile.company.slug %}"
                   method="post" enctype="multipart/form-data">
                 {% csrf_token %}
 

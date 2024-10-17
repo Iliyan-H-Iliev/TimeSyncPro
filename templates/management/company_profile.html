@@ -21,8 +21,8 @@
             {% endif %}
     
 
-    <a href="{% url 'update company profile' company_slug=user.profile.company.slug %}">Edit</a>
-    <a href="{% url 'delete company' slug=user.slug company_slug=user.profile.company.slug %}">Delete</a>
+    <a href="{% url 'update_company' company_slug=user.profile.company.slug %}">Edit</a>
+{#    <a href="{% url 'delete_company' company_slug=user.slug slug=user.profile.company.slug %}">Delete</a>#}
     
     </div>
     <!-- Display company details -->

@@ -5,8 +5,8 @@
     <h1>Teams</h1>
     <ul>
         {% for team in teams %}
-            <a href="{% url 'team edit' pk=team.id %}"><li>{{ team.name }} - Manager: {{ team.manager }} - Shift Pattern: {{ team.shift_pattern }}</li></a>
-            <a href="{% url 'team delete' pk=team.id %}">Delete</a>
+            <a href="{% url 'update_team' pk=team.id %}"><li>{{ team.name }} - Manager: {{ team.manager }} - Shift Pattern: {{ team.shift_pattern }}</li></a>
+            <a href="{% url 'delete_team' pk=team.id %}">Delete</a>
         {% endfor %}
     </ul>
     <a href="{% url 'team create' company_slug=user.company.slug %}">Create New Team</a>

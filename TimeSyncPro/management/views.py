@@ -96,7 +96,7 @@ class DetailsCompanyView(
 
 class EditCompanyView(NotAuthenticatedMixin, views.UpdateView):
     model = Company
-    template_name = 'accounts/../../templates/management/edit_company.html'
+    template_name = 'accounts/../../templates/management/update_company.html'
     form_class = EditCompanyForm
     permissions_required = [
         'accounts.change_company',
@@ -240,7 +240,7 @@ class CreateShiftPatternView(LoginRequiredMixin, PermissionRequiredMixin, Compan
 
 
 class EditShiftPatternView(CompanyCheckMixin, PermissionRequiredMixin, LoginRequiredMixin, views.View):
-    template_name = 'edit_shiftpattern_form.html'
+    template_name = 'update_shift_pattern.html'
     form_class = UpdateShiftPatternForm
     formset_class = UpdateShiftBlockFormSet
     permission_required = "management.change_shiftpattern"
@@ -266,7 +266,7 @@ class EditShiftPatternView(CompanyCheckMixin, PermissionRequiredMixin, LoginRequ
 
 class ShiftPatternsView(NotAuthenticatedMixin, PermissionRequiredMixin, views.ListView):
     model = ShiftPattern
-    template_name = 'management/shiftpattern_list.html'
+    template_name = 'management/all_shift_patterns.html'
     context_object_name = 'shift_patterns'
     permission_required = 'management.view_shiftpattern'
 
@@ -279,7 +279,7 @@ class ShiftPatternsView(NotAuthenticatedMixin, PermissionRequiredMixin, views.Li
 
 class DetailsShiftPatternView(NotAuthenticatedMixin, PermissionRequiredMixin, views.DetailView):
     model = ShiftPattern
-    template_name = 'management/shiftpattern_detail.html'
+    template_name = 'management/details_shift_pattern.html'
     context_object_name = 'shift_pattern'
     permission_required = 'management.view_shiftpattern'
 
@@ -323,7 +323,7 @@ class DeleteShiftPatternView(CompanyCheckMixin, NotAuthenticatedMixin, Permissio
 
 class TeamsView(NotAuthenticatedMixin, PermissionRequiredMixin, views.ListView):
     model = Team
-    template_name = 'management/team_list.html'
+    template_name = 'management/all_teams.html'
     permission_required = 'management.view_team'
     context_object_name = 'teams'
 
@@ -342,7 +342,7 @@ class TeamsView(NotAuthenticatedMixin, PermissionRequiredMixin, views.ListView):
 class CreateTeamView(NotAuthenticatedMixin, PermissionRequiredMixin, views.CreateView):
     model = Team
     form_class = CreateTeamForm
-    template_name = 'management/create_team_form.html'
+    template_name = 'management/create_team.html'
     permission_required = 'management.add_team'
     success_url = reverse_lazy('team list')
 
@@ -360,7 +360,7 @@ class CreateTeamView(NotAuthenticatedMixin, PermissionRequiredMixin, views.Creat
 class EditTeamView(CompanyCheckMixin, NotAuthenticatedMixin, PermissionRequiredMixin, views.UpdateView):
     model = Team
     form_class = EditTeamForm
-    template_name = 'management/edti_team.html'
+    template_name = 'management/update_team.html'
     permission_required = 'management.change_team'
     success_url = reverse_lazy('team list')
 

@@ -24,7 +24,6 @@ class CreateCompanyForm(RequiredFieldsFormMixin, forms.ModelForm):
         fields = [
             "name",
             "email",
-            "address",
             "leave_days_per_year",
             "transferable_leave_days",
             "location",
