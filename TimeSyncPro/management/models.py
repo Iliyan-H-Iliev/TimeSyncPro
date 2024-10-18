@@ -174,6 +174,14 @@ class Department(models.Model):
         related_name='departments',
     )
 
+    # managed_by = models.ForeignKey(
+    #     "accounts.Profile",
+    #     on_delete=models.SET_NULL,
+    #     null=True,
+    #     blank=True,
+    #     related_name='manages_departments',
+    # )
+
     class Meta:
         unique_together = ('company', 'name')
 

@@ -309,7 +309,6 @@ class EditEmployeeBaseForm(forms.ModelForm):
             "last_name",
             "role",
             "employee_id",
-            "manages_departments",
             "team",
             "shift_pattern",
             "date_of_hire",
@@ -337,23 +336,23 @@ class BasicEditProfileForm(ReadonlyFieldsFormMixin, EditEmployeeBaseForm):
     class Meta(EditEmployeeBaseForm.Meta):
         model = Profile
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._apply_readonly_on_fields()
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
+    #     self._apply_readonly_on_fields()
 
 
-class DetailedEditProfileForm(RequiredFieldsFormMixin, EditEmployeeBaseForm):
+class DetailedEditProfileForm(EditEmployeeBaseForm):
 
-    not_required_fields = (
-        "manages_departments"
-    )
+    # not_required_fields = (
+    #     "manages_departments"
+    # )
 
     class Meta(EditEmployeeBaseForm.Meta):
         model = Profile
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._apply_not_required_on_fields()
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
+    #     self._apply_not_required_on_fields()
 
 
 class DeleteUserForm(forms.Form):
