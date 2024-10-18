@@ -266,6 +266,7 @@ class EditProfileBaseView(NotAuthenticatedMixin, views.UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['user_form'] = self.get_form()
         context['additional_form'] = self.get_additional_form()
         context['user'] = self.request.user
         context['user_to_edit'] = self.object

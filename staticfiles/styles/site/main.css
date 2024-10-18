@@ -1,12 +1,12 @@
 .site-main {
-    padding-top: 150px;
+    padding-top: 70px;
 }
 
-/*.auth-main-container {*/
-/*    padding-top: 70px;*/
-/*    max-width: var(--max-width);*/
-/*    margin: 0 auto;*/
-/*}*/
+.auth-container {
+    padding-top: 35px;
+    width: min(75%, 1900px);
+    margin: 0 auto;
+}
 
 .container {
     max-width: 300px;

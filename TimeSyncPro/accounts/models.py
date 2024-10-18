@@ -255,7 +255,8 @@ class Profile(CreatedModifiedMixin):
         null=True,
     )
 
-    profile_picture = models.URLField(
+    profile_picture = models.ImageField(
+        upload_to='profile_pictures/',
         blank=True,
         null=True,
     )
@@ -269,11 +270,11 @@ class Profile(CreatedModifiedMixin):
         null=True,
     )
 
-    # For Manager and HR
-    manages_departments = models.ManyToManyField(
-        'management.Department',
-        related_name="managers",
-    )
+    # # For Manager
+    # manages_departments = models.ForeignKey(
+    #     'management.Department',
+    #     related_name="managers",
+    # )
 
     shift_pattern = models.ForeignKey(
         'management.ShiftPattern',
