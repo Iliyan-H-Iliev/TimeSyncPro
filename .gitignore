@@ -1,4 +1,8 @@
 /.venv/
 /.idea/*
 /.idea.env
-.env
+/.env
+/.env.local
+/.env.development
+/.env.test
+/.env.production
