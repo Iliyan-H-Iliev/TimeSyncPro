@@ -44,7 +44,7 @@ class Company(EmailFormatingMixin, CreatedModifiedMixin):
         related_name='company',
     )
 
-    leave_approver = models.ForeignKey(
+    holiday_approver = models.ForeignKey(
         'accounts.Profile',
         on_delete=models.SET_NULL,
         null=True,
@@ -66,25 +66,25 @@ class Company(EmailFormatingMixin, CreatedModifiedMixin):
         null=False,
     )
 
-    leave_days_per_year = models.PositiveIntegerField(
+    holiday_days_per_year = models.PositiveIntegerField(
         # default=DEFAULT_LEAVE_DAYS_PER_YEAR,
         null=False,
         blank=False,
     )
 
-    transferable_leave_days = models.PositiveIntegerField(
+    transferable_holiday_days = models.PositiveIntegerField(
         # default=DEFAULT_TRANSFERABLE_LEAVE_DAYS,
         null=False,
         blank=False,
     )
 
-    minimum_leave_notice = models.PositiveIntegerField(
+    minimum_holiday_notice = models.PositiveIntegerField(
         # default=MIN_LEAVE_NOTICE,
         null=False,
         blank=False,
     )
 
-    maximum_leave_days_per_request = models.PositiveIntegerField(
+    maximum_holiday_days_per_request = models.PositiveIntegerField(
         # default=MAX_LEAVE_DAYS_PER_REQUEST,
         null=False,
         blank=False,
@@ -166,7 +166,7 @@ class Department(models.Model):
         null=False,
     )
 
-    leave_approver = models.ForeignKey(
+    holiday_approver = models.ForeignKey(
         Profile,
         on_delete=models.SET_NULL,
         blank=True,
@@ -361,6 +361,7 @@ class Team(models.Model):
         related_name='teams',
         #TODO CHECK WHER TO PUT NULL TRUE
         null=True,
+        blank=True,
     )
 
     name = models.CharField(
@@ -378,7 +379,7 @@ class Team(models.Model):
         related_name='teams',
     )
     
-    leave_approver = models.ForeignKey(
+    holiday_approver = models.ForeignKey(
         Profile,
         on_delete=models.SET_NULL,
         blank=True,

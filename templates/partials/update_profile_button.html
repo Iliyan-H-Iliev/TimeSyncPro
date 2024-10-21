@@ -1,0 +1,5 @@
+{% if has_detailed_change_permission and user == user_to_view %}
+    <a href="{% url 'detailed_update_own_profile' slug=user.slug %}">Update Profile</a>
+{% elif user == user_to_view %}
+    <a href="{% url 'update_profile' slug=user_to_view.slug %}">Update Profile</a>
+{% endif %}

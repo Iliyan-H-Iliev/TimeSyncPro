@@ -1,0 +1,3 @@
+    {% if has_delete_permission %}
+        <a href="{% url 'delete_employee' slug=user_to_view.slug company_slug=user.profile.company.slug %}">Delete</a>
+    {% endif %}

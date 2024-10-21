@@ -1,0 +1,24 @@
+{% extends "layout/layout.html" %}
+
+{% load static %}
+
+{% block content %}
+    
+    <h1>Review Holiday</h1>
+    <div>
+        <p>From: {{ holiday.user.profile.full_name }}</p>
+        <p>({{ holiday.start_date }} to {{ holiday.end_date }})</p>
+        Status: {{ holiday.status }}
+    
+        {% if holiday.reason %}
+            Reason: {{ holiday.reason }}
+        {% endif %}
+    </div>
+    <form action="{% url 'review_holiday' pk=holiday.pk %}" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" name="action" value={{ holiday.StatusChoices.APPROVE }}>Approve</button>
+        <button type="submit" name="action" value={{ holiday.StatusChoices.DENIED }}>Deny</button>
+    </form>
+
+{% endblock %}
