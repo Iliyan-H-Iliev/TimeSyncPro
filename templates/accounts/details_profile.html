@@ -40,99 +40,169 @@
 
 {% block style %}
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/interaction@6.1.15/index.global.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                editable: true,
+                selectable: true,
+                events: '/api/events/',
+                eventClick: function(info) {
+                    alert('Event: ' + info.event.title);
+                },
+                select: function(info) {
+                    var title = prompt('Event Title:');
+                    if (title) {
+                        var eventData = {
+                            title: title,
+                            start: info.startStr,
+                            end: info.endStr,
+                            allDay: info.allDay
+                        };
+                        $.ajax({
+                            url: '/api/events/',
+                            type: 'POST',
+                            data: JSON.stringify(eventData),
+                            contentType: 'application/json',
+                            headers: {
+                                'X-CSRFToken': getCookie('csrftoken')
+                            },
+                            success: function(response) {
+                                calendar.addEvent(response);
+                            }
+                        });
+                    }
+                    calendar.unselect();
+                }
+            });
+            calendar.render();
+        });
+
+        // Function to get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
 {% endblock %}
 
 {% block content %}
 
     
-    <div class="auth-container">
-
-    <div class="container auth-main-container">
-        <div class="profile-card">
-            <div class="profile-header">
-                <img src="{{ user.profile.profile_picture.url }}" alt="{{ user.profile.full_name }}" class="avatar">
-                <div class="user-info">
-                    <h2 class="user-name">{{ user.profile.full_name }}</h2>
-                    <p class="user-occupation">
-                        <i data-feather="briefcase" class="icon"></i>
-                        {{ user.profile.role }}
-                    </p>
-                </div>
-            </div>
-
-            <div class="details-grid">
-                <div class="detail-item">
-                    <i data-feather="mail" class="icon"></i>
-                    <span>{{ user.email }}</span>
-                </div>
-                <div class="detail-item">
-                    <i data-feather="phone" class="icon"></i>
-                    <span>{{ user.profile.phone|default:"-" }}</span>
-                </div>
-                <div class="detail-item">
-                    <i data-feather="map-pin" class="icon"></i>
-                    <span>{{ user.profile.address }}</span>
-                </div>
-                <div class="detail-item">
-                    <i data-feather="calendar" class="icon"></i>
-                    <span>Joined {{ user.date_joined|date:"F Y" }}</span>
-                </div>
-            </div>
-
-            <div class="skills-section">
-                <h3>Skills</h3>
-                <div class="skills-list">
-                    {% for skill in user.profile.skills.all %}
-                        <span class="skill-tag">{{ skill.name }}</span>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <div class="bio-section">
-                <button class="bio-toggle" onclick="toggleBio()">
-                    <span>Bio</span>
-                    <i data-feather="chevron-down" id="bioIcon"></i>
-                </button>
-                <p id="bioContent" class="bio-content">
-                    {{ user.profile.bio }}
-                </p>
-            </div>
-        </div>
+{#    <div class="auth-container">#}
+{##}
+{#    <div class="container auth-main-container">#}
+{#        <div class="profile-card">#}
+{#            <div class="profile-header">#}
+{#                <img src="{{ user.profile.profile_picture.url }}" alt="{{ user.profile.full_name }}" class="avatar">#}
+{#                <div class="user-info">#}
+{#                    <h2 class="user-name">{{ user.profile.full_name }}</h2>#}
+{#                    <p class="user-occupation">#}
+{#                        <i data-feather="briefcase" class="icon"></i>#}
+{#                        {{ user.profile.role }}#}
+{#                    </p>#}
+{#                </div>#}
+{#            </div>#}
+{##}
+{#            <div class="details-grid">#}
+{#                <div class="detail-item">#}
+{#                    <i data-feather="mail" class="icon"></i>#}
+{#                    <span>{{ user.email }}</span>#}
+{#                </div>#}
+{#                <div class="detail-item">#}
+{#                    <i data-feather="phone" class="icon"></i>#}
+{#                    <span>{{ user.profile.phone|default:"-" }}</span>#}
+{#                </div>#}
+{#                <div class="detail-item">#}
+{#                    <i data-feather="map-pin" class="icon"></i>#}
+{#                    <span>{{ user.profile.address }}</span>#}
+{#                </div>#}
+{#                <div class="detail-item">#}
+{#                    <i data-feather="calendar" class="icon"></i>#}
+{#                    <span>Joined {{ user.date_joined|date:"F Y" }}</span>#}
+{#                </div>#}
+{#            </div>#}
+{##}
+{#            <div class="skills-section">#}
+{#                <h3>Skills</h3>#}
+{#                <div class="skills-list">#}
+{#                    {% for skill in user.profile.skills.all %}#}
+{#                        <span class="skill-tag">{{ skill.name }}</span>#}
+{#                    {% endfor %}#}
+{#                </div>#}
+{#            </div>#}
+{##}
+{#            <div class="bio-section">#}
+{#                <button class="bio-toggle" onclick="toggleBio()">#}
+{#                    <span>Bio</span>#}
+{#                    <i data-feather="chevron-down" id="bioIcon"></i>#}
+{#                </button>#}
+{#                <p id="bioContent" class="bio-content">#}
+{#                    {{ user.profile.bio }}#}
+{#                </p>#}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
+    
+    <div class="profile-actions auth-container">
+        {% include "partials/profile_dash.html" %}
     </div>
     
-    {% if has_detailed_change_permission and user == user_to_view %}
-                <a href="{% url 'detailed_update_own_profile' slug=user.slug %}">Edit</a>
-    {% elif has_detailed_change_permission %}
-        <a href="{% url 'update_employee' slug=user_to_view.slug company_slug=user.profile.company.slug %}">Edit</a>
-    {% elif user == user_to_view%}
-        <a href="{% url 'update_profile' slug=user_to_view.slug %}">Edit</a>
-    {% endif %}
-    {% if has_delete_permission %}
-        <a href="{% url 'delete_employee' slug=user_to_view.slug company_slug=user.profile.company.slug %}">Delete</a>
-    {% endif %}
-    <!-- Display company details -->
-    {% if company_name %}
-        <h2>Company: {{ company_name }}</h2>
-    {% endif %}
-    </div>
+{#    <div id="calendar"></div>#}
+{#    #}
+{#    {% if has_detailed_change_permission and user == user_to_view %}#}
+{#                <a href="{% url 'detailed_update_own_profile' slug=user.slug %}">Edit</a>#}
+{#    {% elif has_detailed_change_permission %}#}
+{#        <a href="{% url 'update_employee' slug=user_to_view.slug company_slug=user.profile.company.slug %}">Edit</a>#}
+{#    {% elif user == user_to_view%}#}
+{#        <a href="{% url 'update_profile' slug=user_to_view.slug %}">Edit</a>#}
+{#    {% endif %}#}
+{#    {% if has_delete_permission %}#}
+{#        <a href="{% url 'delete_employee' slug=user_to_view.slug company_slug=user.profile.company.slug %}">Delete</a>#}
+{#    {% endif %}#}
+{#    <!-- Display company details -->#}
+{#    {% if company_name %}#}
+{#        <h2>Company: {{ company_name }}</h2>#}
+{#    {% endif %}#}
+{#    #}
+{#    </div>#}
 
 {% endblock %}
 
 {% block script %}
 
-    <script>
-        feather.replace();
-
-        function toggleBio() {
-            var bioContent = document.getElementById('bioContent');
-            var bioIcon = document.getElementById('bioIcon');
-            bioContent.classList.toggle('visible');
-            if (bioContent.classList.contains('visible')) {
-                bioIcon.setAttribute('data-feather', 'chevron-up');
-            } else {
-                bioIcon.setAttribute('data-feather', 'chevron-down');
-            }
-            feather.replace();
-        }
-    </script>
+{#    <script>#}
+{#        feather.replace();#}
+{##}
+{#        function toggleBio() {#}
+{#            var bioContent = document.getElementById('bioContent');#}
+{#            var bioIcon = document.getElementById('bioIcon');#}
+{#            bioContent.classList.toggle('visible');#}
+{#            if (bioContent.classList.contains('visible')) {#}
+{#                bioIcon.setAttribute('data-feather', 'chevron-up');#}
+{#            } else {#}
+{#                bioIcon.setAttribute('data-feather', 'chevron-down');#}
+{#            }#}
+{#            feather.replace();#}
+{#        }#}
+{#    </script>#}
 {% endblock %}

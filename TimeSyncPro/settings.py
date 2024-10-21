@@ -31,8 +31,10 @@ INSTALLED_APPS = [
     "TimeSyncPro.accounts.apps.AccountsConfig",
     "TimeSyncPro.management.apps.ManagementConfig",
     "TimeSyncPro.common.apps.CommonConfig",
+    "TimeSyncPro.absences.apps.AbsencesConfig",
     
     "storages",
+
 ]
 
 MIDDLEWARE = [
@@ -43,7 +45,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # 'TimeSyncPro.accounts.middleware.check_company_middleware.CheckCompanyCreateMiddleware'
+    'TimeSyncPro.accounts.middleware.check_company_middleware.CompanyCheckMiddleware'
 ]
 
 ROOT_URLCONF = os.getenv('ROOT_URLCONF')

@@ -1,0 +1,26 @@
+{% extends "layout/layout.html" %}
+
+{% block content %}
+    <h1>My Holidays</h1>
+    <p>Here's a list of all your holidays.</p>
+    <table>
+        <thead>
+            <tr>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Duration</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for holiday in holidays %}
+                <tr>
+                    <td>{{ holiday.start_date }}</td>
+                    <td>{{ holiday.end_date }}</td>
+                    <td>{{ holiday.duration }}</td>
+                    <td>{{ holiday.status }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

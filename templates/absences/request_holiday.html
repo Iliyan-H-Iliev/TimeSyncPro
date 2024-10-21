@@ -1,0 +1,10 @@
+{% extends "layout/layout.html" %}
+
+{% block content %}
+    
+    <form action="{% url 'request_holiday' %}" method="post">
+        {{ form.as_p }}
+        {% csrf_token %}
+    </form>
+    
+{% endblock %}

@@ -1,8 +1,9 @@
 from django.shortcuts import redirect
 from django.urls import reverse
+from django.contrib.admin.views.decorators import staff_member_required
 
 
-class CheckCompanyCreateMiddleware:
+class CompanyCheckMiddleware:
     """
     Middleware to restrict access to all pages except 'setup_company'
     until the user has set up their company.
@@ -12,17 +13,15 @@ class CheckCompanyCreateMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        # Check if the user is authenticated
-        if request.user.is_authenticated:
-            # Assuming 'company' is a related field or a property of the user model
-            if not hasattr(request.user, 'company') or not request.user.company:
-                # Get the URL for the 'setup_company' page
-                create_company_url = reverse('create_company')
-
-                # Allow access only to the 'setup_company' page
-                if request.path != create_company_url:
+        if request.user.is_authenticated and not request.user.is_staff:
+            if not self.has_registered_company(request.user):
+                allowed_urls = [reverse('profile'), reverse('create_company')]
+                if not request.path.startswith('/admin/') and request.path not in allowed_urls:
                     return redirect('create_company')
 
-        # Proceed with the response if the user is not authenticated or has a company
         response = self.get_response(request)
         return response
+
+    @staticmethod
+    def has_registered_company(user):
+        return hasattr(user, 'company') and user.company is not None

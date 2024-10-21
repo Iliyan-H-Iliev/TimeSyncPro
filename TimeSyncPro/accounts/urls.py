@@ -22,7 +22,7 @@ urlpatterns = [
     path('password_change/done/', auth_views.PasswordChangeDoneView.as_view(), name='password_change_done'),
     path('activate-set-password/<str:token>/', ActivateAndSetPasswordView.as_view(), name='activate_and_set_password'),
 
-    path("users/profile/<slug:slug>/", include([
+    path("users/<slug:slug>/profile/", include([
         path("", DetailsOwnProfileView.as_view(), name="profile"),
         path("edit/", BasicEditProfileView.as_view(), name="update_profile"),
         path("detailed-edit/", DetailedOwnEditProfileView.as_view(), name="detailed_update_own_profile"),
