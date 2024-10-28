@@ -33,6 +33,10 @@ class SignupCompanyAdministratorForm(
         # "name",
     )
 
+    class Meta:
+        model = UserModel
+        fields = ["email", "password1", "password2"]
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -43,10 +47,6 @@ class SignupCompanyAdministratorForm(
         # self.fields.update(company_fields)
         #
         # self.fields['company_name'] = self.fields.pop('name')
-
-    class Meta:
-        model = UserModel
-        fields = ["email", "password1", "password2"]
 
     def clean_email(self):
         return super().clean_email()
@@ -64,16 +64,10 @@ class SignupCompanyAdministratorForm(
                 first_name = self.cleaned_data["first_name"]
                 last_name = self.cleaned_data["last_name"]
 
-                # Pass the first_name and last_name to the user save method
                 user.save(first_name=first_name, last_name=last_name)
 
-                # company = Company.objects.create(
-                #     name=self.cleaned_data["name"],
-                # )
-
-                employee = Profile.objects.create(
+                profile = Profile.objects.create(
                     user=user,
-                    # company=company,
                     first_name=self.cleaned_data["first_name"],
                     last_name=self.cleaned_data["last_name"],
                     role=Profile.EmployeeRoles.ADMINISTRATOR,
@@ -81,27 +75,20 @@ class SignupCompanyAdministratorForm(
                 )
 
                 if commit:
-                    # company.save()
-                    employee.save()
-
+                    profile.save()
                     logger.info(
                         f"Successfully created administrator account for {user.email}")
-
-                # company.leave_approver = employee
-                # company.save()
-
-                # send_welcome_email.delay(user.email)
 
                 return user
 
         except IntegrityError as e:
             logger.error(f"IntegrityError occurred while creating administrator account: {str(e)}")
             self.add_error(None, "An integrity error occurred. Please check your data and try again.")
-            return None  # Return None in case of an error
+            return None
         except Exception as e:
             logger.exception(f"Unexpected error occurred while creating administrator account: {str(e)}")
             self.add_error(None, f"An unexpected error occurred: {str(e)}. Please try again.")
-            return None  # Return None in case of an error
+            return None
 
 
 class SignupEmployeeForm(RequiredFieldsFormMixin, CleanEmailMixin, UserCreationForm):
@@ -181,7 +168,7 @@ class SignupEmployeeForm(RequiredFieldsFormMixin, CleanEmailMixin, UserCreationF
         user = self.request.user
 
         company = user.company
-
+        # TODO check if company is None in View
         if not company:
             raise forms.ValidationError("You must be associated with a company to register employees")
 
