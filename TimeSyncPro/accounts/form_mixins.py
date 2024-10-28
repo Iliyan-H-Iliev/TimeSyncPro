@@ -15,8 +15,8 @@ class ReadonlyFieldsFormMixin(forms.ModelForm):
 
     def _apply_readonly_on_fields(self):
         for field_name in self.readonly_field_names:
-            self.fields[field_name].widget.attrs["readonly"] = "readonly"
-            self.fields[field_name].widget.attrs["disabled"] = "disabled"
+            if field_name in self.fields:
+                self.fields[field_name].widget.attrs["readonly"] = "readonly"
 
     @property
     def readonly_field_names(self):
@@ -24,6 +24,10 @@ class ReadonlyFieldsFormMixin(forms.ModelForm):
             return self.fields.keys()
 
         return self.readonly_fields
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._apply_readonly_on_fields()
 
 
 class RequiredFieldsFormMixin(forms.ModelForm):
@@ -61,6 +65,7 @@ class CleanEmailMixin(forms.ModelForm):
         if not email:
             return email
 
+        # TODO - Move to a utility function formated email
         email = UserModel.formated_email(email)
 
         if not hasattr(self, 'Meta') or not hasattr(self.Meta, 'model'):
@@ -79,6 +84,7 @@ class CleanEmailMixin(forms.ModelForm):
         return email
 
 
+# TODO CHECK THIS
 class ProfileFieldsMixin(forms.ModelForm):
     profile_fields = ()
 

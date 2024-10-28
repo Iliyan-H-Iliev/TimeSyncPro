@@ -6,6 +6,7 @@ from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMix
 from django.contrib.auth.models import Group
 from django.contrib.auth.views import PasswordResetConfirmView
 from django.contrib.auth.forms import SetPasswordForm
+from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Prefetch
 from django.http import HttpResponseRedirect
@@ -77,43 +78,49 @@ class SignupCompanyAdministratorUser(AuthenticatedUserMixin, views.CreateView):
 class SignInUserView(auth_views.LoginView):
     template_name = "accounts/signin_user.html"
     redirect_authenticated_user = True
-    success_url = "profile"
+    MAX_LOGIN_ATTEMPTS = 5
+    LOCKOUT_DURATION = 300  # 5 minutes
+    REMEMBER_ME_DURATION = 1209600  # 2 weeks
 
-    def get_redirect_url(self):
-        if self.request.user.is_authenticated:
-            user = self.request.user
-            return reverse(
-                self.success_url,
-                kwargs={
-                    'slug': user.slug,
-                    # 'company_slug': user.company.slug,
-                })
-        return super().get_redirect_url()
+    def get_success_url(self):
+        user = self.request.user
+        return reverse("profile", kwargs={'slug': user.slug})
 
     def form_valid(self, form):
         username = UserModel.formated_email(form.cleaned_data.get('username'))
+        cache_key = f'login_attempts_{username}'
+        attempts = cache.get(cache_key, 0)
+
+        if attempts >= self.MAX_LOGIN_ATTEMPTS:
+            form.add_error(
+                None,
+                "Too many login attempts. Please try again later.",
+            )
+            logger.warning(f"Login blocked due to too many attempts for user: {username}")
+            return self.form_invalid(form)
+
         password = form.cleaned_data.get('password')
         remember_me = form.cleaned_data.get('remember_me')
+        expiry_time = (self.REMEMBER_ME_DURATION if remember_me else 0)
+
         user = authenticate(
             self.request,
             username=username,
             password=password,
         )
 
-        if user is not None:
-            login(self.request, user)
-
-            if remember_me:
-                self.request.session.set_expiry(1209600)  # 2 weeks
-            else:
-                self.request.session.set_expiry(0)  # Browser close
-
-            return HttpResponseRedirect(
-                reverse('profile', kwargs={'slug': user.slug})
-            )
-        else:
-            form.add_error(None, "Invalid username or password")
+        if user is None:
+            cache.set(cache_key, attempts + 1, self.LOCKOUT_DURATION)
+            form.add_error(None, "Invalid email or password")
             return self.form_invalid(form)
+
+        cache.delete(cache_key)
+        login(self.request, user)
+        self.request.session.set_expiry(expiry_time)
+
+        return HttpResponseRedirect(
+            reverse('profile', kwargs={'slug': user.slug})
+        )
 
     def form_invalid(self, form):
         logger.warning(f"Failed login attempt: {form.cleaned_data.get('username')}")

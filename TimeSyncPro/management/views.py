@@ -59,6 +59,7 @@ class CreateCompanyView(LoginRequiredMixin, views.CreateView):
             messages.error(self.request, f"An error occurred while creating the company: {e}")
             return self.form_invalid(form, address_form)
 
+    @transaction.atomic
     def form_invalid(self, form, address_form):
         return self.render_to_response(
             self.get_context_data(form=form, address_form=address_form)
