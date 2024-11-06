@@ -1,5 +1,7 @@
 from django.db import models
 
+from TimeSyncPro.common.utils import format_email
+
 
 class CreatedModifiedMixin(models.Model):
 
@@ -13,7 +15,5 @@ class CreatedModifiedMixin(models.Model):
 class EmailFormatingMixin:
 
     @staticmethod
-    def formated_email(email):
-        if email is None:
-            return None
-        return email.lower()
+    def format_email(email):
+        return format_email(email)

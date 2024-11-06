@@ -17,4 +17,8 @@ class AddressForm(forms.ModelForm):
             "country": "Country",
         }
 
+    def has_data(self):
+        data = self.cleaned_data
+        return any(data.values())
+
 

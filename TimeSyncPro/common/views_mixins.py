@@ -56,7 +56,7 @@ class MultiplePermissionsRequiredMixin(AccessMixin):
 
 
 # TODO remove company_name and company_slug
-class CompanyContextMixin():
+class CompanyContextMixin:
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         company = self.request.user.company
@@ -73,6 +73,7 @@ class CompanyContextMixin():
         return context
 
 
+# TODO FIX IT
 class AuthenticatedUserMixin(UserPassesTestMixin):
     success_url_name = "profile"
     # redirect_field_name = None  # Prevents appending ?next= to the URL
@@ -99,3 +100,16 @@ class AuthenticatedUserMixin(UserPassesTestMixin):
 
     def handle_no_permission(self):
         return redirect(self.get_success_url())
+
+
+# class FormatNameMixin:
+#
+#     @staticmethod
+#     def format_name(name):
+#
+#         if not name:
+#             return ""
+#
+#         name = " ".join(name.split())
+#
+#         return name.title()

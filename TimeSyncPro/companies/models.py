@@ -6,13 +6,14 @@ from django.utils.text import slugify
 from django_countries.fields import CountryField
 import pytz
 
-from TimeSyncPro.accounts.models import  Profile
+from TimeSyncPro.accounts.models import Profile
 from datetime import timedelta
 
 from TimeSyncPro.common.model_mixins import CreatedModifiedMixin, EmailFormatingMixin
+from TimeSyncPro.history.model_mixins import HistoryMixin
 
 
-class Company(EmailFormatingMixin, CreatedModifiedMixin):
+class Company(HistoryMixin, EmailFormatingMixin, CreatedModifiedMixin):
     MAX_COMPANY_NAME_LENGTH = 50
     MIN_COMPANY_NAME_LENGTH = 3
     DEFAULT_LEAVE_DAYS_PER_YEAR = 0
@@ -22,6 +23,20 @@ class Company(EmailFormatingMixin, CreatedModifiedMixin):
     MIN_LEAVE_NOTICE = 0
     MAX_TIMEZONE_LENGTH = 50
     MAX_SLUG_LENGTH = 100
+
+    tracked_fields = [
+        'name',
+        'email',
+        'address',
+        'holiday_approver',
+        'location',
+        'time_zone',
+        'holiday_days_per_year',
+        'transferable_holiday_days',
+        'minimum_holiday_notice',
+        'maximum_holiday_days_per_request',
+        'working_on_local_holidays',
+    ]
 
     name = models.CharField(
         max_length=MAX_COMPANY_NAME_LENGTH,
@@ -46,16 +61,10 @@ class Company(EmailFormatingMixin, CreatedModifiedMixin):
 
     holiday_approver = models.ForeignKey(
         'accounts.Profile',
-        on_delete=models.SET_NULL,
+        on_delete=models.DO_NOTHING,
         null=True,
         blank=True,
         related_name='companies',
-    )
-
-    location = CountryField(
-        blank_label='(select country)',
-        blank=True,
-        null=True,
     )
 
     time_zone = models.CharField(
@@ -66,25 +75,24 @@ class Company(EmailFormatingMixin, CreatedModifiedMixin):
         null=False,
     )
 
-    holiday_days_per_year = models.PositiveIntegerField(
-        # default=DEFAULT_LEAVE_DAYS_PER_YEAR,
+    holiday_days_per_year = models.PositiveSmallIntegerField(
         null=False,
         blank=False,
     )
 
-    transferable_holiday_days = models.PositiveIntegerField(
+    transferable_holiday_days = models.PositiveSmallIntegerField(
         # default=DEFAULT_TRANSFERABLE_LEAVE_DAYS,
         null=False,
         blank=False,
     )
 
-    minimum_holiday_notice = models.PositiveIntegerField(
+    minimum_holiday_notice = models.PositiveSmallIntegerField(
         # default=MIN_LEAVE_NOTICE,
         null=False,
         blank=False,
     )
 
-    maximum_holiday_days_per_request = models.PositiveIntegerField(
+    maximum_holiday_days_per_request = models.PositiveSmallIntegerField(
         # default=MAX_LEAVE_DAYS_PER_REQUEST,
         null=False,
         blank=False,
@@ -104,12 +112,12 @@ class Company(EmailFormatingMixin, CreatedModifiedMixin):
         editable=False,
     )
 
-    # TODO Add a method to suggest a timezone based on the location
     def suggest_time_zone(self):
-        if self.location:
-            country_timezones = pytz.country_timezones.get(self.location.code)
-            if country_timezones:
-                return country_timezones[0]  # Return the first timezone for the country
+        if self.address:
+            if self.address.country:
+                country_timezones = pytz.country_timezones.get(self.address.country.code)[0]
+                if country_timezones:
+                    return country_timezones  # Return the first timezone for the country
         return 'UTC'
 
     # TODO Check ii works correctly
@@ -117,10 +125,14 @@ class Company(EmailFormatingMixin, CreatedModifiedMixin):
         self.time_zone = self.suggest_time_zone()
 
         if not self.slug:
-            self.slug = self.slug_generator(self.name, self.MAX_SLUG_LENGTH)
+            slug = self.slug_generator(self.name, self.MAX_SLUG_LENGTH)
+            if Company.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                raise ValueError("Company with this name already exists")
+            self.slug = slug
 
         if self.email:
-            self.email = self.formated_email(self.email)
+            self.email = self.format_email(self.email)
+
         super().save(*args, **kwargs)
 
     # # TODO FIX IT
@@ -147,9 +159,11 @@ class Company(EmailFormatingMixin, CreatedModifiedMixin):
         return slugify(name)[:max_length]
 
 
-class Department(models.Model):
+class Department(HistoryMixin, models.Model):
     MAX_DEPARTMENT_NAME_LENGTH = 50
     MIN_DEPARTMENT_NAME_LENGTH = 3
+
+    tracked_fields = ['name', 'holiday_approver']
 
     company = models.ForeignKey(
         Company,
@@ -174,26 +188,23 @@ class Department(models.Model):
         related_name='departments',
     )
 
-    # managed_by = models.ForeignKey(
-    #     "accounts.Profile",
-    #     on_delete=models.SET_NULL,
-    #     null=True,
-    #     blank=True,
-    #     related_name='manages_departments',
-    # )
-
     class Meta:
         unique_together = ('company', 'name')
 
     def __str__(self):
         return self.name
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
 
-class ShiftPattern(models.Model):
+
+class ShiftPattern(HistoryMixin, models.Model):
     MIN_NAME_LENGTH = 3
     MAX_NAME_LENGTH = 50
     MIN_ROTATION_WEEKS = 1
     MAX_ROTATION_WEEKS = 52
+
+    tracked_fields = ['name', 'description', 'start_date', 'rotation_weeks']
 
     company = models.ForeignKey(
         Company,
@@ -265,11 +276,23 @@ class ShiftPattern(models.Model):
         return f"{self.name}"
 
 
-class ShiftBlock(models.Model):
+class ShiftBlock(HistoryMixin, models.Model):
     MIN_DAYS_ON = 1
     MAX_DAYS_ON = 28
     MIN_DAYS_OFF = 1
     MAX_DAYS_OFF = 28
+
+    tracked_fields = [
+        "on_off_days",
+        "selected_days",
+        "days_on",
+        "days_off",
+        "start_time",
+        "end_time",
+        "duration",
+        "order",
+        "working_dates",
+    ]
 
     pattern = models.ForeignKey(
         ShiftPattern,
@@ -348,20 +371,27 @@ class ShiftBlock(models.Model):
         super().save(*args, **kwargs)
 
 
-class Team(models.Model):
+class Team(HistoryMixin, models.Model):
     MAX_TEAM_NAME_LENGTH = 50
     MIN_TEAM_NAME_LENGTH = 3
     DEFAULT_EMPLOYEES_HOLIDAYS_AT_A_TIME = 99
     MIN_EMPLOYEES_HOLIDAYS_AT_A_TIME = 1
     MAX_EMPLOYEES_HOLIDAYS_AT_A_TIME = 99
 
+    tracked_fields = [
+        "name",
+        "shift_pattern",
+        "holiday_approver",
+        "department",
+        "employees_holidays_at_a_time",
+    ]
+
     company = models.ForeignKey(
         Company,
         on_delete=models.CASCADE,
         related_name='teams',
-        #TODO CHECK WHER TO PUT NULL TRUE
-        null=True,
-        blank=True,
+        null=False,
+        blank=False,
     )
 
     name = models.CharField(

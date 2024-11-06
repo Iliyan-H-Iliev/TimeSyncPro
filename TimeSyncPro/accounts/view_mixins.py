@@ -3,32 +3,59 @@ from django.core.exceptions import ImproperlyConfigured
 from django.shortcuts import redirect
 from django.contrib import messages
 from django.urls import reverse
+from django.shortcuts import get_object_or_404
+from django.contrib.auth import get_user_model
+
+UserModel = get_user_model()
 
 from TimeSyncPro.accounts.models import Profile
 
 
-class OwnerRequiredMixin(AccessMixin):
+# class OwnerRequiredMixin(AccessMixin):
+#
+#     def _handle_no_permission(self):
+#         obj = self.get_object()
+#
+#         if not self.request.user.is_authenticated or obj != self.request.user:
+#             return self.handle_no_permission()
+#         return None
+#
+#     def get(self, *args, **kwargs):
+#         response = self._handle_no_permission()
+#         if response:
+#             return response
+#         return super().get(*args, **kwargs)
 
+class OwnerRequiredMixin:
     def _handle_no_permission(self):
-        obj = self.get_object()
+        return redirect('home')  # or wherever you want to redirect
 
-        if not self.request.user.is_authenticated or obj != self.request.user:
-            return self.handle_no_permission()
-        return None
+    def get(self, request, *args, **kwargs):
+        # Get the user instead of the profile
+        user = get_object_or_404(get_user_model(), slug=kwargs.get('slug'))
 
-    def get(self, *args, **kwargs):
-        response = self._handle_no_permission()
-        if response:
-            return response
-        return super().get(*args, **kwargs)
+        # Check if the requesting user is the owner
+        if request.user != user:
+            return self._handle_no_permission()
+
+        return super().get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        # Same check for POST requests
+        user = get_object_or_404(UserModel, slug=kwargs.get('slug'))
+
+        if request.user != user:
+            return self._handle_no_permission()
+
+        return super().post(request, *args, **kwargs)
 
 
-class UserBySlugMixin:
-    def get_object(self):
-        queryset = self.queryset
-        user_slug = self.kwargs['slug']
-        user_to_edit = queryset.get(user_slug=user_slug)
-        return user_to_edit
+# class UserBySlugMixin:
+#     def get_object(self):
+#         queryset = self.queryset
+#         user_slug = self.kwargs['slug']
+#         user_to_edit = queryset.get(user_slug=user_slug)
+#         return user_to_edit
 
 
 class SuccessUrlMixin:
@@ -36,7 +63,7 @@ class SuccessUrlMixin:
 
     def get_success_url(self):
         user = self.request.user
-        # Ensure the user is authenticated before accessing attributes
+
         if user.is_authenticated:
             return reverse(
                 self.success_url,
@@ -52,7 +79,9 @@ class DynamicPermissionMixin:
 
     @staticmethod
     def get_object_class_name(obj):
-        if obj.__class__.__name__ == 'TimeSyncProUser':
+        if obj.__class__.__name__ == 'TSPUser':
+            if obj.profile.is_company_admin:
+                return 'company_admin'
             return obj.profile.role.lower().replace(' ', '_')
         return obj.__class__.__name__.lower()
 
@@ -86,25 +115,25 @@ class DynamicPermissionMixin:
 
 
 # TODO Fix this
-class IsAuthorizedUserMixin(UserPassesTestMixin):
-
-    @staticmethod
-    def _get_obj_company(obj_to_edit):
-        try:
-            return obj_to_edit.company
-        except AttributeError as e:
-            return obj_to_edit
-
-    def test_func(self, *args, **kwargs):
-        user = self.request.user
-        obj_to_edit = self.get_object()
-
-        return (
-                user.company == self._get_obj_company(obj_to_edit)
-        )
-
-    def handle_no_permission(self):
-        messages.error(self.request, "You are not authorized to access this page.")
-        return redirect('index')
+# class IsAuthorizedUserMixin(UserPassesTestMixin):
+#
+#     @staticmethod
+#     def _get_obj_company(obj_to_edit):
+#         try:
+#             return obj_to_edit.company
+#         except AttributeError as e:
+#             return obj_to_edit
+#
+#     def test_func(self, *args, **kwargs):
+#         user = self.request.user
+#         obj_to_edit = self.get_object()
+#
+#         return (
+#                 user.company == self._get_obj_company(obj_to_edit)
+#         )
+#
+#     def handle_no_permission(self):
+#         messages.error(self.request, "You are not authorized to access this page.")
+#         return redirect('index')
 
 

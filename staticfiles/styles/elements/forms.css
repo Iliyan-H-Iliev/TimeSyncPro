@@ -1,11 +1,12 @@
 .form-container {
     max-width: 500px;
-    margin: 0 auto;
     background-color: #ffffff;
+    margin: 0 auto;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
+
 
 /*h2 {*/
 /*    text-align: center;*/
@@ -15,6 +16,12 @@
 .form-group {
     margin-bottom: 20px;
 }
+
+.profile-company-reg {
+    display: flex;
+    justify-content: space-between;
+}
+
 
 label {
     display: block;
@@ -53,6 +60,22 @@ input[type="submit"] {
 
 input[type="submit"]:hover {
     background-color: #2980b9;
+}
+
+.form-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem; /* Space between label and field */
+    margin-bottom: 1rem; /* Space between rows */
+}
+
+.form-row label {
+    min-width: 120px; /* Consistent label width */
+}
+
+.form-row input,
+.form-row select {
+    flex: 1; /* Takes remaining space */
 }
 
 .error-message {

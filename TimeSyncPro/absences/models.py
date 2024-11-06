@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 
 import TimeSyncPro.common.model_mixins as common_mixins
+from TimeSyncPro.history.model_mixins import HistoryMixin
 
 User_Model = get_user_model()
 
@@ -113,7 +114,7 @@ class Holiday(AbsenceBase):
         super().save(*args, **kwargs)
 
 
-class Absence(AbsenceBase):
+class Absence(HistoryMixin, AbsenceBase):
     class AbsenceTypes(models.TextChoices):
         SICK = 'sick', 'Sick Leave'
         PERSONAL = 'personal', 'Personal Leave'

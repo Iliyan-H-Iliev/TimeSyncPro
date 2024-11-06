@@ -3,18 +3,6 @@ from django.utils.text import slugify
 # from django.contrib.auth.models import Group
 
 
-# class UserTypeMixin(models.Model):
-#     class Meta:
-#         abstract = True
-#
-#     def get_user_class_name(self):
-#         return self.__class__.__name__
-#
-#     @property
-#     def role(self):
-#         return self.get_user_class_name()
-
-
 class AbstractSlugMixin(models.Model):
     MAX_SLUG_LENGTH = 255
 

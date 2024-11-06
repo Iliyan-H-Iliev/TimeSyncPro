@@ -4,7 +4,7 @@ from django.db.models import Q
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
-from TimeSyncPro.management.models import Company
+from TimeSyncPro.companies.models import Company
 
 
 class CheckExistingNameBaseMixin(forms.ModelForm):

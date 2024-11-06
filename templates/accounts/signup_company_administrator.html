@@ -1,16 +1,4 @@
-{#{% extends "layout.html" %}#}
-{#{% block content %}#}
-{##}
-{#    {% load filters %}#}
-{#    <form action="{% url 'register company' %}" method="post">#}
-{#        {{ form.as_p }}#}
-{#        <button type="submit">Regist</button>#}
-{##}
-{#        {% csrf_token %}#}
-{#    </form>#}
-{##}
-{#{% endblock %}#}
-{##}
+
 {% load static %}
 {% load filters %}
 
@@ -68,23 +56,23 @@
                 <label for="id_password2">Confirm password:</label>
             </div>
 
-            <div class="input-box">
-                <span class="icon">
-          <i class="fa-regular fa-user"></i>
-        </span>
-                {{ form.first_name }}
-                <label for="id_first_name">First name:</label>
-
-            </div>
-
-            <div class="input-box">
-                <span class="icon">
-          <i class="fa-regular fa-user"></i>
-        </span>
-                {{ form.last_name }}
-                <label for="id_last_name">Last name:</label>
-
-            </div>
+{#            <div class="input-box">#}
+{#                <span class="icon">#}
+{#          <i class="fa-regular fa-user"></i>#}
+{#        </span>#}
+{#                {{ form.first_name }}#}
+{#                <label for="id_first_name">First name:</label>#}
+{##}
+{#            </div>#}
+{##}
+{#            <div class="input-box">#}
+{#                <span class="icon">#}
+{#          <i class="fa-regular fa-user"></i>#}
+{#        </span>#}
+{#                {{ form.last_name }}#}
+{#                <label for="id_last_name">Last name:</label>#}
+{##}
+{#            </div>#}
 
 {#            <div class="input-box">#}
 {#                <span class="icon">#}
@@ -95,7 +83,7 @@
 {#            </div>#}
 
 
-            <button class="sign-up-button" type="submit">Register</button>
+            <button class="sign-up-button sign-up" type="submit">Register</button>
 
             <div class="register-link">
                 <p>Already a member? <a href="{% url 'sign_in' %}">Log in</a></p>

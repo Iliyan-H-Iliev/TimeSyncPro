@@ -1,0 +1,74 @@
+{% extends "layout/layout.html" %}
+{% load static %}
+{% load filters %}
+{% block style %}
+    <link rel="stylesheet" href="{% static 'styles/pages/create-profile-company.css' %}">
+{% endblock %}
+
+
+{% block content %}
+    <div class="profile-company-form-container">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="profile-company-form">
+                <div class="profile-company-reg">
+                    <div class="company-form reg-form">
+                        <div class="part-form-container">
+                            <h2>Company</h2>
+                            {% for field in company_form %}
+                                <div class="form-row">
+                                    {{ field.label_tag }}
+                                    {{ field }}
+                                    {% if field.errors %}
+                                        <div class="errors">{{ field.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="part-form-container">
+                            <h4>Company Address</h4>
+                            {% for field in company_address_form %}
+                                <div class="form-row">
+                                    {{ field.label_tag }}
+                                    {{ field }}
+                                    {% if field.errors %}
+                                        <div class="errors">{{ field.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="profile-form reg-form">
+                        <div class="part-form-container">
+                            <h2>Profile</h2>
+                            {% for field in profile_form %}
+                                <div class="form-row">
+                                    {{ field.label_tag }}
+                                    {{ field }}
+                                    {% if field.errors %}
+                                        <div class="errors">{{ field.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="part-form-container">
+                            <h4>Profile Address</h4>
+                            {% for field in profile_address_form %}
+                                <div class="form-row">
+                                    {{ field.label_tag }}
+                                    {{ field }}
+                                    {% if field.errors %}
+                                        <div class="errors">{{ field.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn submit-btn">Submit</button>
+            </div>
+
+        </form>
+    </div>
+
+{% endblock %}

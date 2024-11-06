@@ -1,7 +1,7 @@
 /* Dashboard Layout */
-.profile-dashboard {
+.page-content {
     display: flex;
-    height: 100vh;
+    height: 100%;
     /*font-family: Arial, sans-serif;*/
 }
 
@@ -12,6 +12,7 @@
     color: var(--primary-dark);
     padding: 20px;
     box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    flex: 0 0 250px;
 }
 
 .profile-info {
@@ -72,7 +73,7 @@
 }
 
 /* Content Area */
-.profile-content {
+.content-area {
     flex-grow: 1;
     padding: 40px;
     background-color: var(--neutral-light);

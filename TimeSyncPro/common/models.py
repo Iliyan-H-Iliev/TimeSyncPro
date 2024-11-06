@@ -1,4 +1,5 @@
 from django.db import models
+from django_countries.fields import CountryField
 
 # Create your models here.
 
@@ -48,8 +49,9 @@ class Address(models.Model):
         null=True,
     )
 
-    country = models.CharField(
-        max_length=MAX_LENGTH_COUNTRY,
+    country = CountryField(
+        blank_label='(select country)',
         blank=True,
         null=True,
     )
+

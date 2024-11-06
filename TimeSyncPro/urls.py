@@ -21,6 +21,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path("", include("TimeSyncPro.common.urls")),
     path("", include("TimeSyncPro.accounts.urls")),
-    path("", include("TimeSyncPro.management.urls")),
+    path("", include("TimeSyncPro.companies.urls")),
     path("", include("TimeSyncPro.absences.urls")),
 ]

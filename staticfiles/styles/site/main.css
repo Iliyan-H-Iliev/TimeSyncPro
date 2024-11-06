@@ -3,7 +3,8 @@
 }
 
 .auth-container {
-    padding-top: 35px;
+    padding: 2rem 0;
+    /*padding-top: 35px;*/
     width: min(75%, 1900px);
     margin: 0 auto;
 }

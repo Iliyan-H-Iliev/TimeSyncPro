@@ -6,7 +6,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 
-class TimeSyncProUserManager(auth_models.BaseUserManager):
+class TSPUserManager(auth_models.BaseUserManager):
     use_in_migrations = True
 
     def _create_user(self, email, password, **extra_fields):
@@ -69,8 +69,8 @@ class EmployeeManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset()
 
-    def administrators(self):
-        return self.filter(role='Administrator')
+    # def administrators(self):
+    #     return self.filter(role='Administrator')
 
     def managers(self):
         return self.filter(role='Manager')
