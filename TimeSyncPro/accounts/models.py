@@ -1,30 +1,30 @@
 from django.apps import apps
 from django.contrib.auth.models import Group, Permission
 from django.core.validators import MinLengthValidator
-from django.db import models
-from django.db.models import Model
+from django.db import models, transaction
 from django.utils.crypto import get_random_string
-import uuid
-
 from django.utils.text import slugify
-
+import uuid
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import models as auth_models
 
 from django.utils import timezone
 
-from TimeSyncPro.common.model_mixins import CreatedModifiedMixin, EmailFormatingMixin
 
-from .managers import TimeSyncProUserManager
-
+from .managers import TSPUserManager
 
 # from .proxy_models import ManagerProxy, HRProxy, TeamLeaderProxy, StaffProxy
 
 from .validators import IsDigitsValidator, DateRangeValidator, DateOfBirthValidator
 
+from TimeSyncPro.common.model_mixins import CreatedModifiedMixin, EmailFormatingMixin
+from ..history.model_mixins import HistoryMixin
 
-class TimeSyncProUser(EmailFormatingMixin, auth_models.AbstractBaseUser, auth_models.PermissionsMixin):
+
+class TSPUser(HistoryMixin, EmailFormatingMixin, auth_models.AbstractBaseUser, auth_models.PermissionsMixin):
     MAX_SLUG_LENGTH = 100
+
+    tracked_fields = ['email', 'is_active']
 
     groups = models.ManyToManyField(
         Group,
@@ -34,7 +34,7 @@ class TimeSyncProUser(EmailFormatingMixin, auth_models.AbstractBaseUser, auth_mo
             'The groups this user belongs to. A user will get all permissions '
             'granted to each of their groups.'
         ),
-        related_name="user_set",
+        related_name="users",
         related_query_name="user",
     )
 
@@ -43,7 +43,7 @@ class TimeSyncProUser(EmailFormatingMixin, auth_models.AbstractBaseUser, auth_mo
         verbose_name=_('user permissions'),
         blank=True,
         help_text=_('Specific permissions for this user.'),
-        related_name="user_set",
+        related_name="users",
         related_query_name="user",
     )
 
@@ -75,56 +75,154 @@ class TimeSyncProUser(EmailFormatingMixin, auth_models.AbstractBaseUser, auth_mo
         unique=True,
         null=False,
         blank=True,
-        editable=False,
+        editable=True,
     )
 
-    activation_token = models.CharField(max_length=64, blank=True, null=True)
+    activation_token = models.CharField(
+        max_length=64,
+        blank=True,
+        null=True
+    )
 
-    def save(self, *args, first_name=None, last_name=None, **kwargs):
+    class Meta:
+        verbose_name = _('user')
+        verbose_name_plural = _('users')
+        indexes = [
+            models.Index(fields=['email']),
+            models.Index(fields=['slug']),
+        ]
 
-        if not self.slug:
+        permissions = [
+            ("activate_user", "Can activate user"),
+            ("deactivate_user", "Can deactivate user"),
+            ("reset_user_password", "Can reset password"),
+        ]
 
-            if first_name and last_name:
-                full_name = f"{first_name} {last_name}"
-            else:
-                full_name = self.email.split('@')[0]
+    def _get_unique_slug(self, base_slug):
+        """Get a unique slug by adding numeric suffix if needed."""
+        slug = base_slug
+        attempts = 0
+        max_attempts = 10
 
-            slug = self.generate_unique_slug(full_name, self.MAX_SLUG_LENGTH)
+        while TSPUser.objects.filter(slug=slug).exclude(id=self.id).exists():
+            attempts += 1
+            if attempts >= max_attempts:
+                raise ValueError("Unable to generate unique slug after multiple attempts")
+            slug = f"{base_slug}-{attempts}"
 
-            while TimeSyncProUser.objects.filter(slug=slug).exists():
-                slug = self.generate_unique_slug(full_name, self.MAX_SLUG_LENGTH)
+        return slug
 
-            self.slug = slug
+    def _have_fields_changed(self, first_name, last_name, employee_id):
+        """Check if any of the slug-related fields have changed."""
+        if not hasattr(self, 'profile'):
+            return True
+
+        current_profile = Profile.objects.filter(id=self.profile.id).values(
+            'first_name', 'last_name', 'employee_id'
+        ).first()
+
+        fname = current_profile['first_name']
+        lname = current_profile['last_name']
+        emp_id = current_profile['employee_id']
+
+        return any([
+            first_name is not None and first_name != current_profile['first_name'],
+            last_name is not None and last_name != current_profile['last_name'],
+            employee_id is not None and employee_id != current_profile['employee_id']
+        ])
+
+    def save(self, *args, first_name=None, last_name=None, employee_id=None, **kwargs):
+        """Save method with intelligent slug generation."""
+        if self._have_fields_changed(first_name, last_name, employee_id):
+            base_slug = self._generate_slug(first_name, last_name, employee_id)
+            self.slug = self._get_unique_slug(base_slug)
 
         if self.email:
-            self.email = self.formated_email(self.email)
+            self.email = self.format_email(self.email)
+
         super().save(*args, **kwargs)
 
-    def generate_activation_token(self):
+    # def save(self, *args, first_name=None, last_name=None, employee_id=None, **kwargs):
+    #
+    #     should_generate_slug = True
+    #
+    #     if hasattr(self, 'profile') and self.slug:
+    #
+    #         if (first_name is not None and first_name == self.profile.first_name) or \
+    #                 (last_name is not None and last_name == self.profile.last_name) or \
+    #                 (employee_id is not None and employee_id == self.profile.employee_id):
+    #             should_generate_slug = False
+    #
+    #     if should_generate_slug:
+    #
+    #         slug = self._generate_slug(first_name, last_name, employee_id)
+    #         max_attempts = 10
+    #         attempts = 0
+    #
+    #         while TSPUser.objects.filter(slug=slug).exclude(id=self.id).exists():
+    #             attempts += 1
+    #             if attempts >= max_attempts:
+    #                 raise ValueError("Unable to generate unique slug after multiple attempts")
+    #
+    #             slug = self._generate_slug(first_name, last_name, employee_id, is_existing=True)
+    #
+    #         self.slug = slug
+    #
+    #     if self.email:
+    #         self.email = self.format_email(self.email)
+    #     super().save(*args, **kwargs)
+
+    def generate_activation_token(self, save=True):
         self.activation_token = get_random_string(64)
-        self.save()
+        if save:
+            self.save(update_fields=['activation_token'])
         return self.activation_token
 
     def __str__(self):
         return f"{self.__class__.__name__} - {self.email}"
 
-    @staticmethod
-    def generate_unique_slug(full_name, max_length):
-        base_slug = slugify(full_name)[:max_length - 9]
-        unique_slug = f"{base_slug}-{uuid.uuid4().hex[:8]}"
+    def _generate_slug(self, first_name=None, last_name=None, employee_id=None, is_existing=False):
 
-        return unique_slug[:max_length]
+        slug_components = []
+
+        employee_id = self._get_employee_id(employee_id, is_existing)
+
+        for param in [first_name, last_name, employee_id]:
+            if param is not None:
+                slug_components.append(str(param))
+
+        slug = slugify(" ".join(slug_components))[:self.MAX_SLUG_LENGTH]
+
+        return slug
+
+    @staticmethod
+    def _get_employee_id(staff_id=None, existing=False):
+
+        if existing and staff_id:
+            return f"{str(staff_id)}{uuid.uuid4().hex[:2]}"
+
+        if not staff_id:
+            return uuid.uuid4().hex[:10]
+
+        return str(staff_id)
 
     @property
     def company(self):
-        return self.profile.company
+        return self.profile.company if hasattr(self, 'profile') else None
+
+    @property
+    def is_company_admin(self):
+        return self.profile.is_company_admin if hasattr(self, 'profile') else False
+
+    def __str__(self):
+        return f"{self.__class__.__name__} - {self.email}"
 
     USERNAME_FIELD = "email"
 
-    objects = TimeSyncProUserManager()
+    objects = TSPUserManager()
 
 
-class Profile(CreatedModifiedMixin):
+class Profile(HistoryMixin, CreatedModifiedMixin):
     MAX_FIRST_NAME_LENGTH = 30
     MIN_FIRST_NAME_LENGTH = 2
     MAX_LAST_NAME_LENGTH = 30
@@ -140,9 +238,25 @@ class Profile(CreatedModifiedMixin):
         TEAM_LEADER = 'Team Leader', 'Team Leader'
         MANAGER = 'Manager', 'Manager'
         HR = 'HR', 'HR'
-        ADMINISTRATOR = 'Administrator', 'Administrator'
+        # ADMINISTRATOR = 'Administrator', 'Administrator'
 
     # objects = EmployeeManager()
+
+    tracked_fields = [
+        'first_name',
+        'last_name',
+        'employee_id',
+        'role',
+        'date_of_hire',
+        'days_off_left',
+        'phone_number',
+        'address',
+        'date_of_birth',
+        'department',
+        'manage_department',
+        'shift_pattern',
+        'team',
+    ]
 
     class Meta:
         constraints = [
@@ -150,11 +264,12 @@ class Profile(CreatedModifiedMixin):
                 fields=['employee_id', 'company'],
                 name='unique_employee_id_per_company'
             )]
+
         permissions = [
-            ('add_administrator', 'Can add Administrator'),
-            ('change_administrator', 'Can change Administrator'),
-            ('delete_administrator', 'Can delete Administrator'),
-            ('view_administrator', 'Can view Administrator'),
+            ('add_company_admin', 'Can add Company Administrator'),
+            ('change_company_admin', 'Can change Company Administrator'),
+            ('delete_company_admin', 'Can delete Company Administrator'),
+            ('view_company_admin', 'Can view Company Administrator'),
             ('add_hr', 'Can add HR'),
             ('change_hr', 'Can change HR'),
             ('delete_hr', 'Can delete HR'),
@@ -174,15 +289,23 @@ class Profile(CreatedModifiedMixin):
         ]
 
     user = models.OneToOneField(
-        TimeSyncProUser,
+        TSPUser,
         on_delete=models.CASCADE,
         related_name="profile",
+        blank=False,
+        null=False,
     )
 
     company = models.ForeignKey(
-        to='management.Company',
+        "companies.Company",
         on_delete=models.DO_NOTHING,
         related_name="employees",
+        blank=False,
+        null=False,
+    )
+
+    is_company_admin = models.BooleanField(
+        default=False,
         blank=True,
         null=True,
     )
@@ -212,8 +335,8 @@ class Profile(CreatedModifiedMixin):
         max_length=max([len(choice) for choice in EmployeeRoles.values]),
         choices=EmployeeRoles.choices,
         default=EmployeeRoles.STAFF,
-        blank=True,
-        null=True,
+        blank=False,
+        null=False,
     )
 
     date_of_hire = models.DateField(
@@ -224,10 +347,9 @@ class Profile(CreatedModifiedMixin):
         null=True,
     )
 
-    days_off_left = models.PositiveSmallIntegerField(
-        blank=True,
-        null=True,
-        default=0,
+    remaining_holiday_days = models.PositiveSmallIntegerField(
+        blank=False,
+        null=False,
     )
 
     phone_number = models.CharField(
@@ -261,23 +383,23 @@ class Profile(CreatedModifiedMixin):
         null=True,
     )
 
-    # For Employee and TeamLeader
+    # For Employee, TeamLeader and Manager
     department = models.ForeignKey(
-        'management.Department',
+        "companies.Department",
         on_delete=models.SET_NULL,
         related_name="employees",
         blank=True,
         null=True,
     )
 
-    # # For Manager
-    # manages_departments = models.ForeignKey(
-    #     'management.Department',
-    #     related_name="managers",
-    # )
+    manages_departments = models.ManyToManyField(
+        "companies.Department",
+        related_name="managers",
+        blank=True,
+    )
 
     shift_pattern = models.ForeignKey(
-        'management.ShiftPattern',
+        "companies.ShiftPattern",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -285,32 +407,12 @@ class Profile(CreatedModifiedMixin):
     )
 
     team = models.ForeignKey(
-        'management.Team',
+        "companies.Team",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="employees",
     )
-
-    @property
-    def is_administrator(self):
-        return self.role == 'Administrator'
-
-    @property
-    def is_manager(self):
-        return self.role == 'Manager'
-
-    @property
-    def is_hr(self):
-        return self.role == 'HR'
-
-    @property
-    def is_team_leader(self):
-        return self.role == 'Team Leader'
-
-    @property
-    def is_staff(self):
-        return self.role == 'Staff'
 
     @classmethod
     def get_all_employee_roles(cls):
@@ -318,7 +420,7 @@ class Profile(CreatedModifiedMixin):
         return employee_role
 
     def get_role_specific_instance(self):
-        if self.role == 'Administrator':
+        if self.is_company_admin:
             AdministratorProxy = apps.get_model('accounts', 'AdministratorProxy')
             return AdministratorProxy.objects.get(id=self.id)
         if self.role == 'Manager':
@@ -337,6 +439,8 @@ class Profile(CreatedModifiedMixin):
 
     @property
     def group_name(self):
+        if self.is_company_admin:
+            return 'Company_Admin'
         return self.role
 
     @property
@@ -348,3 +452,23 @@ class Profile(CreatedModifiedMixin):
 
     def __str__(self):
         return f"{self.full_name} - {self.role}"
+
+    def save(self, *args, **kwargs):
+
+        self.first_name = self.format_name(self.first_name)
+        self.last_name = self.format_name(self.last_name)
+
+        super().save(*args, **kwargs)
+
+    @staticmethod
+    def format_name(name):
+
+        if not name:
+            return ""
+
+        name = " ".join(name.split())
+
+        return name.title()
+
+
+

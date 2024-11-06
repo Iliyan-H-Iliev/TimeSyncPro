@@ -1,0 +1,116 @@
+{% extends 'layout/auth-layout.html' %}
+{% load static %}
+
+
+{% block style %}
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/interaction@6.1.15/index.global.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                editable: true,
+                selectable: true,
+                events: '/api/events/',
+                eventClick: function(info) {
+                    alert('Event: ' + info.event.title);
+                },
+                select: function(info) {
+                    var title = prompt('Event Title:');
+                    if (title) {
+                        var eventData = {
+                            title: title,
+                            start: info.startStr,
+                            end: info.endStr,
+                            allDay: info.allDay
+                        };
+                        $.ajax({
+                            url: '/api/events/',
+                            type: 'POST',
+                            data: JSON.stringify(eventData),
+                            contentType: 'application/json',
+                            headers: {
+                                'X-CSRFToken': getCookie('csrftoken')
+                            },
+                            success: function(response) {
+                                calendar.addEvent(response);
+                            }
+                        });
+                    }
+                    calendar.unselect();
+                }
+            });
+            calendar.render();
+        });
+
+        // Function to get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+{% endblock %}
+
+{%  block page-content %}
+        <div class="content-area">
+        <section id="overview" class="dashboard-section">
+            <h3>Profile Overview</h3>
+            <p>Welcome back, {{ user.profile.full_name }}! Here's a quick summary of your account.</p>
+            <div class="overview-cards">
+                <div class="card">
+                    <h4>Remaining Holiday (days)</h4>
+                    <p>15</p>
+                </div>
+                <div class="card">
+                    <h4>Next Holiday Start:</h4>
+                    <p>123</p>
+                </div>
+                <div class="card">
+                    <h4>Days To Next Holiday</h4>
+                    <p>4</p>
+                </div>
+            </div>
+        </section>
+
+            <div id="calendar"></div>
+    </div>
+    
+{% endblock %}
+
+
+{% block script %}
+
+{#    <script>#}
+{#        feather.replace();#}
+{##}
+{#        function toggleBio() {#}
+{#            var bioContent = document.getElementById('bioContent');#}
+{#            var bioIcon = document.getElementById('bioIcon');#}
+{#            bioContent.classList.toggle('visible');#}
+{#            if (bioContent.classList.contains('visible')) {#}
+{#                bioIcon.setAttribute('data-feather', 'chevron-up');#}
+{#            } else {#}
+{#                bioIcon.setAttribute('data-feather', 'chevron-down');#}
+{#            }#}
+{#            feather.replace();#}
+{#        }#}
+{#    </script>#}
+{% endblock %}

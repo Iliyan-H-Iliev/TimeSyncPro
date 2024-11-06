@@ -6,26 +6,19 @@ from django.forms.models import inlineformset_factory
 
 from ..accounts.form_mixins import RequiredFieldsFormMixin
 from TimeSyncPro.common.form_mixins import CheckCompanyExistingSlugMixin, CheckExistingNamePerCompanyMixin
+from ..accounts.models import Profile
 
 
 # TODO Move RequiredFieldsFormMixin to TimeSyncPro/core/form_mixins.py
 
 
-class CreateCompanyForm(RequiredFieldsFormMixin, forms.ModelForm):
-    required_fields = [
-        "name",
-        "holiday_days_per_year",
-        "transferable_holiday_days",
-        "minimum_holiday_notice",
-        "maximum_holiday_days_per_request",
-    ]
+class CreateCompanyForm(forms.ModelForm):
 
     class Meta:
         model = Company
         fields = [
             "name",
             "email",
-            "location",
             "holiday_days_per_year",
             "transferable_holiday_days",
             "minimum_holiday_notice",
@@ -33,19 +26,15 @@ class CreateCompanyForm(RequiredFieldsFormMixin, forms.ModelForm):
             "working_on_local_holidays",
         ]
 
-        def __init__(self, *args, **kwargs):
-            self.user = kwargs.pop('user', None)
-            super().__init__(*args, **kwargs)
-            # if not self.request or not self.request.user.is_authenticated:
-            #     raise ValueError("User must be authenticated to create a company")
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
 
-        def save(self, commit=True):
-            company = super().save(commit=False)
-            user = self.user
-            company.leave_approver = user.profile
-            if commit:
-                company.save()
-            return company
+    def save(self, commit=True):
+        company = super().save(commit=False)
+        if commit:
+            company.save()
+        return company
 
     # TODO only Administrator can edit company
 
@@ -55,7 +44,6 @@ class EditCompanyForm(CheckCompanyExistingSlugMixin, forms.ModelForm):
         model = Company
         fields = [
             "name",
-            "location",
             "holiday_approver",
             "holiday_days_per_year",
             "transferable_holiday_days",
@@ -67,14 +55,25 @@ class EditCompanyForm(CheckCompanyExistingSlugMixin, forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # self.fields['leave_approver'].queryset = Profile.objects.filter(company=self.instance)
-        self.fields["holiday_approver"].queryset = Company.objects.get(pk=self.instance.pk).employees.all()
+        self.fields["holiday_approver"].queryset = Company.objects.get(
+            pk=self.instance.pk).employees.filter(
+            role__in=[
+                Profile.EmployeeRoles.HR,
+                Profile.EmployeeRoles.MANAGER],
+        )
 
-    def clean_leave_approver(self):
-        leave_approver = self.cleaned_data.get('"holiday_approver",')
-        if leave_approver is None:
+    def clean_holiday_approver(self):
+        holiday_approver = self.cleaned_data.get("holiday_approver")
+        if holiday_approver is None:
             raise forms.ValidationError("Leave approver is required.")
-        return leave_approver
+        return holiday_approver
+
+    # def save(self, commit=True):
+    #     company = super().save(commit=False)
+    #     if commit:
+    #         company.save()
+    #     return company
+
 
     # def clean(self):
     #     cleaned_data = super().clean()

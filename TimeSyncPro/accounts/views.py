@@ -26,11 +26,14 @@ from TimeSyncPro.accounts import forms
 from TimeSyncPro.accounts.forms import SignupEmployeeForm, SignupCompanyAdministratorForm, \
     BasicEditTSPUserForm, DetailedEditTSPUserForm, CustomSetPasswordForm, \
     DetailedEditProfileForm, BasicEditProfileForm
+from TimeSyncPro.accounts.models import Profile
 from TimeSyncPro.accounts.view_mixins import OwnerRequiredMixin, \
     DynamicPermissionMixin, SuccessUrlMixin
 # from TimeSyncPro.core.utils import format_email
 from TimeSyncPro.common.views_mixins import NotAuthenticatedMixin, CompanyCheckMixin, \
     MultiplePermissionsRequiredMixin, AuthenticatedUserMixin
+import TimeSyncPro.companies.forms as company_forms
+import TimeSyncPro.common.forms as common_forms
 
 # TODO Employee not see another employee profile
 
@@ -43,11 +46,9 @@ class SignupCompanyAdministratorUser(AuthenticatedUserMixin, views.CreateView):
     template_name = "accounts/signup_company_administrator.html"
     form_class = SignupCompanyAdministratorForm
 
-    @transaction.atomic
     def form_valid(self, form):
         logger.debug("Entering form_valid method")
         try:
-
             user = form.save()
 
             authenticated_user = authenticate(
@@ -62,7 +63,7 @@ class SignupCompanyAdministratorUser(AuthenticatedUserMixin, views.CreateView):
             if user.slug is None:
                 return HttpResponseRedirect(reverse('index'))
 
-            return redirect("create_company")
+            return redirect("create_profile_company", slug=user.slug)
 
         except Exception as e:
             logger.error(f"Error in form_valid: {str(e)}")
@@ -75,9 +76,102 @@ class SignupCompanyAdministratorUser(AuthenticatedUserMixin, views.CreateView):
         return super().form_invalid(form)
 
 
+class CreateProfileAndCompanyView(OwnerRequiredMixin, views.CreateView):
+    model = Profile
+    template_name = "accounts/create_profile_and_company.html"
+    form_class = forms.CreateCompanyAdministratorProfileForm
+    company_form_class = company_forms.CreateCompanyForm
+    profile_address_form_class = common_forms.AddressForm
+    company_address_form_class = common_forms.AddressForm
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if 'company_form' not in kwargs:
+            context['company_form'] = self.company_form_class()
+        if 'company_address_form' not in kwargs:
+            context['company_address_form'] = self.company_address_form_class()
+        if "profile_form" not in kwargs:
+            context['profile_form'] = self.form_class()
+        if 'profile_address_form' not in kwargs:
+            context['profile_address_form'] = self.profile_address_form_class()
+        return context
+
+    def post(self, request, *args, **kwargs):
+        form = self.get_form()
+        company_form = self.company_form_class(request.POST)
+        company_address_form = self.company_address_form_class(request.POST, prefix='company')
+        profile_address_form = self.profile_address_form_class(request.POST, prefix='profile')
+
+        if all([
+            form.is_valid(),
+            company_form.is_valid(),
+            company_address_form.is_valid(),
+            profile_address_form.is_valid()
+        ]):
+            return self.form_valid(form, company_form, company_address_form, profile_address_form)
+        else:
+            return self.form_invalid(form, company_form, company_address_form, profile_address_form)
+
+    @transaction.atomic
+    def form_valid(self, form, company_form, company_address_form, profile_address_form):
+        try:
+            company_address = None
+            if company_address_form.has_data():
+                company_address = company_address_form.save()
+
+            profile_address = None
+            if profile_address_form.has_data():
+                profile_address = profile_address_form.save()
+
+            company = company_form.save(commit=False)
+            if company_address:
+                company.address = company_address
+            company.save()
+
+            profile = form.save(commit=False)
+            profile.user = self.request.user
+            if profile_address:
+                profile.address = profile_address
+            profile.company = company
+            profile.is_company_admin = True
+            user = self.request.user
+
+            profile.save()
+
+            company.holiday_approver = profile
+            company.save()
+
+            first_name = form.cleaned_data.get('first_name')
+            last_name = form.cleaned_data.get('last_name')
+            employee_id = form.cleaned_data.get('employee_id')
+
+            user.save(first_name=first_name, last_name=last_name, employee_id=employee_id)
+
+            messages.success(self.request, "Company and profile created successfully.")
+            return redirect("profile", slug=self.request.user.slug)
+
+        except Exception as e:
+            transaction.set_rollback(True)
+            messages.error(self.request, f"An error occurred: {str(e)}")
+            return self.form_invalid(form, company_form, company_address_form, profile_address_form)
+
+    @transaction.atomic
+    def form_invalid(self, form, company_form, company_address_form, profile_address_form):
+        messages.error(self.request, "Please correct the errors below.")
+        return self.render_to_response(
+            self.get_context_data(
+                form=form,
+                company_form=company_form,
+                company_address_form=company_address_form,
+                profile_address_form=profile_address_form
+            )
+        )
+
+
 class SignInUserView(auth_views.LoginView):
     template_name = "accounts/signin_user.html"
     redirect_authenticated_user = True
+    form_class = forms.SignInUserForm
     MAX_LOGIN_ATTEMPTS = 5
     LOCKOUT_DURATION = 300  # 5 minutes
     REMEMBER_ME_DURATION = 1209600  # 2 weeks
@@ -87,7 +181,7 @@ class SignInUserView(auth_views.LoginView):
         return reverse("profile", kwargs={'slug': user.slug})
 
     def form_valid(self, form):
-        username = UserModel.formated_email(form.cleaned_data.get('username'))
+        username = UserModel.format_email(form.cleaned_data.get('username'))
         cache_key = f'login_attempts_{username}'
         attempts = cache.get(cache_key, 0)
 
@@ -174,6 +268,12 @@ class SignupEmployeeView(MultiplePermissionsRequiredMixin, NotAuthenticatedMixin
         return super().form_invalid(form)
 
 
+class DashboardView(LoginRequiredMixin, views.DetailView):
+    model = UserModel
+    template_name = 'accounts/dashboard.html'
+    context_object_name = 'user'
+
+
 class DetailsProfileBaseView(LoginRequiredMixin, DynamicPermissionMixin, views.DetailView):
     model = UserModel
     context_object_name = "user_to_view"
@@ -255,6 +355,7 @@ class EditProfileBaseView(NotAuthenticatedMixin, views.UpdateView):
     form_class = BasicEditTSPUserForm
     success_url = 'profile'
     detailed_edit = False
+    address_form_class = common_forms.AddressForm
 
     def get_queryset(self):
         return self.model.objects.select_related(
@@ -274,10 +375,11 @@ class EditProfileBaseView(NotAuthenticatedMixin, views.UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['user_form'] = self.get_form()
-        context['additional_form'] = self.get_additional_form()
+        context['profile_form'] = self.get_additional_form()
         context['user'] = self.request.user
         context['user_to_edit'] = self.object
         context['company_slug'] = self.object.profile.company.slug if self.object.profile.company else None
+        context['address_form'] = self.address_form_class(instance=self.object.profile.address)
         return context
 
     def get_additional_form(self):
@@ -296,24 +398,37 @@ class EditProfileBaseView(NotAuthenticatedMixin, views.UpdateView):
             messages.error(self.request, str(e))
             return None
 
-    def form_valid(self, form):
+    def post(self, request, *args, **kwargs):
+        form = self.get_form()
         additional_form = self.get_additional_form()
-        context = self.get_context_data()
-        if additional_form and not additional_form.is_valid():
-            return self.form_invalid(form)
 
+        if form.is_valid() and (not additional_form or additional_form.is_valid()):
+            return self.form_valid(form, additional_form)
+        return self.form_invalid(form, additional_form)
+
+    @transaction.atomic
+    def form_valid(self, form, additional_form):
         try:
+            first_name = additional_form.cleaned_data.get('first_name')
+            last_name = additional_form.cleaned_data.get('last_name')
+            employee_id = additional_form.cleaned_data.get('employee_id')
+
             with transaction.atomic():
-                self.object = form.save()
+
+                obj = form.save(commit=False)
+                obj.save(first_name=first_name, last_name=last_name, employee_id=employee_id)
+
                 if additional_form:
                     additional_form.save()
-                messages.success(self.request, 'Profile updated successfully.')
-                return super().form_valid(form)
+
+            messages.success(self.request, 'Profile updated successfully.')
+            return super().form_valid(form)
         except Exception as e:
             messages.error(self.request, "An unexpected error occurred while saving the profile.")
             return self.form_invalid(form)
 
-    def form_invalid(self, form):
+    @transaction.atomic
+    def form_invalid(self, form, additional_form):
         messages.error(self.request, 'Please correct the errors below.')
         return super().form_invalid(form)
 
@@ -350,7 +465,6 @@ class DetailedOwnEditProfileView(OwnerRequiredMixin, DetailedEditProfileView):
 
     def get_success_url(self):
         return reverse("profile", kwargs={'slug': self.object.slug})
-
 
 
 class DeleteEmployeeView(
@@ -439,8 +553,6 @@ class PasswordChangeView(auth_views.PasswordChangeView):
 def signout_user(request):
     logout(request)
     return redirect('index')
-
-
 
 
 class ActivateAndSetPasswordView(views.View):

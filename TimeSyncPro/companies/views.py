@@ -86,7 +86,7 @@ class DetailsCompanyView(
     template_name = "accounts/../../templates/management/company_profile.html"
     context_object_name = 'company'
     permissions_required = [
-        'management.view_company',
+        'companies.view_company',
     ]
 
     def get_object(self, queryset=None):
@@ -100,7 +100,7 @@ class EditCompanyView(NotAuthenticatedMixin, views.UpdateView):
     template_name = 'accounts/../../templates/management/update_company.html'
     form_class = EditCompanyForm
     permissions_required = [
-        'accounts.change_company',
+        'companies.change_company',
     ]
 
     def get_object(self, queryset=None):
@@ -119,7 +119,7 @@ class EditCompanyView(NotAuthenticatedMixin, views.UpdateView):
 
     def get_success_url(self):
         company = self.object
-        return reverse('company profile', kwargs={'company_slug': company.slug})
+        return reverse('company_profile', kwargs={'company_slug': company.slug})
 
 
 class CompanyMembersView(LoginRequiredMixin, CompanyContextMixin, views.ListView):

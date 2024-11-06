@@ -66,7 +66,7 @@ class CleanEmailMixin(forms.ModelForm):
             return email
 
         # TODO - Move to a utility function formated email
-        email = UserModel.formated_email(email)
+        email = UserModel.format_email(email)
 
         if not hasattr(self, 'Meta') or not hasattr(self.Meta, 'model'):
             raise ImproperlyConfigured(

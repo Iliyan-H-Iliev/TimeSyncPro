@@ -14,13 +14,8 @@
         </div>
     </div>
     <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-        <li>
-            {% if user.is_company %}
-                <a href="{% url 'company_profile'  slug=user.slug company_slug=user.profile.company.slug %}">Profile</a>
-            {% else %}
-                <a href="{% url 'profile'  slug=user.slug  %}">Profile</a>
-            {% endif %}
-        </li>
+        <li><a href="{% url 'dashboard' slug=user.slug %}">Dashboard</a></li>
+        <li><a href="{% url 'profile'  slug=user.slug  %}">Profile</a></li>
         <li><a class="dropdown-item" href="{% url 'password_change' %}">Change Password</a></li>
         <li><a class="dropdown-item" href="{% url 'sign_out' %}">Log Out</a></li>
     </ul>

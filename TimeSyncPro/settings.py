@@ -29,11 +29,12 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
 
     "TimeSyncPro.accounts.apps.AccountsConfig",
-    "TimeSyncPro.management.apps.ManagementConfig",
+    "TimeSyncPro.companies.apps.CompaniesConfig",
     "TimeSyncPro.common.apps.CommonConfig",
     "TimeSyncPro.absences.apps.AbsencesConfig",
     
     "storages",
+    "TimeSyncPro.history.apps.HistoryConfig"
 
 ]
 

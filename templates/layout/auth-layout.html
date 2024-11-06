@@ -1,37 +1,56 @@
+{% extends "layout/layout.html" %}
 {% load static %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>TimeSyncPro</title>
-    <link rel="stylesheet" href="{% static 'styles/site.css' %}">
-</head>
-<body>
-<div class="site-wrapper">
-    <div class="nav-wrapper">
-        <div class="logo-wrapper container-logo">
-            <a href="{% url 'index' %}"><img src="{% static 'images/logo-blue.png' %}"
-                                             alt="TimeSyncPro"></a>
-        </div>
-        {% include "layout/auth_header.html" %}
-    </div>
-    <div class="content-wrapper">
-        <header class="main-header">
-            {% include "layout/dropdown-menu.html" %}
-        </header>
-
-        <main class="main-content">
-            {% block content %}
+{% block content %}
+    <div class="profile-actions auth-container">
+        <div class="page-content">
+        
+            {% include "partials/profile_dash.html" %}
+        
+            {% block page-content %}
             {% endblock %}
-        </main>
-
-        <footer class="main-footer site-footer">
-            {% include "layout/footer.html" %}
-        </footer>
+        
+        </div>
     </div>
-</div>
 
-</body>
-</html>
+{% endblock %}
+
+
+
+{#{% load static %}#}
+{##}
+{#<!DOCTYPE html>#}
+{#<html lang="en">#}
+{#<head>#}
+{#    <meta charset="UTF-8">#}
+{#    <meta name="viewport" content="width=device-width, initial-scale=1">#}
+{#    <title>TimeSyncPro</title>#}
+{#    <link rel="stylesheet" href="{% static 'styles/site.css' %}">#}
+{#</head>#}
+{#<body>#}
+{#<div class="site-wrapper">#}
+{#    <div class="nav-wrapper">#}
+{#        <div class="logo-wrapper container-logo">#}
+{#            <a href="{% url 'index' %}"><img src="{% static 'images/logo-blue.png' %}"#}
+{#                                             alt="TimeSyncPro"></a>#}
+{#        </div>#}
+{#        {% include "layout/auth_header.html" %}#}
+{#    </div>#}
+{#    <div class="content-wrapper">#}
+{#        <header class="main-header">#}
+{#            {% include "layout/dropdown-menu.html" %}#}
+{#        </header>#}
+{##}
+{#        <main class="main-content">#}
+{#            {% block content %}#}
+{#            {% endblock %}#}
+{#        </main>#}
+{##}
+{#        <footer class="main-footer site-footer">#}
+{#            {% include "layout/footer.html" %}#}
+{#        </footer>#}
+{#    </div>#}
+{#</div>#}
+{##}
+{#</body>#}
+{#</html>#}

@@ -1,4 +1,4 @@
-{% extends 'layout/layout.html' %}
+{% extends 'layout/auth-layout.html' %}
 {% load static %}
 
 {#{% block content %}#}
@@ -105,7 +105,39 @@
     </script>
 {% endblock %}
 
-{% block content %}
+{%  block page-content %}
+        <div class="content-area">
+        <section id="overview" class="dashboard-section">
+            <h3>Profile Overview</h3>
+            <p>Welcome back, {{ user.profile.full_name }}! Here's a quick summary of your account.</p>
+            <div class="overview-cards">
+                <div class="card">
+                    <h4>Remaining Holiday (days)</h4>
+                    <p>15</p>
+                </div>
+                <div class="card">
+                    <h4>Next Holiday Start:</h4>
+                    <p>123</p>
+                </div>
+                <div class="card">
+                    <h4>Days To Next Holiday</h4>
+                    <p>4</p>
+                </div>
+            </div>
+        </section>
+
+            <div id="calendar"></div>
+    </div>
+    
+{% endblock %}
+
+{#{% block content %}#}
+    
+    
+{#    {h2}Permissions{/h2}#}
+{#    {%  for permission in user.get_all_permissions %}#}
+{#        <p>{{ permission }}</p>#}
+{#    {% endfor %}#}
 
     
 {#    <div class="auth-container">#}
@@ -163,9 +195,9 @@
 {#        </div>#}
 {#    </div>#}
     
-    <div class="profile-actions auth-container">
-        {% include "partials/profile_dash.html" %}
-    </div>
+{#    <div class="profile-actions auth-container">#}
+{#        {% include "partials/profile_dash.html" %}#}
+{#    </div>#}
     
 {#    <div id="calendar"></div>#}
 {#    #}
@@ -185,8 +217,8 @@
 {#    {% endif %}#}
 {#    #}
 {#    </div>#}
-
-{% endblock %}
+{##}
+{#{% endblock %}#}
 
 {% block script %}
 

@@ -9,7 +9,7 @@
                                              alt="TimeSyncPro"></a>
         </div>
 
-        {% if not request.user.is_authenticated %}
+        {% if not request.user.is_authenticated or not request.user.profile or not request.user.company %}
 
             <nav class="navbar central-nav">
                 <ul class="navbar-ul">
@@ -18,20 +18,21 @@
                     <li><a href="{% url 'contact' %}" class="nav-button">Contact</a></li>
                 </ul>
             </nav>
-
+            {% if not request.user.is_authenticated %}
             <div class="navbar signup-login-container">
                 {% include "partials/sign_up_button.html" %}
                 {% include "partials/log_in_button.html" %}
             </div>
+            {% else %}
+            <div class="navbar signup-login-container">
+                <a href="{% url 'sign_out' %}" class="nav-button">Sign Out</a>
+            {% endif %}
 
         {% else %}
 
             {% include "layout/auth_header.html" %}
             {% include "layout/dropdown-menu.html" %}
-
-
-
-
+            
         {% endif %}
 
     </div>

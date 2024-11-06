@@ -32,7 +32,7 @@
     transform-origin: 0 50%;
     transition: transform .4s ease-out;
     z-index: -1;
-    border-radius: 3px; /* Changed from 8px to 3px */
+    border-radius: 3px;
 }
 
 .sign-in:hover {
@@ -70,29 +70,54 @@
 }
 
 
- .learn-more {
-            background-color: transparent;
-            color: white;
-            border: 1px solid white;
-            z-index: 1;
-        }
-        .learn-more::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: white;
-            transform: scaleX(0);
-            transform-origin: 0 50%;
-            transition: transform .4s ease-out;
-            z-index: -1;
-            border-radius: 3px;
-        }
-        .learn-more:hover {
-            color: var(--primary-dark); /* Dark Blue */
-        }
-        .learn-more:hover::before {
-            transform: scaleX(1);
-        }
+.learn-more {
+    background-color: transparent;
+    color: white;
+    border: 1px solid white;
+    z-index: 1;
+}
+
+.learn-more::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: white;
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+    transition: transform .4s ease-out;
+    z-index: -1;
+    border-radius: 3px;
+}
+
+.learn-more:hover {
+    color: var(--primary-dark); /* Dark Blue */
+}
+
+.learn-more:hover::before {
+    transform: scaleX(1);
+}
+
+.submit-btn {
+    width: max(100px, 30%);
+    background-color: var(--primary-dark);
+    color: white;
+    padding: 0.5em 2em;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+    position: relative;
+    overflow: hidden;
+    align-self: center;
+}
+
+
+.submit-btn:hover {
+    background-color: var(--primary-blue);
+    border: 2px solid var(--primary-blue);
+    /*color: var(--primary-dark);*/
+}
