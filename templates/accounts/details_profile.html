@@ -1,240 +1,140 @@
-{% extends 'layout/auth-layout.html' %}
+{% extends 'layout/auth-user-layout.html' %}
+{% load custom_tags %}
 {% load static %}
 
-{#{% block content %}#}
-{#    <h1>Profile Details</h1>#}
-{##}
-{#{% if user %}#}
-{#    <p>Permissions</p>#}
-{#        {% for permission in permissions %}#}
-{#            <p>{{ permission }}</p>#}
-{#        {% endfor %}#}
-{#    <p>Company: {{ user.company.slug }}</p>#}
-{#    <p>Email: {{ user.email }}</p>#}
-{#    <p>Full Name: {{ user.profile.full_name }}</p>#}
-{#    <p>Role: {{ user.profile.role }}</p>#}
-{#    <p>Phone Number: {{ user.related_instance.phone_number }}</p>#}
-{#    <p>Address: {{ user.address }}</p>#}
-{#    <p></p>#}
-{#    <!-- Display company details -->#}
-{#    {% if company_name %}#}
-{#        <h2>Company: {{ company_name }}</h2>#}
-{#    {% endif %}#}
-{#    #}
-{#    {% if has_detailed_change_permission %}#}
-{#        <a href="{% url 'full profile update' slug=user_to_view.slug company_slug=user.profile.company.slug %}">Edit</a>#}
-{#        {% elif user == user_to_view%}#}
-{#        <a href="{% url 'edit profile' slug=user_to_view.slug %}">Edit</a>#}
-{#    {% endif %}#}
-{#    {% if has_delete_permission %}#}
-{#        <a href="{% url 'delete profile' slug=user_to_view.slug company_slug=user.profile.company.slug %}">Delete</a>#}
-{#    {% endif %}#}
-{#    <!-- Display company details -->#}
-{#    {% if company_name %}#}
-{#        <h2>Company: {{ company_name }}</h2>#}
-{#    {% endif %}#}
-{#    #}
-{##}
-{#{% endif %}#}
-{#{% endblock %}#}
-
 {% block style %}
-    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script>
-    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/interaction@6.1.15/index.global.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var calendarEl = document.getElementById('calendar');
-            var calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
-                headerToolbar: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
-                },
-                editable: true,
-                selectable: true,
-                events: '/api/events/',
-                eventClick: function(info) {
-                    alert('Event: ' + info.event.title);
-                },
-                select: function(info) {
-                    var title = prompt('Event Title:');
-                    if (title) {
-                        var eventData = {
-                            title: title,
-                            start: info.startStr,
-                            end: info.endStr,
-                            allDay: info.allDay
-                        };
-                        $.ajax({
-                            url: '/api/events/',
-                            type: 'POST',
-                            data: JSON.stringify(eventData),
-                            contentType: 'application/json',
-                            headers: {
-                                'X-CSRFToken': getCookie('csrftoken')
-                            },
-                            success: function(response) {
-                                calendar.addEvent(response);
-                            }
-                        });
-                    }
-                    calendar.unselect();
-                }
-            });
-            calendar.render();
-        });
-
-        // Function to get CSRF token
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
-    </script>
+    <link rel="stylesheet" href="{% static 'styles/pages/profile.css' %}">
 {% endblock %}
 
-{%  block page-content %}
-        <div class="content-area">
-        <section id="overview" class="dashboard-section">
-            <h3>Profile Overview</h3>
-            <p>Welcome back, {{ user.profile.full_name }}! Here's a quick summary of your account.</p>
-            <div class="overview-cards">
-                <div class="card">
-                    <h4>Remaining Holiday (days)</h4>
-                    <p>15</p>
-                </div>
-                <div class="card">
-                    <h4>Next Holiday Start:</h4>
-                    <p>123</p>
-                </div>
-                <div class="card">
-                    <h4>Days To Next Holiday</h4>
-                    <p>4</p>
-                </div>
+
+{% block page-content %}
+    <div class="content-area">
+        <div class="profile-content">
+            <div class="profile-main">
+                <section class="profile-section">
+                    <div class="section-title-button">
+                        <h2 class="section-title">Profile Information</h2>
+                        <div>
+                            <a href="{% url 'update_profile' slug=object.slug %}" class="default-btn edit"><i
+                                    class="fa-regular fa-pen-to-square"></i></a>
+                            <a href="{% url 'password_change' %}" class="default-btn change-password">Change
+                                Password</a>
+                        </div>
+                    </div>
+                    <div class="section-content profile-section-container">
+                        <div class="container-profile-colon">
+                            <h4>About Me</h4>
+                            <div class="container-profile-row">
+
+                                <div class="profile-item-row">
+                                    <span class="profile-label">First Name:</span>
+                                    <span class="profile-value">{{ profile.first_name }}</span>
+                                </div>
+                                <div class="profile-item-row">
+                                    <span class="profile-label">Last Name:</span>
+                                    <span class="profile-value">{{ profile.last_name }}</span>
+                                </div>
+                                <div class="profile-item-row">
+                                    <span class="profile-label">Date Of Birth:</span>
+                                    <span class="profile-value">{{ profile.date_of_birth }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section-content">
+                            {#<div class="contact-grid">#}
+                            <div class="container-profile-colon">
+                                <h4>Contact</h4>
+                                <div class="container-profile-row">
+
+                                    <div class="profile-item-row">
+                                        <span class="profile-label">Email:</span>
+                                        <span class="profile-value">{{ user.email }}</span>
+                                    </div>
+                                    <div class="profile-item-row">
+                                        <span class="profile-label">Phone:</span>
+                                        <span class="profile-value">{{ profile.phone_number|default:"-" }}</span>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                        {% with address=profile.address %}
+                            <div class="container-profile-colon">
+                                <h4>Address</h4>
+                                {% if not address %}
+                                    <h5>Not provided</h5>
+                                {% else %}
+                                    <div class="container-profile-row">
+                                        <div>
+
+                                            <div class="profile-item-row">
+                                                <span class="profile-label">House Number:</span>
+                                                <span class="profile-value">{{ address.house_number_or_name|default:"<span class=gray>-</span>" }}</span>
+                                            </div>
+
+                                            <div class="profile-item-row">
+                                                <span class="profile-label">Lane 1:</span>
+                                                <span class="profile-value">{{ address.line1|default:"<span class=gray>-</span>" }}</span>
+                                            </div>
+
+                                            <div class="profile-item-row">
+                                                <span class="profile-label">Lane 2:</span>
+                                                <span class="profile-value">{{ address.line2|default:"<span class=gray>-</span>" }}</span>
+                                            </div>
+
+                                            <div class="profile-item-row">
+                                                <span class="profile-label">Street:</span>
+                                                <span class="profile-value">{{ address.street|default:"<span class=gray>-</span>" }}</span>
+                                            </div>
+                                        </div>
+                                        <div>
+
+                                            <div class="profile-item-row">
+                                                <span class="profile-label">City:</span>
+                                                <span class="profile-value">{{ address.city|default:"<span class=gray>-</span>" }}</span>
+                                            </div>
+
+                                            <div class="profile-item-row">
+                                                <span class="profile-label">Postcode:</span>
+                                                <span class="profile-value">{{ address.postcode|default:"<span class=gray>-</span>" }}</span>
+                                            </div>
+
+                                            <div class="profile-item-row">
+                                                <span class="profile-label">Country:</span>
+                                                <span class="profile-value">{{ address.country.name|default:"<span class=gray>-</span>" }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endwith %}
+                        <div class="container-profile-colon">
+                            <h4>Work Information</h4>
+                            <div class="container-profile-row">
+
+                                <div class="profile-item-row">
+                                    <span class="profile-label">Department:</span>
+                                    <span class="profile-value">{{ profile.department.name|default:"-" }}</span>
+                                </div>
+                                <div class="profile-item-row">
+                                    <span class="profile-label">Team:</span>
+                                    <span class="profile-value">{{ profile.team.name|default:"-" }}</span>
+                                </div>
+                                <div class="profile-item-row">
+                                    <span class="profile-label">Shift:</span>
+                                    <span class="profile-value">{{ profile.shift.name|default:"-" }}</span>
+                                </div>
+                                <div class="profile-item-row">
+                                    <span class="profile-label">Employee ID:</span>
+                                    <span class="profile-value">{{ profile.employee_id|default:"-" }}</span>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </section>
             </div>
-        </section>
-
-            <div id="calendar"></div>
+        </div>
     </div>
-    
-{% endblock %}
-
-{#{% block content %}#}
-    
-    
-{#    {h2}Permissions{/h2}#}
-{#    {%  for permission in user.get_all_permissions %}#}
-{#        <p>{{ permission }}</p>#}
-{#    {% endfor %}#}
-
-    
-{#    <div class="auth-container">#}
-{##}
-{#    <div class="container auth-main-container">#}
-{#        <div class="profile-card">#}
-{#            <div class="profile-header">#}
-{#                <img src="{{ user.profile.profile_picture.url }}" alt="{{ user.profile.full_name }}" class="avatar">#}
-{#                <div class="user-info">#}
-{#                    <h2 class="user-name">{{ user.profile.full_name }}</h2>#}
-{#                    <p class="user-occupation">#}
-{#                        <i data-feather="briefcase" class="icon"></i>#}
-{#                        {{ user.profile.role }}#}
-{#                    </p>#}
-{#                </div>#}
-{#            </div>#}
-{##}
-{#            <div class="details-grid">#}
-{#                <div class="detail-item">#}
-{#                    <i data-feather="mail" class="icon"></i>#}
-{#                    <span>{{ user.email }}</span>#}
-{#                </div>#}
-{#                <div class="detail-item">#}
-{#                    <i data-feather="phone" class="icon"></i>#}
-{#                    <span>{{ user.profile.phone|default:"-" }}</span>#}
-{#                </div>#}
-{#                <div class="detail-item">#}
-{#                    <i data-feather="map-pin" class="icon"></i>#}
-{#                    <span>{{ user.profile.address }}</span>#}
-{#                </div>#}
-{#                <div class="detail-item">#}
-{#                    <i data-feather="calendar" class="icon"></i>#}
-{#                    <span>Joined {{ user.date_joined|date:"F Y" }}</span>#}
-{#                </div>#}
-{#            </div>#}
-{##}
-{#            <div class="skills-section">#}
-{#                <h3>Skills</h3>#}
-{#                <div class="skills-list">#}
-{#                    {% for skill in user.profile.skills.all %}#}
-{#                        <span class="skill-tag">{{ skill.name }}</span>#}
-{#                    {% endfor %}#}
-{#                </div>#}
-{#            </div>#}
-{##}
-{#            <div class="bio-section">#}
-{#                <button class="bio-toggle" onclick="toggleBio()">#}
-{#                    <span>Bio</span>#}
-{#                    <i data-feather="chevron-down" id="bioIcon"></i>#}
-{#                </button>#}
-{#                <p id="bioContent" class="bio-content">#}
-{#                    {{ user.profile.bio }}#}
-{#                </p>#}
-{#            </div>#}
-{#        </div>#}
-{#    </div>#}
-    
-{#    <div class="profile-actions auth-container">#}
-{#        {% include "partials/profile_dash.html" %}#}
-{#    </div>#}
-    
-{#    <div id="calendar"></div>#}
-{#    #}
-{#    {% if has_detailed_change_permission and user == user_to_view %}#}
-{#                <a href="{% url 'detailed_update_own_profile' slug=user.slug %}">Edit</a>#}
-{#    {% elif has_detailed_change_permission %}#}
-{#        <a href="{% url 'update_employee' slug=user_to_view.slug company_slug=user.profile.company.slug %}">Edit</a>#}
-{#    {% elif user == user_to_view%}#}
-{#        <a href="{% url 'update_profile' slug=user_to_view.slug %}">Edit</a>#}
-{#    {% endif %}#}
-{#    {% if has_delete_permission %}#}
-{#        <a href="{% url 'delete_employee' slug=user_to_view.slug company_slug=user.profile.company.slug %}">Delete</a>#}
-{#    {% endif %}#}
-{#    <!-- Display company details -->#}
-{#    {% if company_name %}#}
-{#        <h2>Company: {{ company_name }}</h2>#}
-{#    {% endif %}#}
-{#    #}
-{#    </div>#}
-{##}
-{#{% endblock %}#}
-
-{% block script %}
-
-{#    <script>#}
-{#        feather.replace();#}
-{##}
-{#        function toggleBio() {#}
-{#            var bioContent = document.getElementById('bioContent');#}
-{#            var bioIcon = document.getElementById('bioIcon');#}
-{#            bioContent.classList.toggle('visible');#}
-{#            if (bioContent.classList.contains('visible')) {#}
-{#                bioIcon.setAttribute('data-feather', 'chevron-up');#}
-{#            } else {#}
-{#                bioIcon.setAttribute('data-feather', 'chevron-down');#}
-{#            }#}
-{#            feather.replace();#}
-{#        }#}
-{#    </script>#}
 {% endblock %}

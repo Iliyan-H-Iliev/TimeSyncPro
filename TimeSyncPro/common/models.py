@@ -55,3 +55,6 @@ class Address(models.Model):
         null=True,
     )
 
+    def __str__(self):
+        return f'{self.house_number_or_name}, {self.street}, {self.city}, {self.postcode}, {self.country}'
+

@@ -1,39 +1,42 @@
 import logging
 
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.permissions import IsAuthenticated
 from django.contrib import messages
 from django.contrib.auth import views as auth_views, login, logout, authenticate, get_user_model
 from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, Permission
 from django.contrib.auth.views import PasswordResetConfirmView
 from django.contrib.auth.forms import SetPasswordForm
 from django.core.cache import cache
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from django.db.models import Prefetch
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from django.views import generic as views
+from rest_framework import generics, status
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from TimeSyncPro.accounts import forms
-
-# from rest_framework import generics, status
-# from rest_framework.response import Response
-# from rest_framework.authtoken.models import Token
-# from rest_framework.permissions import AllowAny
-
-# from .serializers import LoginSerializer, SignupCompanySerializer
 
 from TimeSyncPro.accounts.forms import SignupEmployeeForm, SignupCompanyAdministratorForm, \
     BasicEditTSPUserForm, DetailedEditTSPUserForm, CustomSetPasswordForm, \
     DetailedEditProfileForm, BasicEditProfileForm
+from TimeSyncPro.accounts.forms.edit_profile_form import AdminEditProfileForm, DetailedEditOwnProfileForm
 from TimeSyncPro.accounts.models import Profile
+from TimeSyncPro.accounts.serializers import EmployeeSerializer
 from TimeSyncPro.accounts.view_mixins import OwnerRequiredMixin, \
     DynamicPermissionMixin, SuccessUrlMixin
+from TimeSyncPro.common.models import Address
 # from TimeSyncPro.core.utils import format_email
-from TimeSyncPro.common.views_mixins import NotAuthenticatedMixin, CompanyCheckMixin, \
-    MultiplePermissionsRequiredMixin, AuthenticatedUserMixin
+from TimeSyncPro.common.views_mixins import NotAuthenticatedMixin, CompanyObjectsAccessMixin, \
+    MultiplePermissionsRequiredMixin, AuthenticatedUserMixin, UserDataMixin, SmallPagination, ReturnToPageMixin
 import TimeSyncPro.companies.forms as company_forms
 import TimeSyncPro.common.forms as common_forms
+from TimeSyncPro.companies.models import Team
+from TimeSyncPro.companies.views_mixins import ApiConfigMixin
 
 # TODO Employee not see another employee profile
 
@@ -45,6 +48,7 @@ UserModel = get_user_model()
 class SignupCompanyAdministratorUser(AuthenticatedUserMixin, views.CreateView):
     template_name = "accounts/signup_company_administrator.html"
     form_class = SignupCompanyAdministratorForm
+    success_url_name = "profile"
 
     def form_valid(self, form):
         logger.debug("Entering form_valid method")
@@ -115,23 +119,24 @@ class CreateProfileAndCompanyView(OwnerRequiredMixin, views.CreateView):
     @transaction.atomic
     def form_valid(self, form, company_form, company_address_form, profile_address_form):
         try:
-            company_address = None
+
             if company_address_form.has_data():
                 company_address = company_address_form.save()
+            else:
+                company_address = Address.objects.create()
 
-            profile_address = None
             if profile_address_form.has_data():
                 profile_address = profile_address_form.save()
+            else:
+                profile_address = Address.objects.create()
 
             company = company_form.save(commit=False)
-            if company_address:
-                company.address = company_address
+            company.address = company_address
             company.save()
 
             profile = form.save(commit=False)
             profile.user = self.request.user
-            if profile_address:
-                profile.address = profile_address
+            profile.address = profile_address
             profile.company = company
             profile.is_company_admin = True
             user = self.request.user
@@ -178,11 +183,15 @@ class SignInUserView(auth_views.LoginView):
 
     def get_success_url(self):
         user = self.request.user
-        return reverse("profile", kwargs={'slug': user.slug})
+
+        if not hasattr(user.profile, 'company'):
+            return reverse("profile", kwargs={'slug': user.slug})
+
+        return reverse("dashboard", kwargs={'slug': user.slug})
 
     def form_valid(self, form):
-        username = UserModel.format_email(form.cleaned_data.get('username'))
-        cache_key = f'login_attempts_{username}'
+        username = form.cleaned_data.get('username', "").strip()
+        cache_key = f'login_attempts_{username.lower()}'
         attempts = cache.get(cache_key, 0)
 
         if attempts >= self.MAX_LOGIN_ATTEMPTS:
@@ -212,9 +221,7 @@ class SignInUserView(auth_views.LoginView):
         login(self.request, user)
         self.request.session.set_expiry(expiry_time)
 
-        return HttpResponseRedirect(
-            reverse('profile', kwargs={'slug': user.slug})
-        )
+        return HttpResponseRedirect(self.get_success_url())
 
     def form_invalid(self, form):
         logger.warning(f"Failed login attempt: {form.cleaned_data.get('username')}")
@@ -222,19 +229,22 @@ class SignInUserView(auth_views.LoginView):
         return super().form_invalid(form)
 
 
-class SignupEmployeeView(MultiplePermissionsRequiredMixin, NotAuthenticatedMixin, views.CreateView):
+class SignupEmployeeView(MultiplePermissionsRequiredMixin, LoginRequiredMixin, views.CreateView):
     template_name = 'accounts/register_employee.html'
     form_class = forms.SignupEmployeeForm
+    object = None
 
     permissions_required = [
-        'accounts.add_administrator',
+        'accounts.add_company_admin',
         'accounts.add_hr',
         'accounts.add_manager',
-        'accounts.add_teamleader',
+        'accounts.add_team_leader',
         'accounts.add_staff',
     ]
 
     def get_context_data(self, **kwargs):
+        if 'address_form' not in kwargs:
+            kwargs['address_form'] = common_forms.AddressForm()
         context = super().get_context_data(**kwargs)
         company = self.request.user.company
         context['company_slug'] = company.slug if company else None
@@ -245,121 +255,141 @@ class SignupEmployeeView(MultiplePermissionsRequiredMixin, NotAuthenticatedMixin
         kwargs['request'] = self.request
         return kwargs
 
-    def form_valid(self, form):
-        employee = form.save(commit=False)
+    def post(self, request, *args, **kwargs):
+        self.object = None
+        form = self.get_form()
+        address_form = common_forms.AddressForm(request.POST)
 
-        user = self.request.user
-        company = user.company
+        if all(f.is_valid() for f in [form, address_form]):
+            return self.form_valid(form, address_form)
+        else:
+            return self.form_invalid(form, address_form)
 
-        if not company or not company.slug:
-            messages.warning(self.request, "Company not found. Redirecting to home page.")
-            return redirect('index')
+    @transaction.atomic
+    def form_valid(self, form, address_form):
+        try:
+            self.object = form.save()
 
-        employee.save()
+            if address_form.has_data():
+                address = address_form.save()
+            else:
+                address = Address.objects.create()
 
-        messages.success(self.request, f"Employee successfully registered.")
-        return redirect(self.get_success_url())
+            self.object.profile.address = address
+            self.object.profile.save()
+
+            messages.success(self.request, f"Employee successfully registered.")
+            return redirect(self.get_success_url())
+
+        except IntegrityError as e:
+            messages.error(self.request, "An error occurred while registering the employee.")
+            return self.form_invalid(form, address_form)
+        except Exception as e:
+            messages.error(self.request, f"An error occurred while registering the employee: {str(e)}")
+            return self.form_invalid(form, address_form)
 
     def get_success_url(self):
-        return reverse('company members', kwargs={'company_slug': self.request.user.company.slug})
+        return reverse('company_members', kwargs={'company_slug': self.request.user.company.slug})
 
-    def form_invalid(self, form):
+    @transaction.atomic
+    def form_invalid(self, form, address_form):
         messages.error(self.request, "An error occurred while registering the employee.")
-        return super().form_invalid(form)
+        return self.render_to_response(self.get_context_data(form=form, address_form=address_form))
 
 
-class DashboardView(LoginRequiredMixin, views.DetailView):
+class DetailsProfileBaseView(ApiConfigMixin, DynamicPermissionMixin, LoginRequiredMixin, views.DetailView):
     model = UserModel
-    template_name = 'accounts/dashboard.html'
-    context_object_name = 'user'
+    _cached_object = None
+    template_name = "companies/employee/details_employee_profile.html"
 
+    def get_object(self, queryset=None):
+        if self._cached_object is None:
+            if queryset is None:
+                queryset = self.get_queryset()
+            self._cached_object = super().get_object(queryset=queryset)
+        return self._cached_object
 
-class DetailsProfileBaseView(LoginRequiredMixin, DynamicPermissionMixin, views.DetailView):
-    model = UserModel
-    context_object_name = "user_to_view"
+    # def get_template_names(self):
+    #     if self.request.user == self.get_object():
+    #         return ["accounts/details_profile.html"]
+    #     return ["companies/employee/details_employee_profile.html"]
 
     def get_queryset(self):
-        return self.model.objects.select_related('profile__company').prefetch_related(
-            Prefetch('groups', queryset=Group.objects.prefetch_related('permissions')),
-            'user_permissions'
+        return self.model.objects.select_related(
+            'profile',
+            'profile__company',
+            'profile__department',
+            'profile__team',
+            'profile__address',
+            'profile__shift',
         )
-
-    def get_template_names(self):
-        if self.request.user == self.get_object():
-            return ["accounts/details_profile.html"]
-        return ["management/details_employee_profile.html"]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
+        # all_user_permissions = set(self.request.user.get_all_permissions())
         user = self.request.user
-        user_to_view = self.object
-
-        all_permissions = set(user.get_all_permissions())
-
-        company_slug = user.company.slug
 
         context.update({
-            # 'user_to_view': user_to_view,
-            'company_slug': company_slug if company_slug else None,
-            'has_detailed_change_permission': self.get_action_permission(user_to_view, "change") in all_permissions,
-            'has_delete_permission': self.get_action_permission(user_to_view, "delete") in all_permissions,
+            'profile': self.object.profile,
+            'has_detailed_change_permission': self.has_needed_permission(user, self.object, "change"),
+            'has_delete_permission': self.has_needed_permission(user, self.object, "delete"),
         })
         return context
 
-    # @staticmethod
-    # def handle_user_not_found(request):
-    #     messages.error(request, "User not found.")
-    #     return redirect('index')
-
-    # def get(self, request, *args, **kwargs):
-    #     context = self.get_context_data()
-    #     return render(request, self.template_name, context)
-
 
 class DetailsOwnProfileView(OwnerRequiredMixin, DetailsProfileBaseView):
-    # template_name = "accounts/details_profile.html"
+    template_name = "accounts/details_profile.html"
 
-    # TODO check get_object
-    def get_object(self, queryset=None):
-        # self.object = self.request.user
-        # return self.object
-        return self.request.user
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['user'] = self.request.user
-        context["permissions"] = self.request.user.get_all_permissions()
-        return context
+class DashboardView(DetailsOwnProfileView):
+    def get_template_names(self):
+        return ["accounts/dashboard.html"]
 
 
 class DetailsEmployeesProfileView(
-    NotAuthenticatedMixin,
-    CompanyCheckMixin,
+    CompanyObjectsAccessMixin,
     PermissionRequiredMixin,
-    DetailsProfileBaseView
+    DetailsProfileBaseView,
 ):
+    employee_history_api_url_name = 'employee_history_api'
 
     def get_permission_required(self):
         user_to_view = self.get_object()
         return [self.get_action_permission(user_to_view, "view")]
 
-    def get_object(self, queryset=None):
-        queryset = self.get_queryset() if queryset is None else queryset
-        return get_object_or_404(queryset, slug=self.kwargs.get('slug'))
+
+class EditProfileDispatcherView(OwnerRequiredMixin, DynamicPermissionMixin, views.View):
+
+    def dispatch(self, request, *args, **kwargs):
+        user = request.user
+        permission = self.get_action_permission(user, "change")
+
+        if user.has_perm(permission) or user.is_superuser:
+            view = DetailedEditOwnProfileView.as_view()
+        else:
+            view = BasicEditOwnProfileView.as_view()
+
+        return view(request, *args, **kwargs)
 
 
-class EditProfileBaseView(NotAuthenticatedMixin, views.UpdateView):
+class EditProfileBaseView(ReturnToPageMixin, LoginRequiredMixin, views.UpdateView):
     model = UserModel
     template_name = 'accounts/update_profile.html'
     form_class = BasicEditTSPUserForm
-    success_url = 'profile'
     detailed_edit = False
-    address_form_class = common_forms.AddressForm
+    address_form = common_forms.AddressForm
+
+    def dispatch(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         return self.model.objects.select_related(
-            'profile__company'
+            'profile__company',
+            'profile__department',
+            'profile__team',
+            'profile__address',
+            'profile__shift'
         ).prefetch_related(
             Prefetch(
                 'groups',
@@ -376,10 +406,7 @@ class EditProfileBaseView(NotAuthenticatedMixin, views.UpdateView):
         context = super().get_context_data(**kwargs)
         context['user_form'] = self.get_form()
         context['profile_form'] = self.get_additional_form()
-        context['user'] = self.request.user
-        context['user_to_edit'] = self.object
-        context['company_slug'] = self.object.profile.company.slug if self.object.profile.company else None
-        context['address_form'] = self.address_form_class(instance=self.object.profile.address)
+        context['address_form'] = self.address_form(instance=self.object.profile.address)
         return context
 
     def get_additional_form(self):
@@ -387,56 +414,94 @@ class EditProfileBaseView(NotAuthenticatedMixin, views.UpdateView):
         if not additional_form_class:
             return None
 
+        kwargs = {
+            'instance': self.object.profile,
+            'request': self.request,
+        }
+
         if self.request.method == 'POST':
-            return additional_form_class(self.request.POST, instance=self.object.profile)
-        return additional_form_class(instance=self.object.profile)
+            return additional_form_class(self.request.POST, **kwargs)
+        return additional_form_class(**kwargs)
 
     def _get_additional_form_class(self):
         try:
-            return DetailedEditProfileForm if self.detailed_edit else BasicEditProfileForm
+            if not self.request.user.profile.company:
+                if self.request.user.is_superuser or self.request.user.is_staff:
+                    return AdminEditProfileForm
+
+            if self.request.user == self.object and self.detailed_edit:
+                return DetailedEditOwnProfileForm
+            elif self.request.user != self.object and self.detailed_edit:
+                return DetailedEditProfileForm
+            else:
+                return BasicEditProfileForm
+#
         except ValueError as e:
             messages.error(self.request, str(e))
             return None
 
     def post(self, request, *args, **kwargs):
-        form = self.get_form()
-        additional_form = self.get_additional_form()
+        try:
+            with transaction.atomic():
+                form = self.get_form()
+                additional_form = self.get_additional_form()
+                address_form = self.address_form(request.POST, instance=self.object.profile.address)
 
-        if form.is_valid() and (not additional_form or additional_form.is_valid()):
-            return self.form_valid(form, additional_form)
-        return self.form_invalid(form, additional_form)
+                if all(f.is_valid() for f in [form, additional_form, address_form] if f):
+                    return self.form_valid(form, additional_form, address_form)
+                return self.form_invalid(form, additional_form, address_form)
+        except Exception as e:
+            messages.error(request, "An error occurred. Please try again.")
+            return self.render_to_response(self.get_context_data(
+                form=form,
+                additional_form=additional_form,
+                address_form=address_form
+            ))
 
     @transaction.atomic
-    def form_valid(self, form, additional_form):
+    def form_valid(self, form, additional_form, address_form):
         try:
+            address = None
             first_name = additional_form.cleaned_data.get('first_name')
             last_name = additional_form.cleaned_data.get('last_name')
             employee_id = additional_form.cleaned_data.get('employee_id')
 
-            with transaction.atomic():
+            obj = form.save(commit=False)
+            obj.save(first_name=first_name, last_name=last_name, employee_id=employee_id)
 
-                obj = form.save(commit=False)
-                obj.save(first_name=first_name, last_name=last_name, employee_id=employee_id)
+            if additional_form:
+                profile = additional_form.save()
 
-                if additional_form:
-                    additional_form.save()
+            if address_form:
+                address = address_form.save()
+
+            if address and obj.profile.address == None:
+                obj.profile.address = address
+                obj.profile.save()
 
             messages.success(self.request, 'Profile updated successfully.')
+
             return super().form_valid(form)
         except Exception as e:
             messages.error(self.request, "An unexpected error occurred while saving the profile.")
-            return self.form_invalid(form)
+            logger.error(f"Error updating profile for user {self.object.id}: {str(e)}")
+            return self.form_invalid(form, additional_form, address_form)
 
     @transaction.atomic
-    def form_invalid(self, form, additional_form):
+    def form_invalid(self, form, additional_form, address_form):
         messages.error(self.request, 'Please correct the errors below.')
-        return super().form_invalid(form)
+
+        return self.render_to_response(self.get_context_data(
+            form=form,
+            additional_form=additional_form,
+            address_form=self.address_form(instance=self.object.profile.address)
+        ))
 
     def get_success_url(self):
         return reverse("profile", kwargs={'slug': self.object.slug})
 
 
-class BasicEditProfileView(OwnerRequiredMixin, EditProfileBaseView):
+class BasicEditOwnProfileView(OwnerRequiredMixin, EditProfileBaseView):
     def get_object(self, queryset=None):
         return self.request.user
 
@@ -444,7 +509,6 @@ class BasicEditProfileView(OwnerRequiredMixin, EditProfileBaseView):
 class DetailedEditProfileView(PermissionRequiredMixin, DynamicPermissionMixin, EditProfileBaseView):
     template_name = 'accounts/update_employee_profile.html'
     form_class = DetailedEditTSPUserForm
-
     detailed_edit = True
 
     def dispatch(self, request, *args, **kwargs):
@@ -454,11 +518,14 @@ class DetailedEditProfileView(PermissionRequiredMixin, DynamicPermissionMixin, E
         return super().dispatch(request, *args, **kwargs)
 
     def get_success_url(self):
-        return reverse("company_members", kwargs={"company_slug": self.object.profile.company.slug})
+        return reverse(
+            "company_members",
+            kwargs={"company_slug": self.object.profile.company.slug})
 
 
-class DetailedOwnEditProfileView(OwnerRequiredMixin, DetailedEditProfileView):
-    template_name = 'accounts/full_update_own_profile.html'
+class DetailedEditOwnProfileView(OwnerRequiredMixin, DetailedEditProfileView):
+    form_class = DetailedEditTSPUserForm
+    template_name = 'accounts/update_profile.html'
 
     def get_object(self, queryset=None):
         return self.request.user
@@ -468,24 +535,34 @@ class DetailedOwnEditProfileView(OwnerRequiredMixin, DetailedEditProfileView):
 
 
 class DeleteEmployeeView(
-    SuccessUrlMixin,
-    NotAuthenticatedMixin,
+    LoginRequiredMixin,
     PermissionRequiredMixin,
-    CompanyCheckMixin,
+    CompanyObjectsAccessMixin,
     DynamicPermissionMixin,
     views.DeleteView
 ):
     model = UserModel
-    queryset = model.objects.select_related(
-        'profile__company'  # Fetch employee and company in one query
-    ).prefetch_related(
-        Prefetch(
-            'groups',
-            queryset=Group.objects.prefetch_related('permissions')),  # Prefetch permissions through groups
-        'user_permissions'  # Prefetch individual user permissions
-    )
     template_name = 'accounts/delete_user.html'
-    success_url = reverse_lazy('company members')
+
+    # queryset = model.objects.select_related(
+    #     'profile__company'  # Fetch employee and company in one query
+    # ).prefetch_related(
+    #     Prefetch(
+    #         'groups',
+    #         queryset=Group.objects.prefetch_related('permissions')),  # Prefetch permissions through groups
+    #     'user_permissions'  # Prefetch individual user permissions
+    # )
+
+    def get_queryset(self):
+        queryset = self.model.objects.select_related(
+            'profile__company'  # Fetch employee and company in one query
+        ).prefetch_related(
+            Prefetch(
+                'groups',
+                queryset=Group.objects.prefetch_related('permissions')),  # Prefetch permissions through groups
+            'user_permissions'  # Prefetch individual user permissions
+        )
+        return queryset
 
     def dispatch(self, request, *args, **kwargs):
         user = request.user
@@ -504,14 +581,14 @@ class DeleteEmployeeView(
     #     context['has_delete_employee_permission'] = self.get_action_permission(user_to_delete, "delete") in all_permissions,
     #     return context
 
-    # def get_success_url(self):
-    #     user = self.request.user
-    #     company_slug = user.profile.company.slug
-    #     return reverse('company members', kwargs={"company_slug": company_slug})
+    def get_success_url(self):
+        user = self.request.user
+        company_slug = user.profile.company.slug
+        return reverse('company members', kwargs={"company_slug": company_slug})
 
     def post(self, request, *args, **kwargs):
         user_to_delete = get_object_or_404(self.queryset, slug=self.kwargs['slug'])
-        related_instance = user_to_delete.employee
+        related_instance = user_to_delete.profile
 
         if related_instance.role == 'Manager':
             manager_teams = related_instance.teams.all()
@@ -550,13 +627,13 @@ class PasswordChangeView(auth_views.PasswordChangeView):
     success_url = reverse_lazy("password change done")
 
 
-def signout_user(request):
-    logout(request)
-    return redirect('index')
-
-
 class ActivateAndSetPasswordView(views.View):
     template_name = 'accounts/activate_and_set_password.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return redirect('profile', slug=request.user.slug)
+        return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, token):
         try:
@@ -565,7 +642,7 @@ class ActivateAndSetPasswordView(views.View):
             return render(request, self.template_name, {'form': form})
         except UserModel.DoesNotExist:
             messages.error(request, "Invalid or expired activation link.")
-            return redirect('home')
+            return redirect('index')
 
     def post(self, request, token):
         try:
@@ -576,13 +653,66 @@ class ActivateAndSetPasswordView(views.View):
                 user.is_active = True
                 user.activation_token = ''
                 user.save()
-                login(request, user)
-                messages.success(request, "Your account has been activated and password set successfully.")
-                return redirect('profile')  # Redirect to the employee's profile page
+
+                # Authenticate user before login
+                authenticated_user = authenticate(
+                    request,
+                    username=user.email,  # Assuming email is used for authentication
+                    password=form.cleaned_data['new_password1']  # SetPasswordForm uses new_password1
+                )
+
+                if authenticated_user:
+                    login(request, authenticated_user)
+                    messages.success(request, "Your account has been activated and password set successfully.")
+                    return redirect('profile', slug=authenticated_user.slug)
+                else:
+                    messages.error(request, "Error logging in after activation.")
+                    return redirect('login')
+
             return render(request, self.template_name, {'form': form})
         except UserModel.DoesNotExist:
             messages.error(request, "Invalid or expired activation link.")
-            return redirect('home')
+            return redirect('index')
+
+
+class TeamEmployeesAPIView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [SessionAuthentication]
+    serializer_class = EmployeeSerializer
+    pagination_class = SmallPagination
+
+    def get_queryset(self):
+        return Profile.objects.filter(
+            team_id=self.kwargs['pk'],
+            team__company__slug=self.kwargs['company_slug']
+        ).select_related('user').order_by('first_name')
+
+
+class ShiftEmployeesAPIView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [SessionAuthentication]
+    serializer_class = EmployeeSerializer
+    pagination_class = SmallPagination
+
+    def get_queryset(self):
+        return Profile.objects.filter(
+            shift_id=self.kwargs['pk'],
+            shift__company__slug=self.kwargs['company_slug']
+        ).select_related('user').order_by("first_name")
+
+
+class DepartmentEmployeesAPIView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [SessionAuthentication]
+    serializer_class = EmployeeSerializer
+    pagination_class = SmallPagination
+
+    def get_queryset(self):
+        return Profile.objects.filter(
+            department_id=self.kwargs['pk'],
+            department__company__slug=self.kwargs['company_slug']
+        ).select_related('user').order_by('first_name')
+
 
 # class SignupAndLoginView(views.TemplateView):
 #     template_name = 'accounts/signup_login.html'
@@ -619,3 +749,21 @@ class ActivateAndSetPasswordView(views.View):
 #             'email': user.email
 #         })
 #
+
+
+class LogoutAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            logout(request)
+
+            return Response(
+                {"message": "Successfully logged out."},
+                status=status.HTTP_200_OK
+            )
+        except Exception as e:
+            return Response(
+                {"error": "Failed to logout. Please try again."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

@@ -1,0 +1,18 @@
+<nav class="navbar central-nav auth-central-nav">
+    <ul class="navbar-ul authenticated-navbar-ul">
+        <li>
+            <a href="{% url 'dashboard' slug=user.slug %}" class="nav-button">Dashboard</a>
+        </li>
+        <li>
+            <a href="{% url 'company_profile' company_slug=user.company.slug %}" class="nav-button">Company</a>
+        </li>
+
+        <li>
+            <a href="{% url 'company_members' company_slug=user.company.slug %}" class="nav-button">Employees</a>
+        </li>
+        <li>
+            <a href="{% url 'register_employee' company_slug=user.company.slug %}" class="nav-button">Reports</a>
+        </li>
+    </ul>
+    
+</nav>

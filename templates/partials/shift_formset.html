@@ -1,0 +1,13 @@
+{% load filters %}
+
+<h4>Shift Blocks</h4>
+{{ formset.management_form }}
+<div id="formset-container">
+    {% for form in formset %}
+        <div class="block-form">
+            <h4>Week {{ forloop.counter }}</h4>
+            {{ form.id }}
+            {% include "partials/shift_base_formset.html" %}
+        </div>
+    {% endfor %}
+</div>

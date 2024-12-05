@@ -1,11 +1,16 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import AccessMixin
+
 from django.core.exceptions import PermissionDenied
-from django.shortcuts import redirect, get_object_or_404
+from django.http import Http404
+from django.utils.http import url_has_allowed_host_and_scheme
+
+from django.shortcuts import get_object_or_404
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.shortcuts import redirect
 from django.urls import reverse
-from django.core.exceptions import ImproperlyConfigured
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
 
 UserModel = get_user_model()
 
@@ -21,23 +26,89 @@ class NotAuthenticatedMixin(object):
         return super().dispatch(request, *args, **kwargs)
 
 
-class CompanyCheckMixin:
+class CompanyObjectsAccessMixin:
+
+    def get_company_filed(self):
+
+        company_field = None
+
+        if hasattr(self.model, 'profile'):
+            company_field = 'profile__company'
+        elif hasattr(self.model, 'company'):
+            company_field = 'company'
+
+        return company_field
+
+    def get_queryset(self):
+        base_queryset = super().get_queryset() if hasattr(super(), 'get_queryset') else self.model.objects.all()
+
+        if self.request.user.is_superuser:
+            return base_queryset
+
+        company_slug = self.kwargs.get('company_slug')
+
+        if not company_slug:
+            return base_queryset.none()
+
+        company_field = self.get_company_filed()
+        if not company_field:
+            return base_queryset.none()
+
+        filters = {f"{company_field}__slug": company_slug}
+
+        return base_queryset.filter(**filters)
+
+    def get_company_permission(self, obj):
+        user_company = self.request.user.profile.company
+
+        if not user_company:
+            return False
+
+        if hasattr(obj, 'company'):
+            obj_company = obj.company
+        elif hasattr(obj, 'profile'):
+            obj_company = getattr(obj.profile, 'company', None)
+        else:
+            return False
+
+        return user_company == obj_company
 
     def dispatch(self, request, *args, **kwargs):
-        user = request.user
-        user_slug = self.kwargs['slug']
+        try:
+            self.object = self.get_object()
 
-        if hasattr(self, 'get_queryset'):
-            queryset = self.get_queryset()
-        else:
-            queryset = UserModel.objects.all()
+            # Check if object belongs to user's company
+            if not self.get_company_permission(self.object):
+                raise PermissionDenied(
+                    f"You can only view {self.model._meta.verbose_name} within your own company."
+                )
 
-        user_to_check = get_object_or_404(queryset, slug=user_slug)
+            return super().dispatch(request, *args, **kwargs)
 
-        if user_to_check.company != request.user.company:
-            raise PermissionDenied("You can only view profiles within your own company.")
+        except Http404:
+            raise PermissionDenied(
+                f"You can only view {self.model._meta.verbose_name} within your own company."
+            )
+        except Exception as e:
+            raise PermissionDenied(
+                f"An error occurred while checking permissions: {str(e)}"
+            )
 
-        return super().dispatch(request, *args, **kwargs)
+
+# class CompanyCheckMixin:
+#
+#     def get_queryset(self):
+#         base_queryset = super().get_queryset() if hasattr(super(), 'get_queryset') else self.model.objects.all()
+#         base_queryset = base_queryset.select_related('company')
+#         return base_queryset.filter(company=self.request.user.profile.company)
+#
+#     def dispatch(self, request, *args, **kwargs):
+#         try:
+#             # Uses Query 1 result
+#             self.object = self.get_object()
+#             return super().dispatch(request, *args, **kwargs)
+#         except Http404:
+#             raise PermissionDenied(f"You can only view {self.model.__name__.lower()} within your own company.")
 
 
 class MultiplePermissionsRequiredMixin(AccessMixin):
@@ -56,51 +127,142 @@ class MultiplePermissionsRequiredMixin(AccessMixin):
 
 
 # TODO remove company_name and company_slug
-class CompanyContextMixin:
+class UserDataMixin:
+    # def get_queryset(self):
+    #     return super().get_queryset().select_related(
+    #         'profile',
+    #         'profile__company',
+    #         'profile__company__address',
+    #         'profile__department',
+    #         'profile__team',
+    #         'profile__shift_pattern',
+    #         'profile__address',
+    #     )
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        company = self.request.user.company
-
-        if company:
-            context['company'] = company
-            context['company_name'] = company.name
-            context['company_slug'] = company.slug
-        else:
-            context['company'] = None
-            context['company_name'] = None
-            context['company_slug'] = None
-
+        context['user_data'] = {
+            'profile': self.request.user.profile,
+            'company': self.request.user.profile.company,
+            'department': self.request.user.profile.department,
+            'team': self.request.user.profile.team,
+            'shift': self.request.user.profile.shift,
+            'address': self.request.user.profile.address,
+            'leave_approver': self.request.user.profile.get_leave_approver,
+        }
         return context
 
 
-# TODO FIX IT
 class AuthenticatedUserMixin(UserPassesTestMixin):
+    """
+    Mixin to handle authenticated users access:
+    - Regular users are redirected to their profile
+    - Staff/Superusers can access all pages
+    """
     success_url_name = "profile"
-    # redirect_field_name = None  # Prevents appending ?next= to the URL
 
     def test_func(self):
-        return not self.request.user.is_authenticated
+        user = self.request.user
+        return not user.is_authenticated
 
     def get_success_url(self):
-        if not self.success_url_name:
-            raise ImproperlyConfigured(
-                "No success URL name specified. Define {0}.success_url_name "
-                "or override {0}.get_success_url().".format(
-                    self.__class__.__name__
-                )
-            )
-
         user = self.request.user
-        if hasattr(user, 'slug'):
+
+        if hasattr(user, 'profile') and hasattr(user, 'slug'):
             return reverse(self.success_url_name, kwargs={'slug': user.slug})
-        elif hasattr(user, 'username'):
-            return reverse(self.success_url_name, kwargs={'username': user.username})
-        else:
-            return reverse(self.success_url_name)
+
+        return reverse('index')
 
     def handle_no_permission(self):
-        return redirect(self.get_success_url())
+        if self.request.user.is_authenticated:
+            return redirect(self.get_success_url())
+        """Redirect users based on their type"""
+        return redirect(reverse("terms_and_conditions"))
 
+    def dispatch(self, request, *args, **kwargs):
+        if not self.test_func():
+            return self.handle_no_permission()
+        return super().dispatch(request, *args, **kwargs)
+
+
+class SmallPagination(PageNumberPagination):
+    page_size = 2
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+    def get_paginated_response(self, data):
+        return Response({
+            'count': self.page.paginator.count,  # Total number of items
+            'page_size': self.page_size,  # Items per page
+            'current_page': self.page.number,  # Current page number
+            'total_pages': self.page.paginator.num_pages,  # Total number of pages
+            'next': self.get_next_link(),
+            'previous': self.get_previous_link(),
+            'results': data
+        })
+
+
+class ReturnToPageMixin:
+    default_return_url = None
+    fallback_url = 'dashboard'  # General fallback
+
+    def get_success_url(self):
+        # Try all return URL options
+        return (
+                self._get_next_url() or
+                self._get_session_url() or
+                self._get_referer_url() or
+                self._get_default_url() or
+                self._get_fallback_url()
+        )
+
+    def _is_safe_url(self, url):
+        return url and url_has_allowed_host_and_scheme(
+            url=url,
+            allowed_hosts={self.request.get_host()},
+            require_https=self.request.is_secure()
+        )
+
+    def _get_next_url(self):
+        next_url = self.request.GET.get('next')
+        return next_url if self._is_safe_url(next_url) else None
+
+    def _get_session_url(self):
+        session_url = self.request.session.get('previous_page')
+        return session_url if self._is_safe_url(session_url) else None
+
+    def _get_referer_url(self):
+        referer = self.request.META.get('HTTP_REFERER')
+        return referer if self._is_safe_url(referer) else None
+
+    def _get_default_url(self):
+        if self.default_return_url:
+            try:
+                return reverse(self.default_return_url, kwargs={
+                    'company_slug': self.request.user.profile.company.slug
+                })
+            except:
+                return None
+        return None
+
+    def _get_fallback_url(self):
+        try:
+            # Try parent's success_url first
+            return super().get_success_url()
+        except:
+            # Final fallback
+            try:
+                return reverse(self.fallback_url, kwargs={
+                    'slug': self.request.user.slug
+                })
+            except:
+                # If all else fails, go to home
+                return reverse('index')
+
+    def get(self, request, *args, **kwargs):
+        # Store current page in session
+        request.session['previous_page'] = request.META.get('HTTP_REFERER')
+        return super().get(request, *args, **kwargs)
 
 # class FormatNameMixin:
 #

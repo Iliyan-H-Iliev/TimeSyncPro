@@ -1,0 +1,13 @@
+<div class="form-row">
+    <div class="wrap-label-field">
+
+    <label for="id_rotation_weeks" class="form-label">{{ field.label }}</label>
+    <input type="number" id="id_rotation_weeks"
+           name="{{ field.html_name }}"
+           value="{{ form.rotation_weeks.value|default:1 }}"
+           readonly
+           class="form-control read-only">
+    </div>
+    <div class="error-message">{{ field.errors }}</div>
+    <div id="message-container" class="error-mg"></div>
+</div>

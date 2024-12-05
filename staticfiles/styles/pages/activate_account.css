@@ -1,0 +1,22 @@
+.activate_account {
+    width: max(20%, 300px);
+    margin: 8rem auto;
+    text-align: center;
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+    background-color: var(--neutral-medium-light);
+
+}
+
+.activate_account h2 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.wrap-label-field {
+    display: flex;
+    flex-direction: column;
+    margin: 0.5rem 0;
+}

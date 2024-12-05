@@ -8,6 +8,26 @@ from TimeSyncPro.companies.models import Company
 
 
 class CheckExistingNameBaseMixin(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.company = None
+
+        if kwargs.get('instance'):
+            if isinstance(kwargs.get('instance'), Company):
+                self.company = kwargs.get('instance')
+
+            elif hasattr(kwargs.get('instance'), 'company'):
+                self.company = kwargs.get('instance').company
+
+            if self.company:
+                if kwargs.get('company'):
+                    kwargs.pop('company')
+
+        elif kwargs.get('company'):
+            self.company = kwargs.pop('company')
+
+        self.user = kwargs.get('user')
+        super().__init__(*args, **kwargs)
+
     def clean_name(self):
         name = self.cleaned_data.get('name')
         if not name:
@@ -33,6 +53,11 @@ class CheckExistingNameBaseMixin(forms.ModelForm):
 
 
 class CheckCompanyExistingSlugMixin(CheckExistingNameBaseMixin):
+    # def __init__(self, *args, **kwargs):
+    #     self.company = kwargs.get('company')
+    #     self.user = kwargs.get('user')
+    #     super().__init__(*args, **kwargs)
+
     def check_name_uniqueness(self, name):
         exclude_id = self.instance.pk if self.instance else None
 
@@ -45,9 +70,26 @@ class CheckCompanyExistingSlugMixin(CheckExistingNameBaseMixin):
 class CheckExistingNamePerCompanyMixin(CheckExistingNameBaseMixin):
 
     def check_name_uniqueness(self, name):
+        obj = self.instance if self.instance else None
+        company = self.company
+        exclude_id = obj.pk if obj else None
         model = self.Meta.model
-        exclude_id = self.instance.pk if self.instance else None
-        company = self.instance.company if self.instance else self.cleaned_data.get('company')
 
-        if model.objects.filter(name__iexact=name, company=company).exclude(pk=exclude_id).exists():
-            raise ValidationError(_("A record with this name already exists for this company."))
+        if exclude_id:
+            if model.objects.filter(name__iexact=name, company=company).exclude(pk=exclude_id).exists():
+                raise ValidationError(_("A record with this name already exists for this company."))
+
+        else:
+            if model.objects.filter(name__iexact=name, company=company).exists():
+                raise ValidationError(_("A record with this name already exists for your company."))
+
+
+class LabelMixin:
+    def add_labels(self):
+        for field_name, field in self.fields.items():
+            label = field_name.replace('_', ' ').title()
+            field.label = label
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.add_labels()

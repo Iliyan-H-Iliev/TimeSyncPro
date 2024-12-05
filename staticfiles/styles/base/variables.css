@@ -11,36 +11,39 @@
     /*--button-background-color-signup-hover: #da080f;*/
 
 
-      /* Primary Colors */
-  --primary-blue: #3498db;
-  --primary-dark: #2c3e50;
-  --primary-light: #09c6f6;
+    /* Primary Colors */
+    --primary-blue: #3498db;
+    --primary-dark: #2c3e50;
+    --primary-light: #e0ecef;
 
-  /* Secondary Colors */
-  --secondary-green: #2ecc71;
-  --secondary-red: #e74c3c;
+    /* Secondary Colors */
+    --secondary-green: #2ecc71;
+    --secondary-red: #e74c3c;
+    --secondary-dark-red: #a21b0e;
+    --secondary-yellow: #f1c40f;
+    --secondary-dark-yellow: #c5a005;
+    --secondary-dark-green: #0a7c29;
+    /* Neutral Colors */
+    --neutral-light: #ecf0f1;
+    --neutral-medium-light: #dfe6e9;
+    --neutral-medium: #bdc3c7;
+    --neutral-dark: #7f8c8d;
 
-  /* Neutral Colors */
-  --neutral-light: #ecf0f1;
-  --neutral-medium: #bdc3c7;
-  --neutral-dark: #7f8c8d;
+    /* Text Colors */
+    --text-primary: #333333;
+    --text-secondary: #666666;
+    --text-dark-background: #ffffff;
 
-  /* Text Colors */
-  --text-primary: #333333;
-  --text-secondary: #666666;
-  --text-dark-background: #ffffff;
+    /* Background Colors */
+    --background-main: #ffffff;
+    --background-alt: #f9f9f9;
+    --background-form: #f8fafc;
 
-  /* Background Colors */
-  --background-main: #ffffff;
-  --background-alt: #f9f9f9;
+    --border-color: #e2e8f0;
+    /* Accent Colors */
+    --error-color: #dc2626; /* Red for errors or warnings */
+    --success-color: #2ecc71; /* Green for success actions */
+    --highlight-color: #f1c40f; /* Yellow for highlights or important information */
 
-
-
-
-  /* Accent Colors */
-  --error-color: #e74c3c; /* Red for errors or warnings */
-  --success-color: #2ecc71; /* Green for success actions */
-  --highlight-color: #f1c40f; /* Yellow for highlights or important information */
-
-  --max-width: 1300px;
+    --max-width: 1300px;
 }

@@ -2,21 +2,46 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
 load_dotenv()
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY WARNING: keep the secret key used in production secret!
+
 SECRET_KEY = os.getenv('SECRET_KEY')
 
-# SECURITY WARNING: don't run with debug turned on in production!
+
 DEBUG = os.getenv('DEBUG') == 'True'
+
+DEBUG_TOOLBAR_PANELS = [
+    'debug_toolbar.panels.versions.VersionsPanel',
+    'debug_toolbar.panels.timer.TimerPanel',
+    'debug_toolbar.panels.settings.SettingsPanel',
+    'debug_toolbar.panels.headers.HeadersPanel',
+    'debug_toolbar.panels.request.RequestPanel',
+    'debug_toolbar.panels.sql.SQLPanel',
+    'debug_toolbar.panels.staticfiles.StaticFilesPanel',
+    'debug_toolbar.panels.templates.TemplatesPanel',
+    'debug_toolbar.panels.cache.CachePanel',
+    'debug_toolbar.panels.signals.SignalsPanel',
+    'debug_toolbar.panels.logging.LoggingPanel',
+    'debug_toolbar.panels.redirects.RedirectsPanel',
+]
+
+DEBUG_TOOLBAR_CONFIG = {
+    'SHOW_TOOLBAR_CALLBACK': lambda request: True,  # Always show
+}
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
 
-# Application definition
+INTERNAL_IPS = [
+    '127.0.0.1',
+]
+
+AUTHENTICATION_BACKENDS = [
+    'TimeSyncPro.accounts.backends.CaseInsensitiveEmailBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -32,13 +57,14 @@ INSTALLED_APPS = [
     "TimeSyncPro.companies.apps.CompaniesConfig",
     "TimeSyncPro.common.apps.CommonConfig",
     "TimeSyncPro.absences.apps.AbsencesConfig",
+    "TimeSyncPro.history.apps.HistoryConfig",
     
     "storages",
-    "TimeSyncPro.history.apps.HistoryConfig"
-
+    "debug_toolbar"
 ]
 
 MIDDLEWARE = [
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -46,7 +72,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'TimeSyncPro.accounts.middleware.check_company_middleware.CompanyCheckMiddleware'
+    'TimeSyncPro.middleware.check_company_middleware.CompanyCheckMiddleware',
+    'TimeSyncPro.middleware.history_user_middleware.HistoryUserMiddleware',
 ]
 
 ROOT_URLCONF = os.getenv('ROOT_URLCONF')
@@ -73,11 +100,11 @@ WSGI_APPLICATION = os.getenv('WSGI_APPLICATION')
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_HOST'),
-        'PORT': os.getenv('DB_PORT')
+        'NAME': os.getenv('DB_NAME',),
+        'USER': os.getenv('DB_USER',),
+        'PASSWORD': os.getenv('DB_PASSWORD',),
+        'HOST': os.getenv('DB_HOST',),
+        'PORT': os.getenv('DB_PORT',),
     }
 }
 
@@ -103,17 +130,25 @@ STORAGE = {
 
 
 # Celery
-CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL')
-CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND')
+# CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL')
+# CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND')
+# CELERY_ACCEPT_CONTENT = os.getenv('CELERY_ACCEPT_CONTENT')
+# CELERY_TASK_SERIALIZER = os.getenv('CELERY_TASK_SERIALIZER')
+# CELERY_BROKER_URL = 'redis://redis_compose:6379/0'
+# CELERY_RESULT_BACKEND = 'redis://redis_compose:6379/0'
+# CELERY_ACCEPT_CONTENT = ['json']
+# CELERY_TASK_SERIALIZER = 'json'
 # CELERY_ACCEPT_CONTENT = ['json']
 # CELERY_TASK_SERIALIZER = 'json'
 # CELERY_RESULT_SERIALIZER = 'json'
 # CELERY_TIMEZONE = 'UTC'
 
+
+
 # Rest Framework
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ],
 }
 
@@ -191,27 +226,49 @@ DEFAULT_AUTO_FIELD = os.getenv('DEFAULT_AUTO_FIELD')
 AUTH_USER_MODEL = os.getenv('AUTH_USER_MODEL')
 
 # Logging
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-        },
-    },
-    'loggers': {
-        'django.db.backends': {
-            'handlers': ['console'],
-            'level': 'ERROR',
-        },
-    },
-}
-
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'handlers': {
+#         'console': {
+#             'class': 'logging.StreamHandler',
+#         },
+#     },
+#     'loggers': {
+#         'django.db.backends': {
+#             'handlers': ['console'],
+#             'level': 'ERROR',
+#         },
+#     },
+# }
+# TODO: MAIL SETTINGS
 # Email settings
-EMAIL_BACKEND = os.getenv('EMAIL_BACKEND')
-EMAIL_HOST = os.getenv('EMAIL_HOST')
-EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
-EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS') == 'True'
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
+# EMAIL_BACKEND = os.getenv('EMAIL_BACKEND')
+# EMAIL_HOST = os.getenv('EMAIL_HOST')
+# EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
+# EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS') == 'True'
+# EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+# EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+# DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
+
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+#         'LOCATION': 'redis://127.0.0.1:6379/1',
+#     }
+# }
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'mailhog'
+EMAIL_PORT = 1025
+EMAIL_HOST_USER = None  # Try None instead of empty string
+EMAIL_HOST_PASSWORD = None  # Try None instead of empty string
+EMAIL_USE_TLS = False
+EMAIL_USE_SSL = False
+DEFAULT_FROM_EMAIL = 'from@example.com'
+
+
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'

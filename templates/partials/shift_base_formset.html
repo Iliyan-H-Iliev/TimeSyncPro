@@ -1,0 +1,30 @@
+{% load filters %}
+
+<div class="formset-form base-formset">
+
+<div class="formset-row">
+    {% render_field form.start_time wrapper_class="form-row" class="form-control" label_class="form-label" %}
+    {% render_field form.end_time wrapper_class="form-row" class="form-control" label_class="form-label" %}
+</div>
+<div class="formset-colon">
+    <h4 class="required-label">Please select working week days or pattern "on – off" days</h4>
+<div class="formset-colon work-days">
+
+    {% render_field form.week_days wrapper_class="form-row" class="form-control" label_class="form-label" %}
+    <div class="formset-row">
+        {% render_field form.days_on wrapper_class="form-row" class="form-control" label_class="form-label" %}
+        {% render_field form.days_off wrapper_class="form-row" class="form-control" label_class="form-label" %}
+    </div>
+</div>
+</div>
+<div class="formset-row">
+    {% render_field form.duration_hours wrapper_class="form-row" class="form-control" label_class="form-label" %}
+    {% render_field form.duration_minutes wrapper_class="form-row" class="form-control" label_class="form-label" %}
+    <div class="hidden">{{ form.DELETE }}</div>
+</div>
+    
+    {% include "partials/button_remove_block.html" %}
+    
+</div>
+
+

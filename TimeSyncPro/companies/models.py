@@ -75,24 +75,24 @@ class Company(HistoryMixin, EmailFormatingMixin, CreatedModifiedMixin):
         null=False,
     )
 
-    holiday_days_per_year = models.PositiveSmallIntegerField(
+    annual_leave = models.PositiveSmallIntegerField(
         null=False,
         blank=False,
     )
 
-    transferable_holiday_days = models.PositiveSmallIntegerField(
+    max_carryover_leave = models.PositiveSmallIntegerField(
         # default=DEFAULT_TRANSFERABLE_LEAVE_DAYS,
         null=False,
         blank=False,
     )
 
-    minimum_holiday_notice = models.PositiveSmallIntegerField(
+    minimum_leave_notice = models.PositiveSmallIntegerField(
         # default=MIN_LEAVE_NOTICE,
         null=False,
         blank=False,
     )
 
-    maximum_holiday_days_per_request = models.PositiveSmallIntegerField(
+    maximum_leave_days_per_request = models.PositiveSmallIntegerField(
         # default=MAX_LEAVE_DAYS_PER_REQUEST,
         null=False,
         blank=False,
@@ -198,7 +198,7 @@ class Department(HistoryMixin, models.Model):
         super().save(*args, **kwargs)
 
 
-class ShiftPattern(HistoryMixin, models.Model):
+class Shift(HistoryMixin, models.Model):
     MIN_NAME_LENGTH = 3
     MAX_NAME_LENGTH = 50
     MIN_ROTATION_WEEKS = 1
@@ -209,7 +209,7 @@ class ShiftPattern(HistoryMixin, models.Model):
     company = models.ForeignKey(
         Company,
         on_delete=models.CASCADE,
-        related_name='shift_patterns',
+        related_name='shifts',
         blank=False,
         null=False,
     )
@@ -247,20 +247,28 @@ class ShiftPattern(HistoryMixin, models.Model):
         current_date = self.start_date
         end_date = current_date + timedelta(days=30)
 
-        blocks = self.blocks.all().filter(pattern=self).order_by('order')
+        self.refresh_from_db()
+        blocks = self.blocks.all().order_by('order')
 
         for block in blocks:
             block.working_dates.clear()
 
-        while current_date <= end_date:
-            for block in blocks:
-                for day in block.on_off_days:
-                    if current_date > end_date:
-                        break
-                    if day == 1:  # Only create assignments for working days
-                        date_obj, created = Date.objects.get_or_create(date=current_date)
-                        block.working_dates.add(date_obj)
-                    current_date += timedelta(days=1)
+        try:
+            count = 0
+            while current_date <= end_date:
+                count += 1
+                if count > 1000:
+                    raise ValueError("Too many iterations")
+                for block in blocks:
+                    for day in block.on_off_days:
+                        if current_date > end_date:
+                            break
+                        if day == 1:  # Only create assignments for working days
+                            date_obj, created = Date.objects.get_or_create(date=current_date)
+                            block.working_dates.add(date_obj)
+                        current_date += timedelta(days=1)
+        except ValueError as e:
+            print(e)
 
     class Meta:
         unique_together = ('company', 'name')
@@ -271,6 +279,15 @@ class ShiftPattern(HistoryMixin, models.Model):
             if current_date in block.working_dates.all():
                 return block
         return None
+
+    def get_shift_pattern(self):
+        block = self.blocks.first()
+        if block:
+            if block.days_on and block.days_off:
+                return f"{block.days_on} on / {block.days_off} off"
+            else:
+                return "Custom"
+        return "No pattern"
 
     def __str__(self):
         return f"{self.name}"
@@ -290,12 +307,10 @@ class ShiftBlock(HistoryMixin, models.Model):
         "start_time",
         "end_time",
         "duration",
-        "order",
-        "working_dates",
     ]
 
     pattern = models.ForeignKey(
-        ShiftPattern,
+        Shift,
         on_delete=models.CASCADE,
         related_name='blocks'
     )
@@ -380,7 +395,7 @@ class Team(HistoryMixin, models.Model):
 
     tracked_fields = [
         "name",
-        "shift_pattern",
+        "shift",
         "holiday_approver",
         "department",
         "employees_holidays_at_a_time",
@@ -401,14 +416,14 @@ class Team(HistoryMixin, models.Model):
         null=False,
     )
 
-    shift_pattern = models.ForeignKey(
-        ShiftPattern,
+    shift = models.ForeignKey(
+        Shift,
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
         related_name='teams',
     )
-    
+
     holiday_approver = models.ForeignKey(
         Profile,
         on_delete=models.SET_NULL,
@@ -436,7 +451,7 @@ class Team(HistoryMixin, models.Model):
     )
 
     class Meta:
-        unique_together = ('company', "department", 'name')
+        unique_together = ('company', 'name')
 
     def get_team_members(self):
         return self.employees.all()
@@ -464,9 +479,8 @@ class Date(models.Model):
         #TODO Implement holiday check logic
         pass
 
-    def is_working_day(self, shift_pattern):
-        return self.shift_blocks.filter(pattern=shift_pattern).exists()
-
+    def is_working_day(self, shift):
+        return self.shift_blocks.filter(pattern=shift).exists()
 
 # class ShiftAssignment(models.Model):
 #     date = models.DateField()
@@ -478,5 +492,3 @@ class Date(models.Model):
 #
 #     def __str__(self):
 #         return f"{self.shift_block.pattern.name} - {self.date}"
-
-

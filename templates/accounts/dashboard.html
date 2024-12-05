@@ -1,14 +1,15 @@
-{% extends 'layout/auth-layout.html' %}
+{% extends 'layout/auth-user-layout.html' %}
 {% load static %}
 
 
 {% block style %}
+    <link rel="stylesheet" href="{% static 'styles/pages/profile.css' %}">
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script>
     <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/interaction@6.1.15/index.global.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
             var calendarEl = document.getElementById('calendar');
             var calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
@@ -20,10 +21,10 @@
                 editable: true,
                 selectable: true,
                 events: '/api/events/',
-                eventClick: function(info) {
+                eventClick: function (info) {
                     alert('Event: ' + info.event.title);
                 },
-                select: function(info) {
+                select: function (info) {
                     var title = prompt('Event Title:');
                     if (title) {
                         var eventData = {
@@ -40,7 +41,7 @@
                             headers: {
                                 'X-CSRFToken': getCookie('csrftoken')
                             },
-                            success: function(response) {
+                            success: function (response) {
                                 calendar.addEvent(response);
                             }
                         });
@@ -69,48 +70,118 @@
     </script>
 {% endblock %}
 
-{%  block page-content %}
-        <div class="content-area">
-        <section id="overview" class="dashboard-section">
-            <h3>Profile Overview</h3>
-            <p>Welcome back, {{ user.profile.full_name }}! Here's a quick summary of your account.</p>
-            <div class="overview-cards">
-                <div class="card">
-                    <h4>Remaining Holiday (days)</h4>
-                    <p>15</p>
+{% block page-content %}
+    <div class="content-area">
+        {% with profile=object.profile %}
+
+            <section id="overview" class="dashboard-section">
+                <h3>Dashboard</h3>
+                <p>Welcome back, {{ profile.full_name }}!</p>
+                <div class="overview-cards">
+                    <div class="card">
+                        <h4>Remaining Holiday</h4>
+                        <p>{{ profile.remaining_leave_days }} days</p>
+                    </div>
+                    <div class="card">
+                        <h4>Next Leave:</h4>
+                        <p>25/12/2024</p>
+                    </div>
+                    <div class="card">
+                        <h4>Next Leave After:</h4>
+                        <p>4 days</p>
+                    </div>
                 </div>
-                <div class="card">
-                    <h4>Next Holiday Start:</h4>
-                    <p>123</p>
+            </section>
+
+            <div class="profile-content">
+                <div class="profile-main calendar-container">
+                    <section class="profile-section  calendar">
+                        <div id="calendar"></div>
+                    </section>
                 </div>
-                <div class="card">
-                    <h4>Days To Next Holiday</h4>
-                    <p>4</p>
+
+                {# Sidebar Content #}
+                <div class="sidebar">
+
+                    <section class="profile-section stats-section">
+                        <h2 class="section-title">Contact Information</h2>
+                       
+                        <div class="contact-item">
+                            <span class="contact-label">Email</span>
+                            <span class="contact-value">{{ user.email }}</span>
+                        </div>
+
+                        <div class="contact-item">
+                            <span class="contact-label">Phone</span>
+                            {% if profile.phone_number %}
+                                <span class="contact-value">{{ profile.phone_number }}</span>
+                            {% else %}
+                                <span class="contact-value">Not Provided</span>
+                            {% endif %}
+                        </div>
+                        <div class="contact-item">
+
+                            <span class="contact-label">Location</span>
+                            {% if profile.address %}
+                                <span class="contact-value">{{ profile.address.country }}</span>
+                            {% else %}
+                                <span class="contact-value">Not Provided</span>
+                            {% endif %}
+                        </div>
+                    </section>
+
+                    <section class="profile-section stats-section">
+                        <h2 class="section-title">Work Information</h2>
+
+                        <div class="work-info-grid">
+                            <div class="work-item">
+                                <span class="work-label">Department</span>
+                                <span class="work-value">{{ profile.department.name }}</span>
+                            </div>
+                            <div class="work-item">
+                                <span class="work-label">Team</span>
+                                <span class="work-value">{{ profile.team.name }}</span>
+                            </div>
+                            <div class="work-item">
+                                <span class="work-label">Employee ID</span>
+                                <span class="work-value">{{ profile.employee_id }}</span>
+                            </div>
+                            <div class="work-item">
+                                <span class="work-label">Hire Date</span>
+                                <span class="work-value">{{ profile.date_of_hire|date:"M d, Y" }}</span>
+                            </div>
+                            <div class="work-item">
+                                <span class="work-label">Leave Approver:</span>
+                                <span class="work-value">{{ profile.leave_approver }}</span>
+                            </div>
+                            
+                        </div>
+                    </section>
+                
                 </div>
             </div>
-        </section>
 
-            <div id="calendar"></div>
+        {% endwith %}
     </div>
-    
+
 {% endblock %}
 
 
 {% block script %}
 
-{#    <script>#}
-{#        feather.replace();#}
-{##}
-{#        function toggleBio() {#}
-{#            var bioContent = document.getElementById('bioContent');#}
-{#            var bioIcon = document.getElementById('bioIcon');#}
-{#            bioContent.classList.toggle('visible');#}
-{#            if (bioContent.classList.contains('visible')) {#}
-{#                bioIcon.setAttribute('data-feather', 'chevron-up');#}
-{#            } else {#}
-{#                bioIcon.setAttribute('data-feather', 'chevron-down');#}
-{#            }#}
-{#            feather.replace();#}
-{#        }#}
-{#    </script>#}
+    {#    <script>#}
+    {#        feather.replace();#}
+    {##}
+    {#        function toggleBio() {#}
+    {#            var bioContent = document.getElementById('bioContent');#}
+    {#            var bioIcon = document.getElementById('bioIcon');#}
+    {#            bioContent.classList.toggle('visible');#}
+    {#            if (bioContent.classList.contains('visible')) {#}
+    {#                bioIcon.setAttribute('data-feather', 'chevron-up');#}
+    {#            } else {#}
+    {#                bioIcon.setAttribute('data-feather', 'chevron-down');#}
+    {#            }#}
+    {#            feather.replace();#}
+    {#        }#}
+    {#    </script>#}
 {% endblock %}

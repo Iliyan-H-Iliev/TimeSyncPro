@@ -1,0 +1,93 @@
+{% extends "layout/list-layout.html" %}
+{% load static %}
+
+{% block extra_style %}
+    <link rel="stylesheet" href="{% static 'styles/pages/employees.css' %}">
+{% endblock %}
+
+{% block crud_buttons %}
+    {% if object.profile.role|title in view_permissions %}
+    {% include "partials/crud_buttons_employees.html" %}
+    {% endif %}
+{% endblock %}
+
+{% block add_button %}
+    <a href="{% url 'register_employee' company_slug=user.company.slug %}" class="default-btn add-btn">Add Employee</a>
+{% endblock %}
+
+{% block element %}
+
+
+    <div class="employee-pic" style="width: 90px; height: auto;">
+        {% if object.profile.profile_picture %}
+            <img src="{{ object.profile.profile_picture.url }}"
+                 alt="{{ object.profile.full_name }}" class="">
+        {% else %}
+            <img src="{% static 'images/avatar.png' %}" alt="{{ object.profile.full_name }}"
+                 class="">
+        {% endif %}
+    </div>
+
+        <div class="employee-information">
+
+        <div class="container-profile-colon">
+            <div class="profile-item-row">
+                <span class="profile-label">Department:</span>
+                <span class="profile-value">{{ object.profile.department.name|default:"-" }}</span>
+            </div>
+
+            <div class="profile-item-row">
+                <span class="profile-label">Team:</span>
+                <span class="profile-value">{{ object.profile.team.name|default:"-" }}</span>
+            </div>
+        </div>
+    
+        <div class="container-profile-colon">
+            <div class="profile-item-row">
+                <span class="profile-label">Shift:</span>
+                <span class="profile-value">{{ object.profile.get_shift|default:"-" }}</span>
+            </div>
+
+            <div class="profile-item-row">
+                <span class="profile-label">Holiday Approver:</span>
+                <span class="profile-value">{{ object.profile.get_leave_approver|default:"-" }}</span>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+
+{#{% extends 'layout/company-layout.html' %}#}
+{##}
+{#{% block page-content %}#}
+{#    <h1>Company Members</h1>#}
+{#    #}
+{#{% if messages %}#}
+{#<ul class="messages">#}
+{#    {% for message in messages %}#}
+{#    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>#}
+{#    {% endfor %}#}
+{#</ul>#}
+{#{% endif %}#}
+{##}
+{#{% if company %}#}
+{#    <!-- Display company details -->#}
+{#    {% if company %}#}
+{#        <h2>Company: {{ company.name }}</h2>#}
+{#    {% endif %}#}
+{#    #}
+{#    <!-- Display Employees related to the company -->#}
+{#    {% if employees %}#}
+{#        <h3>Employees</h3>#}
+{#        <ul>#}
+{#            {% for employee in employees %}#}
+{#                <li>{{ employee.full_name }}</li>#}
+{#                <a href="{% url 'employee_profile' company_slug=company.slug slug=employee.user.slug %}">Profile</a>#}
+{#                <a href="{% url 'update_employee' company_slug=company.slug slug=employee.user.slug %}">Edit</a>#}
+{#            {% endfor %}#}
+{#        </ul>#}
+{#    {% endif %}#}
+{#{% endif %}#}
+{#{% endblock %}#}

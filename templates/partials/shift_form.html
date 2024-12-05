@@ -1,0 +1,16 @@
+{% load filters %}
+
+<div class="part-form-container">
+
+    {% for field in form %}
+        {% if not field.is_hidden %}
+            {% if field.name == 'rotation_weeks' %}
+                {% include "partials/rotation_weeks_field.html" %}
+            {% elif field.name == 'shift_members' or field.name == 'shift_teams' %}
+                {% render_field field wrapper_class="form-row" class="form-control select2-checkbox" label_class="form-label" %}
+            {% else %}
+                {% render_field field wrapper_class="form-row" class="form-control" label_class="form-label" %}
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+</div>

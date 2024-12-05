@@ -1,0 +1,13 @@
+{% extends "layout/list-layout.html" %}
+
+{% block crud_buttons %}
+    {% include "partials/crud_buttons_objects.html" %}
+{% endblock %}
+
+{#{% block add_button %}#}
+{#    <a href="{% url 'create_shift' company_slug=user.company.slug %}" class="default-btn add-btn">Add Shift</a>#}
+{#{% endblock %}#}
+
+{% block element %}
+    {% include "partials/shift_details.html" %}
+{% endblock %}

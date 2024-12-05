@@ -13,6 +13,7 @@
 </head>
 
 <body>
+{% csrf_token %}
 <div class="page-container">
 
     <div class="content-wrap">
@@ -26,7 +27,7 @@
                 {% block content %}
 
                 {% endblock content %}
-            
+
 
             </div>
         </main>
@@ -40,6 +41,7 @@
 
 {% block script %}
 {% endblock script %}
+<script src="{% static 'js/logout.js' %}"></script>
 </body>
 
 </html>

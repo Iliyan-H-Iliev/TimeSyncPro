@@ -1,46 +1,64 @@
-{% extends "layout/layout.html" %}
+{% extends "layout/company-layout.html" %}
+{% load static %}
 
-{% block content %}
+{% load filters %}
 
-    {% load filters %}
-    
-    <div class="site-main">
+{% block style %}
+    <link rel="stylesheet" href="{% static 'styles/pages/update.css' %}">
+{% endblock %}
+
+
+
+{% block page-content %}
+    <div class="content-area">
+        {{ massage.error }}
+
+
         <div class="form-container">
-            <h2>{{ form_title|default:"Form Title" }}</h2>
+            <h2>Update Employee - {{ object.profile.full_name }}</h2>
 
-            <form action="{% url 'update_employee' slug=user_to_edit.slug company_slug=user.profile.company.slug %}"
-                  method="post" enctype="multipart/form-data">
+            <form action="{% url 'update_employee'  slug=object.slug company_slug=user.company.slug %}" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
+                <div class="profile-form reg-form update-form">
+                    <div class="part-form-container">
+                        <h4>Profile Information</h4>
+                        {% for field in user_form %}
+                            {% if not field.is_hidden %}
+                                {% render_field field wrapper_class="form-row" class="form-control" label_class="form-label" %}
+                            {% endif %}
+                        {% endfor %}
 
-                {% for field in user_form %}
-                    <div class="form-group">
-                        {{ field.label_tag }}
-                        {{ field }}
-                        {% if field.errors %}
-                            {% for error in field.errors %}
-                                <p class="error-message">{{ error }}</p>
-                            {% endfor %}
-                        {% endif %}
+
+                        {% for field in profile_form %}
+                            {% if not field.is_hidden %}
+                                {% render_field field wrapper_class="form-row" class="form-control" label_class="form-label" %}
+                            {% endif %}
+                        {% endfor %}
                     </div>
-                {% endfor %}
-                {% for field in additional_form %}
-                    <div class="form-group">
-                        {{ field.label_tag }}
-                        {{ field }}
-                        {% if field.errors %}
-                            {% for error in field.errors %}
-                                <p class="error-message">{{ error }}</p>
-                            {% endfor %}
-                        {% endif %}
+                    <div class="part-form-container">
+                        <div class="form-and-buttons">
+                            <div>
+                                <h4>Profile Address</h4>
+                                {% for field in address_form %}
+                                    {% render_field field wrapper_class="form-row" class="form-control" label_class="form-label" %}
+                                {% endfor %}
+                            </div>
+                            <div class="btn-group">
+                                <button type="submit" class="default-btn">Update</button>
+                                {% include "partials/cancel_btn.html" %}
+                            </div>
+                        </div>
+
                     </div>
-                {% endfor %}
-                <div class="form-group">
-                    <input type="submit" value="{{ submit_text|default:'Submit' }}">
                 </div>
             </form>
         </div>
     </div>
+{% endblock %}
 
+{% block script %}
+
+{% endblock %}
 
 
     {#<form action="{% url 'full profile update' slug=user_to_edit.slug company_slug=user.profile.company.slug %}" method="post" enctype="multipart/form-data">#}
@@ -94,5 +112,5 @@
     {#    <button type="submit">Save</button>#}
     {#    {% csrf_token %}#}
     {#</form>#}
-
-{% endblock %}
+{##}
+{#{% endblock %}#}

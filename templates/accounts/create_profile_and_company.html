@@ -15,56 +15,38 @@
                     <div class="company-form reg-form">
                         <div class="part-form-container">
                             <h2>Company</h2>
+                            <h4>Company Details</h4>
                             {% for field in company_form %}
-                                <div class="form-row">
-                                    {{ field.label_tag }}
-                                    {{ field }}
-                                    {% if field.errors %}
-                                        <div class="errors">{{ field.errors }}</div>
-                                    {% endif %}
-                                </div>
+                                {% render_field field wrapper_class="form-row" class="form-control" label_class="form-label" %}
                             {% endfor %}
                         </div>
                         <div class="part-form-container">
                             <h4>Company Address</h4>
                             {% for field in company_address_form %}
-                                <div class="form-row">
-                                    {{ field.label_tag }}
-                                    {{ field }}
-                                    {% if field.errors %}
-                                        <div class="errors">{{ field.errors }}</div>
-                                    {% endif %}
-                                </div>
+                                {% render_field field wrapper_class="form-row" class="form-control" label_class="form-label" %}
                             {% endfor %}
                         </div>
                     </div>
                     <div class="profile-form reg-form">
                         <div class="part-form-container">
                             <h2>Profile</h2>
+                            <h4>Profile Details</h4>
                             {% for field in profile_form %}
-                                <div class="form-row">
-                                    {{ field.label_tag }}
-                                    {{ field }}
-                                    {% if field.errors %}
-                                        <div class="errors">{{ field.errors }}</div>
-                                    {% endif %}
-                                </div>
+                                {% render_field field wrapper_class="form-row" class="form-control" label_class="form-label" %}
                             {% endfor %}
                         </div>
                         <div class="part-form-container">
                             <h4>Profile Address</h4>
                             {% for field in profile_address_form %}
-                                <div class="form-row">
-                                    {{ field.label_tag }}
-                                    {{ field }}
-                                    {% if field.errors %}
-                                        <div class="errors">{{ field.errors }}</div>
-                                    {% endif %}
-                                </div>
+                                {% render_field field wrapper_class="form-row" class="form-control" label_class="form-label" %}
                             {% endfor %}
                         </div>
                     </div>
+
                 </div>
+                <p class="required-fields-note">
+                    <span class="required-star">*</span> Required fields
+                </p>
                 <button type="submit" class="btn submit-btn">Submit</button>
             </div>
 

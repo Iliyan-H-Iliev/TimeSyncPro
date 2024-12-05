@@ -65,21 +65,22 @@ class TSPUserManager(auth_models.BaseUserManager):
         return self.none()
 
 
-class EmployeeManager(models.Manager):
-    def get_queryset(self):
-        return super().get_queryset()
+# class ProfileManager(models.Manager):
+#     pass
+    # def get_queryset(self):
+    #     return super().get_queryset()
 
     # def administrators(self):
     #     return self.filter(role='Administrator')
 
-    def managers(self):
-        return self.filter(role='Manager')
-
-    def hr(self):
-        return self.filter(role='HR')
-
-    def team_leaders(self):
-        return self.filter(role='Team Leader')
-
-    def staff(self):
-        return self.filter(role='Staff')
+    # def managers(self):
+    #     return self.filter(role='Manager')
+    #
+    # def hr(self):
+    #     return self.filter(role='HR')
+    #
+    # def team_leaders(self):
+    #     return self.filter(role='Team Leader')
+    #
+    # def staff(self):
+    #     return self.filter(role='Staff')

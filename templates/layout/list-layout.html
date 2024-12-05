@@ -1,0 +1,149 @@
+{% extends 'layout/company-layout.html' %}
+{% load static %}
+{% load custom_tags %}
+
+{% block style %}
+    <link rel="stylesheet" href="{% static 'styles/pages/profile.css' %}">
+    <link rel="stylesheet" href="{% static 'styles/test.css' %}">
+    {% block extra_style %}{% endblock %}
+{% endblock %}
+
+{% block page-content %}
+    <div class="content-area">
+        <div class="section-title-button">
+            <h2 class="section-title">{{ title }}</h2>
+        
+            <form method="get" class="search-form">
+                {% for key, value in request.GET.items %}
+                    {% if key != 'search' and key != 'page' %}
+                        <input type="hidden" name="{{ key }}" value="{{ value }}">
+                    {% endif %}
+                {% endfor %}
+                <input type="text" name="search" value="{{ search_value }}" class="search-input" placeholder="Search">
+                <button type="submit" class="search-button">Search</button>
+            </form>
+        
+            {% if create_url %}
+                <a href="{% url create_url company_slug=user.company.slug %}" class="default-btn create"><i class="fa-solid fa-plus"></i>{{ button_names.create }}</a>
+            {% endif %}
+        </div>
+        {% if not objects %}
+            <h3 class="not-found">No {{ title }} Found</h3>
+        {% else %}
+            {% if error %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endif %}
+            {% for object in objects %}
+                <div class="profile-content">
+                    <div class="profile-main">
+                        <section class="profile-section">
+                            <div class="section-content profile-section-container">
+
+                                <div class="container-profile-colon item-container">
+                                    <div class="container-row">
+                                    {% if object.name %}
+                                        <h4 class="obj-title">{{ object.name }}</h4>
+                                    {% elif object.profile %}
+                                        <h4 class="obj-title">{{ object.profile.full_name }} - {{ object.profile.role }}{% if object.profile.is_company_admin %} - Company Administrator{% endif %}</h4>
+                                    {% endif %}
+                                    
+                                        {% block crud_buttons %}
+                                        
+                                        {% endblock %}
+                                    </div>
+                                    <div class="container-profile-row element-container employee-container">
+                                        {% block element %}
+
+                                        {% endblock %}
+                                    </div>
+                                </div>
+
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% if not page_obj.has_next and page_obj.number == 1 %}
+            <p></p>
+        {% else %}
+            <nav aria-label="Page navigation" class="paginate-nav">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% url_query_append_tag request 'page' 1 %}">&laquo; First</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link"
+                               href="?{% url_query_append_tag request 'page' page_obj.previous_page_number %}">Previous</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">&laquo; First</span>
+                        </li>
+                        <li class="page-item disabled">
+                            <span class="page-link">Previous</span>
+                        </li>
+                    {% endif %}
+
+                    {# Show current page number #}
+                    <li class="page-item active">
+            <span class="page-link">
+                {{ page_obj.number|default:"0" }} of {{ page_obj.paginator.num_pages|default:"0" }}
+            </span>
+                    </li>
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link"
+                               href="?{% url_query_append_tag request 'page' page_obj.next_page_number %}">Next</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link"
+                               href="?{% url_query_append_tag request 'page' page_obj.paginator.num_pages %}">Last
+                                &raquo;</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">Next</span>
+                        </li>
+                        <li class="page-item disabled">
+                            <span class="page-link">Last &raquo;</span>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    </div>
+
+{% endblock %}
+
+{#{% block script %}#}
+{#    <script>#}
+{#        function debounce(func, wait) {#}
+{#            let timeout;#}
+{#            return function executedFunction(...args) {#}
+{#                const later = () => {#}
+{#                    clearTimeout(timeout);#}
+{#                    func(...args);#}
+{#                };#}
+{#                clearTimeout(timeout);#}
+{#                timeout = setTimeout(later, wait);#}
+{#            };#}
+{#        }#}
+{##}
+{#        document.addEventListener('DOMContentLoaded', function () {#}
+{#            const searchInput = document.querySelector('.search-input');#}
+{#            const searchForm = document.querySelector('.search-form');#}
+{##}
+{#            const performSearch = debounce(() => {#}
+{#                searchForm.submit();#}
+{#            }, 500);  // 500ms delay#}
+{##}
+{#            searchInput.addEventListener('input', performSearch);#}
+{#        });#}
+{#    </script>#}
+{#{% endblock %}#}

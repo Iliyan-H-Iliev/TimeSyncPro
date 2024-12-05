@@ -1,0 +1,48 @@
+<div class="history-section">
+    <h3>History</h3>
+    {% if history %}
+        <div class="history-list">
+            {% for record in history %}
+                <div class="history-item">
+                    <span>{{ record.timestamp|date:"d M Y H:i" }}</span>
+                    <span>{{ record.get_action_display }}</span>
+                    <span>by {{ record.changed_by.email|default:"System" }}</span>
+                    <p>{{ record.change_summary }}</p>
+                </div>
+            {% endfor %}
+        </div>
+
+        {# Pagination for history #}
+        {% if history.has_other_pages %}
+            <nav aria-label="History pagination">
+                <ul class="pagination justify-content-center">
+                    {% if history.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?history_page=1">&laquo; First</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?history_page={{ history.previous_page_number }}">Previous</a>
+                        </li>
+                    {% endif %}
+
+                    <li class="page-item active">
+                        <span class="page-link">
+                            {{ history.number }} of {{ history.paginator.num_pages }}
+                        </span>
+                    </li>
+
+                    {% if history.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?history_page={{ history.next_page_number }}">Next</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?history_page={{ history.paginator.num_pages }}">Last &raquo;</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    {% else %}
+        <p>No history records found.</p>
+    {% endif %}
+</div>

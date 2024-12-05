@@ -1,0 +1,9 @@
+{% load filters %}
+
+<div id="empty-form-template" style="display: none;">
+        <h4>Week __prefix__</h4>
+        {{ formset.empty_form.id }}
+        {% with form=formset.empty_form %}
+            {% include "partials/shift_base_formset.html" %}
+        {% endwith %}
+</div>

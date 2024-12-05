@@ -8,6 +8,10 @@ class Index(AuthenticatedUserMixin, views.TemplateView):
     template_name = "common/index.html"
     success_url_name = "profile"
 
+    def test_func(self):
+        user = self.request.user
+        return not user.is_authenticated or user.is_staff or user.is_superuser
+
 
 def about(request):
     return render(request, 'common/about.html')
