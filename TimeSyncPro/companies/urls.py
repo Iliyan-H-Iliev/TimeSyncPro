@@ -6,8 +6,8 @@ from . import views
 #     EditTeamView, EditShiftPatternView, DeleteShiftPatternView, DeleteTeamView, CompanyMembersView, \
 #     DetailsCompanyView, EditCompanyView, DeleteCompanyView, CreateCompanyView
 from ..accounts.views import SignupEmployeeView, DetailsEmployeesProfileView, DetailedEditProfileView, \
-    DeleteEmployeeView, TeamEmployeesAPIView, ShiftEmployeesAPIView
-from ..history.views import TeamHistoryAPIView, ShiftHistoryAPIView, EmployeeHistoryAPIView
+    DeleteEmployeeView, TeamEmployeesAPIView, ShiftEmployeesAPIView, DepartmentEmployeesAPIView
+from ..history.views import TeamHistoryAPIView, ShiftHistoryAPIView, EmployeeHistoryAPIView, DepartmentHistoryAPIView
 from .views import ShiftTeamsApiView
 
 urlpatterns = [
@@ -27,11 +27,13 @@ urlpatterns = [
                 path("<int:pk>/history/", EmployeeHistoryAPIView.as_view(), name="employee_history_api"),
             ])),
             path("departments/", include([
-                path("", views.ShiftsView.as_view(), name="all_departments"),
+                path("", views.DepartmentsView.as_view(), name="all_departments"),
                 path("create/", views.CreateDepartmentView.as_view(), name="create_department"),
-                path("<int:pk>/", views.DetailsShiftView.as_view(), name="shift_department"),
-                path("<int:pk>/edit/", views.EditShiftView.as_view(), name="update_department"),
-                path("<int:pk>/delete/", views.DeleteShiftView.as_view(), name="delete_department"),
+                path("<int:pk>/", views.DetailsDepartmentView.as_view(), name="details_department"),
+                path("<int:pk>/edit/", views.EditDepartmentView.as_view(), name="update_department"),
+                path("<int:pk>/delete/", views.DeleteDepartmentView.as_view(), name="delete_department"),
+                path("<int:pk>/history/", DepartmentHistoryAPIView.as_view(), name="department_history_api"),
+                path("<int:pk>/employees/", DepartmentEmployeesAPIView.as_view(), name="department_employees_api"),
             ])),
             path("shifts/", include([
                 path("", views.ShiftsView.as_view(), name="all_shifts"),

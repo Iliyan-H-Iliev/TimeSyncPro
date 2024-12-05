@@ -573,3 +573,36 @@ i {
 }
 
 
+/* Delete section */
+
+.delete-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+    /*margin-top: 1rem;*/
+    width: max(70%, 500px);
+    margin: 0 auto;
+}
+
+.delete-section .button-container {
+    display: flex;
+    gap: 1rem;
+}
+
+.delete-section h4 {
+    font-size: 1.5em;
+}
+
+.delete-section .default-btn {
+    font-size: 1.2em;
+    padding: 0.5rem 1rem;
+}
+
+
+.delete-section .warning,
+.delete-section strong,
+.delete-section h2 {
+    color: var(--secondary-red);
+}
+

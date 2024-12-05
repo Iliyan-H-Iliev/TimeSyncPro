@@ -85,7 +85,6 @@ class EditTeamForm(TeamBaseForm):
         self.initial_team_members = set(self.team.employees.all()if self.team else [])
 
         if self.company:
-
             sorted_team_members = self.team.employees.all().order_by('first_name', 'last_name')
             sorted_non_team_members = self.team.company.employees.filter(team=None).order_by('first_name', 'last_name')
             combined_queryset = sorted_team_members | sorted_non_team_members

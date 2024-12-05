@@ -15,7 +15,7 @@
         </div>
         <ul class="profile-nav">
             <li><a href="{% url 'company_profile' company_slug=user.company.slug %}">Company Details</a></li>
-            <li><a href="{% url 'profile' slug=user.slug %}">Departments</a></li>
+            <li><a href="{% url 'all_departments' company_slug=user.company.slug %}">Departments</a></li>
             <li><a href="{% url 'all_teams' company_slug=user.company.slug %}">Teams</a></li>
             <li><a href="{% url 'all_shifts' company_slug=company.slug %}">Shifts</a></li>
         </ul>

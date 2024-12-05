@@ -11,14 +11,15 @@ from ..forms import CreateShiftForm, CreateShiftBlockFormSet, UpdateShiftForm, U
 from django.views import generic as views
 
 from ..utils import handle_shift_post
-from TimeSyncPro.common.views_mixins import CompanyObjectsAccessMixin, MultiplePermissionsRequiredMixin
+from TimeSyncPro.common.views_mixins import CompanyObjectsAccessMixin, MultiplePermissionsRequiredMixin, \
+    CompanyAccessMixin
 from ..views_mixins import ApiConfigMixin
 from ...accounts.models import Profile
 from ...accounts.view_mixins import CRUDUrlsMixin
 
 
 # TODO Can See Only Own Company Shifts
-class ShiftsView(CRUDUrlsMixin, LoginRequiredMixin, PermissionRequiredMixin, views.ListView):
+class ShiftsView(CompanyAccessMixin, CRUDUrlsMixin, LoginRequiredMixin, PermissionRequiredMixin, views.ListView):
     model = Shift
     template_name = 'companies/shift/all_shifts.html'
     context_object_name = 'objects'

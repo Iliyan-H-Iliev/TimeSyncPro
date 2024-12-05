@@ -92,6 +92,10 @@ class Command(BaseCommand):
                 "change_employee",
                 "delete_employee",
                 "view_employee",
+                "add_department",
+                "change_department",
+                "delete_department",
+                "view_department",
             ]
         )
 

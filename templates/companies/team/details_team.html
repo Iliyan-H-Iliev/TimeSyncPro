@@ -16,8 +16,8 @@
                     <div class="section-title-button">
                         <h2 class="section-title">{{ object.name }}</h2>
                         <div>
-                            <a href="{% url 'update_team' pk=object.pk company_slug=user.company.slug %}"
-                               class="default-btn large-btn">Edit</a>
+                            <a href="{% url 'update_team' pk=object.pk company_slug=object.company.slug %}" class="default-btn large-btn edit"><i class="fa-regular fa-pen-to-square"></i></a>
+                            <a href="{% url 'delete_team' pk=object.pk company_slug=object.company.slug %}" class="default-btn large-btn delete"><i class="fa-solid fa-trash-can"></i></a>
                         </div>
                     </div>
 

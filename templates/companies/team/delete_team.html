@@ -1,16 +1,31 @@
-{% extends 'layout/layout.html' %}
+{% extends 'layout/company-layout.html' %}
+{% load static %}
+{% load custom_tags %}
+{% block style %}
+    <link rel="stylesheet" href="{% static 'styles/pages/profile.css' %}">
+{% endblock %}
 
-{% block content %}
-    <div class="container">
-        <h1>Delete Team</h1>
-        <p>Are you sure you want to delete the team "<strong>{{ team.name }}</strong>"?</p>
-        <p>This action cannot be undone.</p>
-        <form method="post">
-            {% csrf_token %}
-            <div class="button-container">
-                <button type="submit" class="button button-yes">Yes, delete it</button>
-                <a href="{% url 'all_teams' company_slug=request.user.company.slug %}" class="button button-no">No, go back</a>
+{% block page-content %}
+    <div class="content-area">
+        <div class="profile-content">
+            <div class="profile-main">
+                <section class="profile-section delete-section">
+                    <h2>Delete Team</h2>
+                    <h4>Are you sure you want to delete the team "<strong>{{ object.name }}</strong>"?</h4>
+                    <h4 class="warning">This action cannot be undone.</h4>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="button-container">
+                            <button type="submit" class="default-btn delete">Delete</button>
+                            <button type="button" class="default-btn" id="cancel-btn">Cancel</button>
+                        </div>
+                    </form>
+                </section>
             </div>
-        </form>
+        </div>
     </div>
+{% endblock %}
+
+{% block script %}
+    <script src="{% static 'js/cancel-btn.js' %}"></script>
 {% endblock %}
