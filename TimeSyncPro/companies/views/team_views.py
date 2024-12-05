@@ -1,21 +1,18 @@
-from django.core.paginator import Paginator
-from django.db.models import Prefetch, Q, OuterRef
-from django.urls import reverse_lazy, reverse
+from django.db.models import Prefetch, Q
+from django.urls import reverse
 from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin
 
 from ..models import Shift, Team, Department
 from ..forms import CreateTeamForm, EditTeamForm
 from django.views import generic as views
 
-from TimeSyncPro.common.views_mixins import NotAuthenticatedMixin, CompanyObjectsAccessMixin, MultiplePermissionsRequiredMixin
+from TimeSyncPro.common.views_mixins import CompanyObjectsAccessMixin, CompanyAccessMixin
 from ..views_mixins import ApiConfigMixin
 from ...accounts.models import Profile
 from ...accounts.view_mixins import CRUDUrlsMixin
-from ...history.models import History
-from ...history.views_mixins import HistoryViewMixin
 
 
-class TeamsView(CRUDUrlsMixin, LoginRequiredMixin, PermissionRequiredMixin, views.ListView):
+class TeamsView(CompanyAccessMixin, CRUDUrlsMixin, LoginRequiredMixin, PermissionRequiredMixin, views.ListView):
     model = Team
     template_name = 'companies/team/all_teams.html'
     permission_required = 'companies.view_team'
@@ -110,7 +107,7 @@ class EditTeamView(CompanyObjectsAccessMixin, LoginRequiredMixin, PermissionRequ
                    'company__shifts',
                    queryset=Shift.objects.select_related('company')
                ),
-        ).filter(company=self.request.user.profile.company))
+        ).filter(company=self.request.user.company))
 
         return queryset
 
@@ -125,15 +122,7 @@ class EditTeamView(CompanyObjectsAccessMixin, LoginRequiredMixin, PermissionRequ
             'company': self.request.user.profile.company,
             'team': self.object,
         })
-        # kwargs['user'] = self.request.user
-        # kwargs['company'] = self.request.user.company
-        # kwargs['team'] = self.object
         return kwargs
-
-    # def get_object(self, queryset=None):
-    #     if not queryset:
-    #         queryset = self.get_queryset()
-    #     return queryset.get(pk=self.kwargs.get('pk'))
 
 
 class DeleteTeamView(CompanyObjectsAccessMixin, LoginRequiredMixin, PermissionRequiredMixin, views.DeleteView):
@@ -141,37 +130,21 @@ class DeleteTeamView(CompanyObjectsAccessMixin, LoginRequiredMixin, PermissionRe
     template_name = 'companies/team/delete_team.html'
     permission_required = 'companies.delete_team'
 
-
     def get_success_url(self):
         company_slug = self.request.user.company.slug
         return reverse('all_teams', kwargs={'company_slug': company_slug})
-
-    def get_object(self, queryset=None):
-        return self.get_queryset().get(pk=self.kwargs.get('pk'))
-
-    def get(self, request, *args, **kwargs):
-        return self.post(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        team = self.get_object()
-        team.employees.update(team=None)
-        return super().post(request, *args, **kwargs)
 
 
 class DetailsTeamView(ApiConfigMixin, CompanyObjectsAccessMixin, LoginRequiredMixin, PermissionRequiredMixin, views.DetailView):
     model = Team
     template_name = 'companies/team/details_team.html'
     permission_required = 'companies.view_team'
-    # history_paginate_by = 1
-    # employees_paginate_by = 10
+
     employee_api_url_name = 'team-employees-api'
     history_api_url_name = 'team-history-api'
 
     def get_queryset(self):
         queryset = super().get_queryset()
-
-        if not hasattr(self.request.user, 'profile'):
-            return queryset.none()
 
         queryset = (queryset.select_related(
             'company',
@@ -184,19 +157,3 @@ class DetailsTeamView(ApiConfigMixin, CompanyObjectsAccessMixin, LoginRequiredMi
 
         return queryset
 
-    # def get_context_data(self, **kwargs):
-    #     context = super().get_context_data(**kwargs)
-    #
-    #     employees = self.object.employees.select_related(
-    #         'user',
-    #         'department',
-    #     ).order_by('first_name')
-    #     employees_page = self.request.GET.get('employees_page', 1)
-    #     employees_paginator = Paginator(employees, self.employees_paginate_by)
-    #     context['employees'] = employees_paginator.get_page(employees_page)
-    #     context['team_id'] = self.object.id
-    #     context['company_slug'] = self.object.company.slug
-    #     return context
-
-    def get_object(self, queryset=None):
-        return self.get_queryset().get(pk=self.kwargs.get('pk'))

@@ -31,7 +31,7 @@ from TimeSyncPro.accounts.view_mixins import OwnerRequiredMixin, \
     DynamicPermissionMixin, SuccessUrlMixin
 from TimeSyncPro.common.models import Address
 # from TimeSyncPro.core.utils import format_email
-from TimeSyncPro.common.views_mixins import NotAuthenticatedMixin, CompanyObjectsAccessMixin, \
+from TimeSyncPro.common.views_mixins import CompanyObjectsAccessMixin, \
     MultiplePermissionsRequiredMixin, AuthenticatedUserMixin, UserDataMixin, SmallPagination, ReturnToPageMixin
 import TimeSyncPro.companies.forms as company_forms
 import TimeSyncPro.common.forms as common_forms

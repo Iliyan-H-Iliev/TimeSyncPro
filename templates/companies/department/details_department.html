@@ -16,17 +16,35 @@
                     <div class="section-title-button">
                         <h2 class="section-title">{{ object.name }}</h2>
                         <div>
-                            <a href="{% url 'update_shift' pk=object.pk company_slug=object.company.slug %}" class="default-btn large-btn edit"><i class="fa-regular fa-pen-to-square"></i></a>
-                            <a href="{% url 'delete_shift' pk=object.pk company_slug=object.company.slug %}" class="default-btn large-btn delete"><i class="fa-solid fa-trash-can"></i></a>
+                            <a href="{% url 'update_department' pk=object.pk company_slug=object.company.slug %}" class="default-btn large-btn edit"><i class="fa-regular fa-pen-to-square"></i></a>
+                            <a href="{% url 'delete_department' pk=object.pk company_slug=object.company.slug %}" class="default-btn large-btn delete"><i class="fa-solid fa-trash-can"></i></a>
                         </div>
                     </div>
 
                     <div class="section-content profile-section-container">
 
                         <div class="container-profile-colon">
-                            <h4>Shift Information</h4>
+                            <h4>Team Information</h4>
                             <div class="container-profile-row">
-                                {% include "partials/shift_details.html" %}
+
+                                <div class="profile-item-row">
+                                    <span class="profile-label">Department:</span>
+                                    <span class="profile-value">{{ object.department.name|default:"-" }}</span>
+                                </div>
+
+                                <div class="profile-item-row">
+                                    <span class="profile-label">Shifts:</span>
+                                    <span class="profile-value">{{ object.shift.name }}</span>
+                                </div>
+                                <div class="profile-item-row">
+                                    <span class="profile-label">Employees:</span>
+                                    <span class="profile-value">{{ object.employees.count }}</span>
+                                </div>
+                                <div class="profile-item-row">
+                                    <span class="profile-label">Holiday Approver:</span>
+                                    <span class="profile-value">{{ object.holiday_approver|default:"-" }}</span>
+                                </div>
+
                             </div>
                         </div>
                     </div>
@@ -34,14 +52,9 @@
                 <div class="dynamic-load">
                     <div class="team-detail">
                         <div class="employees-section">
-                            <h3>Shift Members</h3>
+                            <h3>Department Members</h3>
                             <div id="employees-list"></div>
                             <div id="employees-pagination"></div>
-                        </div>
-                        <div class="teams-section">
-                            <h3>Teams</h3>
-                            <div id="teams-list"></div>
-                            <div id="teams-pagination"></div>
                         </div>
 
                         <div class="history-section">
@@ -58,16 +71,16 @@
 
 {#{% block script %}#}
 {#    {% if api_config %}#}
-{#        <script>#}
-{#            const apiConfig = {{ api_config|to_json|safe }};#}
-{#            document.addEventListener('DOMContentLoaded', function () {#}
-{#                try {#}
-{#                    initializeDetails(apiConfig);#}
-{#                } catch (error) {#}
-{#                    console.error('Error:', error);#}
-{#                }#}
-{#            });#}
-{#        </script>#}
+{#    <script>#}
+{#        const apiConfig = {{ api_config|to_json|safe }};#}
+{#        document.addEventListener('DOMContentLoaded', function() {#}
+{#            try {#}
+{#                initializeDetails(apiConfig);#}
+{#            } catch (error) {#}
+{#                console.error('Error:', error);#}
+{#            }#}
+{#        });#}
+{#    </script>#}
 {#    {% endif %}#}
 {#    <script src="{% static 'js/team-details.js' %}"></script>#}
 {##}
@@ -89,14 +102,12 @@
 {#    <script src="{% static 'js/team-details.js' %}"></script>#}
     <script src="{% static 'js/modules/employees.js' %}"></script>
     <script src="{% static 'js/modules/history.js' %}"></script>
-    <script src="{% static 'js/modules/teams.js' %}"></script>
     <script src="{% static 'js/modules/pagination.js' %}"></script>
     <script src="{% static 'js/modules/utils.js' %}"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         loadEmployees();
         loadHistory();
-        loadTeams();
     });
 </script>
     

@@ -14,9 +14,9 @@
     <div class="content-area">
 
         <div class="form-container">
-            <h2>Create Team</h2>
+            <h2>Create Department</h2>
 
-            <form action="{% url 'create_team' company_slug=user.company.slug %}" method="post"
+            <form action="{% url 'create_department' company_slug=user.company.slug %}" method="post"
                   enctype="multipart/form-data">
                 {% csrf_token %}
                             <div class="profile-form reg-form ">
@@ -25,7 +25,7 @@
                         <h4>Information</h4>
                         {% for field in form %}
                             {% if not field.is_hidden %}
-                                {% if field.name == 'team_members' %}
+                                {% if field.name == 'department_members' %}
                                     {% render_field field wrapper_class="form-row" class="form-control select2-checkbox" label_class="form-label" %}
                                 {% else %}
                                     {% render_field field wrapper_class="form-row" class="form-control" label_class="form-label" %}

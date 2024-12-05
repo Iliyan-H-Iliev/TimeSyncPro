@@ -12,16 +12,27 @@ from django.urls import reverse
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
+from TimeSyncPro.companies.models import Company
+
 UserModel = get_user_model()
 
 
 # from TimeSyncPro.accounts.utils import get_obj_company, get_user_by_slug
 # TODO move to accounts
 
-class NotAuthenticatedMixin(object):
+
+class CompanyAccessMixin:
     def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            return redirect('signin user')
+
+        user_company = request.user.company
+
+        if not user_company:
+            raise PermissionDenied("You must be associated with a company")
+
+        target_company = get_object_or_404(Company, slug=kwargs.get('company_slug'))
+
+        if user_company != target_company:
+            raise PermissionDenied("You can only access your own company's data")
 
         return super().dispatch(request, *args, **kwargs)
 
@@ -77,7 +88,6 @@ class CompanyObjectsAccessMixin:
         try:
             self.object = self.get_object()
 
-            # Check if object belongs to user's company
             if not self.get_company_permission(self.object):
                 raise PermissionDenied(
                     f"You can only view {self.model._meta.verbose_name} within your own company."
@@ -186,7 +196,7 @@ class AuthenticatedUserMixin(UserPassesTestMixin):
 
 
 class SmallPagination(PageNumberPagination):
-    page_size = 2
+    page_size = 4
     page_size_query_param = 'page_size'
     max_page_size = 100
 
