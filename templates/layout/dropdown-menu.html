@@ -7,7 +7,7 @@
                 <img class="rounded-circle" src="{{ user.profile.profile_picture }}"
                      title="profile" alt="image">
             {% else %}
-                <img class="rounded-circle" src="{% static 'images/profile-black.png' %}"
+                <img class="rounded-circle" src="{% static 'images/profile-blue.png' %}"
                      title="profile"
                      alt="image">
             {% endif %}
@@ -17,7 +17,7 @@
         <li><a href="{% url 'dashboard' slug=user.slug %}">Dashboard</a></li>
         <li><a href="{% url 'profile'  slug=user.slug  %}">Profile</a></li>
         <li><a class="dropdown-item" href="{% url 'password_change' %}">Change Password</a></li>
-        <li><a class="dropdown-item" href="{% url 'sign_out' %}">Log Out</a></li>
+        <li><a class="dropdown-item logout-link" href="#">Log Out</a></li>
     </ul>
 </div>
 

@@ -1,51 +1,61 @@
-{% extends "layout/layout.html" %}
+{% extends "layout/auth-user-layout.html" %}
+{% load static %}
+
 {% load filters %}
 
-{% block content %}
+{% block style %}
+    <link rel="stylesheet" href="{% static 'styles/pages/update.css' %}">
+{% endblock %}
 
-    <div class="form-container">
-        <h2>{{ form_title|default:"Form Title" }}</h2>
 
-        <form action="{% url 'update_profile'  slug=user.slug %}" method="post" enctype="multipart/form-data">
-        {% csrf_token %}
 
-            {% for field in user_form %}
-                <div class="form-group">
-                    {{ field.label_tag }}
-                    {{ field }}
-                    {% if field.errors %}
-                        {% for error in field.errors %}
-                            <p class="error-message">{{ error }}</p>
+{% block page-content %}
+    <div class="content-area">
+        {{ massage.error }}
+
+
+        <div class="form-container">
+            <h2>Update Profile</h2>
+
+            <form action="{% url 'update_profile'  slug=user.slug %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="profile-form reg-form update-form">
+                    <div class="part-form-container">
+                        <h4>Profile Information</h4>
+                        {% for field in user_form %}
+                            {% if not field.is_hidden %}
+                                {% render_field field wrapper_class="form-row" class="form-control" label_class="form-label" %}
+                            {% endif %}
                         {% endfor %}
-                    {% endif %}
-                </div>
-            {% endfor %}
-            {% for field in additional_form %}
-                <div class="form-group">
-                    {{ field.label_tag }}
-                    {{ field }}
-                    {% if field.errors %}
-                        {% for error in field.errors %}
-                            <p class="error-message">{{ error }}</p>
+
+
+                        {% for field in profile_form %}
+                            {% if not field.is_hidden %}
+                                {% render_field field wrapper_class="form-row" class="form-control" label_class="form-label" %}
+                            {% endif %}
                         {% endfor %}
-                    {% endif %}
+                    </div>
+                    <div class="part-form-container">
+                        <div class="form-and-buttons">
+                            <div>
+                                <h4>Profile Address</h4>
+                                {% for field in address_form %}
+                                    {% render_field field wrapper_class="form-row" class="form-control" label_class="form-label" %}
+                                {% endfor %}
+                            </div>
+                            <div class="btn-group">
+                                <button type="submit" class="default-btn">Update</button>
+                                {% include "partials/cancel_btn.html" %}
+                            </div>
+                        </div>
+
+                    </div>
                 </div>
-            {% endfor %}
-            <div class="form-group">
-                <input type="submit" value="{{ submit_text|default:'Submit' }}">
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
+{% endblock %}
 
-    {#    {{ user_form.as_table }}#}
-    {#    {% if additional_form %}#}
-    {#      {{ additional_form.as_table }}#}
-    {#    {% endif %}#}
-    {#    <button type="submit">Save</button>#}
-    {#    {% if user.is_company and user_to_edit == None %} }}#}
-    {#    <a href="{% url 'delete company'  slug=user.slug company_name=user.get_company_name %}">Delete Company</a>#}
-    {#    {% endif %}#}
-    {#    {% csrf_token %}#}
-    {#</form>#}
-    {#    #}
+{% block script %}
+
 {% endblock %}

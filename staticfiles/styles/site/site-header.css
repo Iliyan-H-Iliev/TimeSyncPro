@@ -7,9 +7,9 @@
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
     }
 
-    .container-header {
-        padding: 10px 0;
-    }
+    /*.container-header {*/
+    /*    padding: 10px 0;*/
+    /*}*/
 
 .site-header {
     width: 100%;
@@ -117,7 +117,7 @@
     position: absolute;
     top: 100%;
     right: 0;
-    background-color: #303134;
+    background-color: var(--primary-dark);
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
     z-index: 1000;
     min-width: 160px;
@@ -149,7 +149,7 @@
 }
 
 .dropdown-menu a:hover {
-    background-color: rgba(73, 74, 75, 0.99);
+    background-color: var(--primary-blue);
     border-radius: 8px;
 }
 
@@ -161,8 +161,8 @@
     border-radius: 50%;
 }
 
-.rounded-circle.hovered {
-    background-color: #38383a;
-}
+/*.rounded-circle.hovered {*/
+/*    background-color: var(--primary-blue);*/
+/*}*/
 
 

@@ -1,0 +1,17 @@
+<div class="profile-item-row">
+    <span class="profile-label">Department:</span>
+    <span class="profile-value">{{ object.department.name|default:"-" }}</span>
+</div>
+
+<div class="profile-item-row">
+    <span class="profile-label">Shifts:</span>
+    <span class="profile-value">{{ object.shift.name }}</span>
+</div>
+<div class="profile-item-row">
+    <span class="profile-label">Employees:</span>
+    <span class="profile-value">{{ object.employees.count }}</span>
+</div>
+<div class="profile-item-row">
+    <span class="profile-label">Holiday Approver:</span>
+    <span class="profile-value">{{ object.holiday_approver|default:"-" }}</span>
+</div>

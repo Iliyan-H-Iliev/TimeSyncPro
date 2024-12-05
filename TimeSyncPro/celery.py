@@ -13,5 +13,14 @@ app = Celery('TimeSyncPro')
 # the configuration object to child processes.
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
-# Load task modules from all registered Django app configs.
+app.conf.update(
+    broker_connection_retry_on_startup=True,  # Add this line
+)
+
+# Load task modules from all registered Django  app configs.
 app.autodiscover_tasks()
+
+
+@app.task(bind=True)
+def debug_task(self):
+    print(f'Request: {self.request!r}')

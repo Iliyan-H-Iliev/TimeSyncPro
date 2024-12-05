@@ -13,11 +13,13 @@
 @import url('elements/forms.css');
 @import url('elements/tables.css');
 @import url('elements/calendar.css');
+@import url('elements/required-fields.css');
 
 
 @import url('components/socials.css');
 @import url('components/side-navigation.css');
 @import url('components/navigation.css');
+@import url('components/select2-checkbox.css');
 
 @import url('pages/page.css');
 
@@ -27,5 +29,6 @@
 @import url('pages/home.css');
 @import url('pages/static_pages.css');
 @import url('site/main.css');
+
 @import url('test.css');
 

@@ -1,6 +1,10 @@
 #calendar {
-    width: max(300px, 80%);
+    width: max(300px, 90%);
     height: 500px;
     margin: 0 auto;
 
+}
+
+.fc-toolbar-chunk {
+    font-size: 0.8em;
 }

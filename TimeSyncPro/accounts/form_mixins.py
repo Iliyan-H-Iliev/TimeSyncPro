@@ -15,8 +15,37 @@ class ReadonlyFieldsFormMixin(forms.ModelForm):
 
     def _apply_readonly_on_fields(self):
         for field_name in self.readonly_field_names:
-            if field_name in self.fields:
-                self.fields[field_name].widget.attrs["readonly"] = "readonly"
+            if field_name not in self.fields:
+                continue
+
+            field = self.fields[field_name]
+
+            # Convert field to widget if it's not already one
+            if isinstance(field, forms.Field):
+                # Get the default widget for this field type
+                if isinstance(field, forms.DateField):
+                    field.widget = forms.DateInput()
+                elif isinstance(field, forms.EmailField):
+                    field.widget = forms.EmailInput()
+                elif isinstance(field, forms.BooleanField):
+                    field.widget = forms.CheckboxInput()
+                else:
+                    field.widget = forms.TextInput()
+
+            # Initialize attrs if not present
+            if not hasattr(field.widget, 'attrs'):
+                field.widget.attrs = {}
+
+            css_classes = field.widget.attrs.get('class', '').split()
+            css_classes.extend(['read-only'])
+
+            field.widget.attrs.update({
+                'readonly': 'readonly',
+                'aria-readonly': 'true',
+                'class': ' '.join(filter(None, css_classes)),
+                'tabindex': '-1'
+            })
+
 
     @property
     def readonly_field_names(self):
@@ -65,8 +94,7 @@ class CleanEmailMixin(forms.ModelForm):
         if not email:
             return email
 
-        # TODO - Move to a utility function formated email
-        email = UserModel.format_email(email)
+        email = UserModel.objects.normalize_email(email)
 
         if not hasattr(self, 'Meta') or not hasattr(self.Meta, 'model'):
             raise ImproperlyConfigured(
@@ -75,7 +103,6 @@ class CleanEmailMixin(forms.ModelForm):
 
         model = self.Meta.model
 
-        # Check if this is an update for an existing instance
         exclude_id = self.instance.id if self.instance and self.instance.pk else None
 
         if model.objects.filter(Q(email=email) & ~Q(id=exclude_id)).exists():

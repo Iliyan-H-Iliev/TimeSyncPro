@@ -9,7 +9,7 @@
                                              alt="TimeSyncPro"></a>
         </div>
 
-        {% if not request.user.is_authenticated or not request.user.profile or not request.user.company %}
+        {% if not request.user.is_authenticated or not user.profile or not user.company %}
 
             <nav class="navbar central-nav">
                 <ul class="navbar-ul">
@@ -30,7 +30,7 @@
 
         {% else %}
 
-            {% include "layout/auth_header.html" %}
+            {% include "layout/auth-header.html" %}
             {% include "layout/dropdown-menu.html" %}
             
         {% endif %}

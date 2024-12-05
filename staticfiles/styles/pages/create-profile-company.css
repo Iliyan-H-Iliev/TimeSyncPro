@@ -1,32 +1,32 @@
-.profile-company-form-container {
-    width: max(900px, 70%);
-    background-color: var(--background-alt);
-    margin: 30px auto;
-    padding: 30px 20px;
-}
+/*.profile-company-form-container {*/
+/*    width: max(900px, 70%);*/
+/*    background-color: var(--background-alt);*/
+/*    margin: 30px auto;*/
+/*    padding: 30px 20px;*/
+/*}*/
 
-.reg-form {
-    width: max(300px, 45%);
-    background-color: var(--primary-dark);
-    margin: 0 auto;
-    padding: 20px;
-    color: var(--text-dark-background);
-    display: flex;
-    flex-direction: column;
-    gap: 1.5em;
-}
+/*.reg-form {*/
+/*    width: max(300px, 45%);*/
+/*    background-color: var(--primary-dark);*/
+/*    margin: 0 auto;*/
+/*    padding: 20px;*/
+/*    color: var(--text-dark-background);*/
+/*    display: flex;*/
+/*    flex-direction: column;*/
+/*    gap: 1.5em;*/
+/*}*/
 
-.profile-company-form-container,
-.reg-form {
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+/*.profile-company-form-container,*/
+/*.reg-form {*/
+/*    border-radius: 8px;*/
+/*    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);*/
 
-}
+/*}*/
 
-.profile-company-form {
-    display: flex;
-    flex-direction: column;
-    gap: 2.7em;
+/*.profile-company-form {*/
+/*    display: flex;*/
+/*    flex-direction: column;*/
+/*    gap: 2.7em;*/
 
-}
+/*}*/
 

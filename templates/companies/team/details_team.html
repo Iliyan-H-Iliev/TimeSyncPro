@@ -1,0 +1,114 @@
+{% extends "layout/company-layout.html" %}
+
+{% load static %}
+{% load custom_tags %}
+
+{% block style %}
+    <link rel="stylesheet" href="{% static 'styles/pages/profile.css' %}">
+{% endblock %}
+
+{% block page-content %}
+    <div class="content-area">
+        <div class="profile-content">
+            <div class="profile-main">
+                <section class="profile-section">
+
+                    <div class="section-title-button">
+                        <h2 class="section-title">{{ object.name }}</h2>
+                        <div>
+                            <a href="{% url 'update_team' pk=object.pk company_slug=user.company.slug %}"
+                               class="default-btn large-btn">Edit</a>
+                        </div>
+                    </div>
+
+                    <div class="section-content profile-section-container">
+
+                        <div class="container-profile-colon">
+                            <h4>Team Information</h4>
+                            <div class="container-profile-row">
+
+                                <div class="profile-item-row">
+                                    <span class="profile-label">Department:</span>
+                                    <span class="profile-value">{{ object.department.name|default:"-" }}</span>
+                                </div>
+
+                                <div class="profile-item-row">
+                                    <span class="profile-label">Shifts:</span>
+                                    <span class="profile-value">{{ object.shift.name }}</span>
+                                </div>
+                                <div class="profile-item-row">
+                                    <span class="profile-label">Employees:</span>
+                                    <span class="profile-value">{{ object.employees.count }}</span>
+                                </div>
+                                <div class="profile-item-row">
+                                    <span class="profile-label">Holiday Approver:</span>
+                                    <span class="profile-value">{{ object.holiday_approver|default:"-" }}</span>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <div class="dynamic-load">
+                    <div class="team-detail">
+                        <div class="employees-section">
+                            <h3>Team Members</h3>
+                            <div id="employees-list"></div>
+                            <div id="employees-pagination"></div>
+                        </div>
+
+                        <div class="history-section">
+                            <h3>History</h3>
+                            <div id="history-list"></div>
+                            <div id="history-pagination"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{#{% block script %}#}
+{#    {% if api_config %}#}
+{#    <script>#}
+{#        const apiConfig = {{ api_config|to_json|safe }};#}
+{#        document.addEventListener('DOMContentLoaded', function() {#}
+{#            try {#}
+{#                initializeDetails(apiConfig);#}
+{#            } catch (error) {#}
+{#                console.error('Error:', error);#}
+{#            }#}
+{#        });#}
+{#    </script>#}
+{#    {% endif %}#}
+{#    <script src="{% static 'js/team-details.js' %}"></script>#}
+{##}
+{#{% endblock %}#}
+
+{% block script %}
+    {% if api_config %}
+        <script>
+            const apiConfig = {{ api_config|to_json|safe }};
+            document.addEventListener('DOMContentLoaded', function () {
+                try {
+                    initializeDetails(apiConfig);
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            });
+        </script>
+    {% endif %}
+{#    <script src="{% static 'js/team-details.js' %}"></script>#}
+    <script src="{% static 'js/modules/employees.js' %}"></script>
+    <script src="{% static 'js/modules/history.js' %}"></script>
+    <script src="{% static 'js/modules/pagination.js' %}"></script>
+    <script src="{% static 'js/modules/utils.js' %}"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        loadEmployees();
+        loadHistory();
+    });
+</script>
+    
+{% endblock %}

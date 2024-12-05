@@ -1,0 +1,16 @@
+{% extends 'layout/layout.html' %}
+
+{% block content %}
+    <div class="container">
+        <h1>Delete Shift Pattern</h1>
+        <p>Are you sure you want to delete the shift pattern "<strong>{{ shift.name }}</strong>"?</p>
+        <p>This action cannot be undone.</p>
+        <form method="post">
+            {% csrf_token %}
+            <div class="button-container">
+                <button type="submit" class="button button-yes">Yes, delete it</button>
+                <a href="{% url 'all_shifts' company_slug=object.company.slug %}" class="button button-no">No, go back</a>
+            </div>
+        </form>
+    </div>
+{% endblock %}

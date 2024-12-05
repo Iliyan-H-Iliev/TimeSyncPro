@@ -1,0 +1,17 @@
+<div class="profile-item-row">
+    <span class="profile-label">Description:</span>
+    <span class="profile-value">{{ object.description|truncatewords:5|default:"-" }}</span>
+</div>
+
+<div class="profile-item-row">
+    <span class="profile-label">Rotation Weeks:</span>
+    <span class="profile-value">{{ object.rotation_weeks|default:"-" }}</span>
+</div>
+<div class="profile-item-row">
+    <span class="profile-label">Pattern:</span>
+    <span class="profile-value">{{ object.get_shift_pattern|default:"-" }}</span>
+</div>
+<div class="profile-item-row">
+    <span class="profile-label">Start Date:</span>
+    <span class="profile-value">{{ object.start_date|default:"-" }}</span>
+</div>

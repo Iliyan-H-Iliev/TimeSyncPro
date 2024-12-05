@@ -1,0 +1,18 @@
+<div class="crud-buttons">
+    {% with company_slug=user.company.slug %}
+        {% if detail_url %}
+            <a href="{% url detail_url pk=object.pk company_slug=company_slug %}"
+               class="default-btn details crud-btn" title="Details"><i class="fa-solid fa-info"></i> {{ button_names.detail|default:"" }}</a>
+        {% endif %}
+
+        {% if update_url %}
+            <a href="{% url update_url pk=object.pk company_slug=company_slug %}"
+               class="default-btn edit crud-btn" title="Edit"><i class="fa-regular fa-pen-to-square"></i> {{ button_names.update|default:"" }}</a>
+        {% endif %}
+
+        {% if delete_url %}
+            <a href="{% url delete_url pk=object.pk company_slug=company_slug %}"
+               class="default-btn delete crud-btn" title="Delete"><i class="fa-regular fa-trash-can"></i> {{ button_names.delete|default:"" }}</a>
+        {% endif %}
+    {% endwith %}
+</div>

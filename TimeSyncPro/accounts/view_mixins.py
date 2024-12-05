@@ -1,36 +1,19 @@
-from django.contrib.auth.mixins import UserPassesTestMixin, AccessMixin
-from django.core.exceptions import ImproperlyConfigured
+
 from django.shortcuts import redirect
-from django.contrib import messages
+
 from django.urls import reverse
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 
 UserModel = get_user_model()
 
-from TimeSyncPro.accounts.models import Profile
-
-
-# class OwnerRequiredMixin(AccessMixin):
-#
-#     def _handle_no_permission(self):
-#         obj = self.get_object()
-#
-#         if not self.request.user.is_authenticated or obj != self.request.user:
-#             return self.handle_no_permission()
-#         return None
-#
-#     def get(self, *args, **kwargs):
-#         response = self._handle_no_permission()
-#         if response:
-#             return response
-#         return super().get(*args, **kwargs)
 
 class OwnerRequiredMixin:
-    def _handle_no_permission(self):
-        return redirect('home')  # or wherever you want to redirect
 
-    def get(self, request, *args, **kwargs):
+    def _handle_no_permission(self):
+        return redirect('index')  # or wherever you want to redirect
+
+    def dispatch(self, request, *args, **kwargs):
         # Get the user instead of the profile
         user = get_object_or_404(get_user_model(), slug=kwargs.get('slug'))
 
@@ -38,24 +21,16 @@ class OwnerRequiredMixin:
         if request.user != user:
             return self._handle_no_permission()
 
-        return super().get(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
-    def post(self, request, *args, **kwargs):
-        # Same check for POST requests
-        user = get_object_or_404(UserModel, slug=kwargs.get('slug'))
-
-        if request.user != user:
-            return self._handle_no_permission()
-
-        return super().post(request, *args, **kwargs)
-
-
-# class UserBySlugMixin:
-#     def get_object(self):
-#         queryset = self.queryset
-#         user_slug = self.kwargs['slug']
-#         user_to_edit = queryset.get(user_slug=user_slug)
-#         return user_to_edit
+    # def post(self, request, *args, **kwargs):
+    #     # Same check for POST requests
+    #     user = get_object_or_404(UserModel, slug=kwargs.get('slug'))
+    #
+    #     if request.user != user:
+    #         return self._handle_no_permission()
+    #
+    #     return super().post(request, *args, **kwargs)
 
 
 class SuccessUrlMixin:
@@ -82,7 +57,16 @@ class DynamicPermissionMixin:
         if obj.__class__.__name__ == 'TSPUser':
             if obj.profile.is_company_admin:
                 return 'company_admin'
-            return obj.profile.role.lower().replace(' ', '_')
+
+            if obj.profile.role:
+                return obj.profile.role.lower().replace(' ', '_')
+
+            if obj.is_superuser:
+                return 'superuser'
+
+            if obj.is_staff:
+                return 'staff'
+
         return obj.__class__.__name__.lower()
 
     def get_action_permission_codename(self, obj, action: str):
@@ -94,46 +78,68 @@ class DynamicPermissionMixin:
         permission_codename = self.get_action_permission_codename(obj, action)
         return f"{obj_app_label}.{permission_codename}"
 
-    @staticmethod
-    def get_all_user_permissions( user):
-        all_permissions = user.get_all_permissions()
-        print(all_permissions)
-        return user.get_all_permissions()
+    # @staticmethod
+    # def get_all_user_permissions( user):
+    #     all_permissions = user.get_all_permissions()
+    #     print(all_permissions)
+    #     return user.get_all_permissions()
+
+    # def has_needed_permission(self, user, obj, action):
+    #
+    #     try:
+    #         needed_permission_codename = self.get_action_permission_codename(obj, action)
+    #     except AttributeError:
+    #         return False
+    #     try:
+    #         user_permissions_codenames = user.user_permissions_codenames
+    #     except AttributeError:
+    #         return False
+    #
+    #     has_permission = needed_permission_codename in user_permissions_codenames
+    #     return has_permission
 
     def has_needed_permission(self, user, obj, action):
         try:
             needed_permission_codename = self.get_action_permission_codename(obj, action)
+            # Use cached permissions
+            if hasattr(user, 'user_permissions_codenames'):
+                return needed_permission_codename in user.user_permissions_codenames
+
+            # Fallback if not cached
+            all_permissions = user.get_all_permissions()
+            user.user_permissions_codenames = {
+                perm.split('.')[-1] for perm in all_permissions
+            }
+            return needed_permission_codename in user.user_permissions_codenames
+
         except AttributeError:
             return False
-        try:
-            user_permissions_codenames = user.user_permissions_codenames
-        except AttributeError:
-            return False
-
-        has_permission = needed_permission_codename in user_permissions_codenames
-        return has_permission
 
 
-# TODO Fix this
-# class IsAuthorizedUserMixin(UserPassesTestMixin):
-#
-#     @staticmethod
-#     def _get_obj_company(obj_to_edit):
-#         try:
-#             return obj_to_edit.company
-#         except AttributeError as e:
-#             return obj_to_edit
-#
-#     def test_func(self, *args, **kwargs):
-#         user = self.request.user
-#         obj_to_edit = self.get_object()
-#
-#         return (
-#                 user.company == self._get_obj_company(obj_to_edit)
-#         )
-#
-#     def handle_no_permission(self):
-#         messages.error(self.request, "You are not authorized to access this page.")
-#         return redirect('index')
+class CRUDUrlsMixin:
+    crud_url_names = {  # Override in child class if needed
+        'create': 'create_{model}',
+        'detail': 'update_{model}',
+        'update': 'update_{model}',
+        'delete': 'delete_{model}'
+    }
 
+    button_names = {
+        'create': '',
+        'detail': '',
+        'update': '',
+        'delete': '',
+    }
 
+    def get_crud_urls(self):
+        model_name = self.model._meta.model_name
+        return {
+            f'{action}_url': pattern.format(model=model_name)
+            for action, pattern in self.crud_url_names.items()
+        }
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update(self.get_crud_urls())
+        context['button_names'] = self.button_names
+        return context

@@ -1,25 +1,56 @@
-{% extends "layout/layout.html" %}
-{% block content %}
-    {%  if messages %}
-        <ul class="messages">
-            {% for message in messages %}
-                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-            {% endfor %}
-        </ul>
-    {% endif %}
-
-{#<form action="{% url 'register employee' company_slug=company_slug%}?next={{ next }}" method="post">#}
+{% extends "layout/company-layout.html" %}
+{% load static %}
 {% load filters %}
-<form action="{% url 'register_employee' company_slug=company_slug%}" method="post">
-{#                <p>#}
-{#                    {{ form.username|placeholder:"Email" }}#}
-{#                </p>#}
-{#                <p>#}
-{#                    {{ form.password|placeholder:"Password" }}#}
-{#                </p>#}
-    {{ form.as_p }}
-                <button type="submit">Register</button>
 
+{% block style %}
+    <link rel="stylesheet" href="{% static 'styles/test.css' %}">
+{% endblock %}
+
+
+{% block page-content %}
+    <div class="content-area update-view">
+        <div class="form-container">
+            <h2>Register New Employee</h2>
+
+            <form action="{% url 'register_employee' company_slug=company_slug %}" method="post">
                 {% csrf_token %}
+                <div class="profile-form reg-form main-reg-form">
+                    <div class="profile-form reg-form update-form formset">
+                        <div class="part-form-container">
+                            <h4>Employee Information</h4>
+                        
+                            {% if form.non_field_errors %}
+                                <div class="alert alert-danger">
+                                    {% for error in form.non_field_errors %}
+                                        <p>{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        
+                            {% include "partials/form_non_field_errors.html" %}
+
+                            {% for field in form %}
+                                {% if not field.is_hidden %}
+                                    {% render_field field wrapper_class="form-row" class="form-control" label_class="form-label" %}
+                                {% endif %}
+                            {% endfor %}
+
+                            <div class="part-form-container">
+                                <br>
+                                <h4>Employee Address</h4>
+                                {% for field in address_form %}
+                                    {% render_field field wrapper_class="form-row" class="form-control" label_class="form-label" %}
+                                {% endfor %}
+                            </div>
+                            <div class="btn-group update-form-btn formset-update-btn">
+                                <button type="submit" class="default-btn">Register</button>
+                                {% include "partials/cancel_btn.html" %}
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </form>
+        </div>
+    </div>
 {% endblock %}

@@ -165,7 +165,7 @@
 #
 # class DetailedOwnEditProfileView(OwnerRequiredMixin, DetailedEditProfileView):
 #
-#     template_name = 'accounts/full_update_own_profile.html'
+#     template_name = 'accounts/update_profile.html'
 #     form_class = DetailedEditTSPUserForm
 #     detailed_edit = True
 #

@@ -1,0 +1,56 @@
+{% extends 'layout/company-layout.html' %}
+{% load static %}
+{% load filters %}
+
+{% block style %}
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="{% static 'styles/components/select2-checkbox.css' %}">
+{% endblock %}
+
+{% block page-content %}
+    <div class="content-area update-view">
+        <div class="form-container">
+            <h2>Create Shift</h2>
+
+            <form action="{% url 'create_shift' company_slug=company.slug %}"
+                  method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="profile-form reg-form ">
+                    <div class="profile-form reg-form update-form formset">
+                        <div class="part-form-container">
+                            <h4>Information</h4>
+                            {% include "partials/form_non_field_errors.html" %}
+
+                            {% with form=formset %}
+                                {% include "partials/form_non_field_errors.html" %}
+                            {% endwith %}
+
+                            {% include "partials/shift_form.html" %}
+
+                            <div class="part-form-container">
+                                {% include "partials/shift_formset.html" %}
+                                <!-- Hidden template for new forms -->
+                                {% include "partials/shift_empty_formset.html" %}
+                            </div>
+                            <div class="btn-group update-form-btn formset-update-btn">
+                                {% include "partials/button_add_block.html" %}
+                                {% include "partials/button_create.html" %}
+                                {% include "partials/cancel_btn.html" %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    {{ form.media }}
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.js"></script>
+    <script src="{% static 'js/select2-checkbox.js' %}"></script>
+    <script src="{% static 'js/formset.js' %}"></script>
+
+{% endblock %}
+

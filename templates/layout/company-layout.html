@@ -1,0 +1,16 @@
+{% extends "layout/layout.html" %}
+{% load static %}
+
+{% block content %}
+    <div class="profile-actions auth-container">
+        <div class="page-content">
+        
+            {% include "partials/company_dash_side.html" %}
+        
+            {% block page-content %}
+            {% endblock %}
+        
+        </div>
+    </div>
+
+{% endblock %}

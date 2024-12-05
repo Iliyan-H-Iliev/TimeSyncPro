@@ -1,39 +1,17 @@
-from datetime import date, timedelta
+from django.db import transaction
 from django.shortcuts import render, redirect
-from .models import ShiftPattern
+from .models import ShiftBlock, Team
+from django.db.models import Max
+
+from .. import settings
+from ..accounts.models import Profile
 
 
-def retrieve_combined_shift_blocks(formset, shift_pattern, is_edit):
-    unsaved_blocks = formset.save(commit=False)
-
-    if not is_edit:
-        return unsaved_blocks
-
-    unsaved_blocks_not_in_db = [block for block in unsaved_blocks if block.id is None]
-    unsaved_blocks_in_db = [block for block in unsaved_blocks if block.id is not None]
-
-    updated_ids = [block.id for block in unsaved_blocks_in_db]
-
-    saved_blocks = list(shift_pattern.blocks.exclude(id__in=updated_ids))
-
-    sorted_existing_blocks = sorted(saved_blocks + unsaved_blocks_in_db, key=lambda b: b.id)
-
-    combined_shift_blocks = sorted_existing_blocks + unsaved_blocks_not_in_db
-
-    return combined_shift_blocks
-
-
-def clear_shift_pattern_blocks_selected_days(shift_pattern):
-    blocks = shift_pattern.blocks.all()
-    for block in blocks:
-        block.selected_days = []
-        block.save()
-
-
-def has_consistent_block_type(form, combined_shift_blocks):
+def has_consistent_block_type(form, formset):
     blocks_set = set()
-    for block in combined_shift_blocks:
-        if block.selected_days:
+    for block in formset:
+        week_days = block.cleaned_data.get('week_days')
+        if week_days:
             blocks_set.add("selected_days")
         else:
             blocks_set.add("days_on_days_off")
@@ -43,37 +21,11 @@ def has_consistent_block_type(form, combined_shift_blocks):
     return True
 
 
-def is_duplicate_name(form, shift_pattern, is_edit=False):
-    company = shift_pattern.company
-    name = form.cleaned_data['name']
-
-    if is_edit:
-        if ShiftPattern.objects.filter(company=company, name=name).exclude(pk=shift_pattern.pk).exists():
-            form.add_error('name', 'Shift pattern with this name already exists for your company.')
-            return True
-    else:
-        if ShiftPattern.objects.filter(company=company, name=name).exists():
-            form.add_error('name', 'Shift pattern with this name already exists for your company.')
-            return True
-
-    return False
-
-
-def save_shift_blocks(formset, shift_pattern, combined_shift_blocks):
-    order = 1
-    for block in combined_shift_blocks:
-        block.pattern = shift_pattern
-        block.order = order
-        order += 1
-        block.save()
-    formset.save_m2m()
-
-
-def validate_days_on_off_in_shift_pattern(form, combined_shift_blocks):
+def validate_days_on_off_in_shift(form, formset):
     has_day_on = False
     has_days_off = False
 
-    for block in combined_shift_blocks:
+    for block in formset:
 
         if not block.instance.on_off_days:
             form.add_error(None, "Shift pattern must have days on and days off.")
@@ -97,44 +49,135 @@ def validate_days_on_off_in_shift_pattern(form, combined_shift_blocks):
     return True
 
 
-def validate_shift_pattern_start_date(form, shift_pattern, combined_shift_blocks):
+def validate_shift_start_date(form, formset):
     has_selected_days = True
 
-    for block in combined_shift_blocks:
-        if not block.selected_days:
+    for block in formset:
+        selected_days = block.cleaned_data.get('week_days')
+        if not selected_days:
             has_selected_days = False
             break
 
     if has_selected_days:
-        start_date = shift_pattern.start_date
+        start_date = form.cleaned_data.get('start_date')
         if start_date.weekday() != 0:
             form.add_error('start_date', 'Start date must be a Monday.')
             return False
         return True
+    return True
 
 
-def handle_shift_pattern_post(request, form, formset, pk, template_name, redirect_url):
-    render_parameters = {
-        'request': request,
-        'template_name': template_name,
-        'context': {'form': form, 'formset': formset, }
+def delete_shift_blocks(shift, is_existing):
+    if is_existing:
+        shift.blocks.all().delete()
+
+
+def clear_deleted_blocks(formset):
+    new_forms = []
+    for i, form in enumerate(formset):
+        if hasattr(formset, 'cleaned_data') and formset.cleaned_data[i].get('DELETE', False):
+            continue  # Skip forms marked for deletion
+        new_forms.append(form)
+    return new_forms
+
+
+def clean_formset(request, template_name, context, form, formset):
+    has_consistent = has_consistent_block_type(form, formset)
+    has_days_off = validate_days_on_off_in_shift(form, formset)
+    check_start_date = validate_shift_start_date(form, formset)
+
+    if not has_consistent or not has_days_off or not check_start_date:
+        return render(request, template_name, context)
+
+
+def save_shift_blocks(formset, shift):
+    with transaction.atomic():
+
+        blocks_to_create = []
+
+        for index, form in enumerate(formset, start=1):
+            if form.is_valid() and not form.cleaned_data.get('DELETE'):
+                block = form.save(commit=False)
+                block.pattern = shift
+                block.order = index
+                blocks_to_create.append(block)
+
+        ShiftBlock.objects.bulk_create(blocks_to_create)
+
+
+def save_shift_members(shift, form, is_existing=False):
+    final_shift_members = set(form.cleaned_data.get('shift_members', []))
+
+    if not is_existing:
+        Profile.objects.filter(id__in=[m.id for m in final_shift_members]).update(shift=shift)
+
+        return
+
+    members_to_remove = form.initial_shift_members - final_shift_members
+    Profile.objects.filter(id__in=[m.id for m in members_to_remove]).update(shift=None)
+
+    members_to_add = final_shift_members - form.initial_shift_members
+    Profile.objects.filter(id__in=[m.id for m in members_to_add]).update(shift=shift)
+
+
+def save_shift_teams(shift, form, is_existing=False):
+    final_shift_teams = set(form.cleaned_data.get('shift_teams', []))
+
+    if not is_existing:
+        Team.objects.filter(id__in=[t.id for t in final_shift_teams]).update(shift=shift)
+        return
+
+    teams_to_remove = form.initial_shift_teams - final_shift_teams
+    Team.objects.filter(id__in=[t.id for t in teams_to_remove]).update(shift=None)
+
+    teams_to_add = final_shift_teams - form.initial_shift_teams
+    Team.objects.filter(id__in=[t.id for t in teams_to_add]).update(shift=shift)
+
+
+def handle_shift_post(request, form, formset, pk, company, template_name, redirect_url, *args, **kwargs):
+
+    context = {
+        'form': form,
+        'formset': formset,
+        'company_slug': company.slug,
+        'pk': pk,
+        "company": company
     }
 
-    if form.is_valid() and formset.is_valid():
-        shift_pattern = form.save(commit=False)
-        combined_shift_blocks = retrieve_combined_shift_blocks(formset, shift_pattern, is_edit=bool(pk))
-        shift_pattern.company = request.user.company
-        is_duplicate = is_duplicate_name(form, shift_pattern, is_edit=bool(pk))
-        has_consistent = has_consistent_block_type(form, combined_shift_blocks)
-        has_days_off = validate_days_on_off_in_shift_pattern(form, formset)
-        check_start_date = validate_shift_pattern_start_date(form, shift_pattern, combined_shift_blocks)
+    obj = kwargs.get('obj', None)
 
-        if is_duplicate or not has_consistent or not has_days_off or not check_start_date:
-            return render(**render_parameters)
+    if obj:
+        context['object'] = obj
 
-        shift_pattern.save()
-        save_shift_blocks(formset, shift_pattern, combined_shift_blocks)
-        shift_pattern.generate_shift_working_dates()
-        return redirect(redirect_url)
+    with transaction.atomic():
+        try:
 
-    return render(**render_parameters)
+            with transaction.atomic():
+                try:
+                    is_existing = bool(pk)
+                    shift = form.save(commit=False)
+                    formset = clear_deleted_blocks(formset)
+                    shift.company = company
+                    clean_formset(request, template_name, context, form, formset)
+                    delete_shift_blocks(shift, is_existing=is_existing)
+                    shift.save()
+                    save_shift_blocks(shift=shift, formset=formset)
+                    save_shift_members(shift=shift, form=form, is_existing=is_existing)
+                    save_shift_teams(shift=shift, form=form, is_existing=is_existing)
+                    shift.save()
+
+                except Exception as e:
+                    # form.add_error(None, f"An unexpected error please try again:")
+                    if settings.DEBUG:
+                        form.add_error(None, f"{str(e)}")
+                    return render(request, template_name, context)
+
+            shift.generate_shift_working_dates()
+
+            return redirect(redirect_url, company_slug=company.slug)
+        except Exception as e:
+            # form.add_error(None, f"An unexpected error please try again:")
+            if settings.DEBUG:
+                form.add_error(None, f"{str(e)}")
+            return render(request, template_name, context)
+

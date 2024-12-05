@@ -1,0 +1,200 @@
+{% extends 'layout/company-layout.html' %}
+{% load custom_tags %}
+{% load static %}
+
+{% block style %}
+    <link rel="stylesheet" href="{% static 'styles/pages/profile.css' %}">
+{% endblock %}
+
+
+{% block page-content %}
+    <div class="content-area">
+
+        {#        {% with profile=object.profile %}#}
+        <div class="profile-content">
+            <div class="profile-main">
+                <section class="profile-section">
+                    <div class="section-title-button">
+                        <h2 class="section-title">Profile Information</h2>
+                        <div>
+                            {% if has_detailed_change_permission %}
+                            <a href="{% url 'update_employee' slug=object.slug company_slug=user.company.slug %}"
+                               class="default-btn edit"><i class="fa-regular fa-pen-to-square"></i></a>
+                            {% endif %}
+                            {% if has_delete_permission and user != object %}
+                            <a href="{% url 'delete_employee' slug=object.slug company_slug=user.company.slug %}"
+                                 class="default-btn delete"><i class="fa-regular fa-trash-can"></i></a>
+                            {% endif %}
+                            {#                    <a href="{% url 'update_profile' slug=user.slug %}" class="edit-profile-btn">Edit Profile</a>#}
+                            {#                                <a href="{% url 'password_change' %}" class="default-btn change-password">Change#}
+                            {#                                    Password</a>#}
+                        </div>
+
+                    </div>
+
+                    <div class="section-content profile-section-container">
+                        {#<div class="contact-grid">#}
+
+                        <div class="container-profile-colon">
+                            {#                                <h4>About Me</h4>#}
+                            <div class="container-profile-row">
+                                <div class="employee-pic">
+                                    {% if object.profile.profile_picture %}
+                                        <img src="{{ object.profile.profile_picture.url }}"
+                                             alt="{{ object.profile.full_name }}" class="avatar">
+                                    {% else %}
+                                        <img src="{% static 'images/avatar.png' %}" alt="{{ object.profile.full_name }}"
+                                             class="avatar">
+                                    {% endif %}
+                                </div>
+
+
+                                <div class=container-profile-colon">
+
+                                    <div class="profile-item-row">
+                                        <span class="profile-label">First Name:</span>
+                                        <span class="profile-value">{{ object.profile.first_name }}</span>
+                                    </div>
+                                    <div class="profile-item-row">
+                                        <span class="profile-label">Last Name:</span>
+                                        <span class="profile-value">{{ object.profile.last_name }}</span>
+                                    </div>
+                                    <div class="profile-item-row">
+                                        <span class="profile-label">Date Of Birth:</span>
+                                        <span class="profile-value">{{ object.profile.date_of_birth|default:"-" }}</span>
+                                    </div>
+                                    <div class="profile-item-row">
+                                        <span class="profile-label">Email:</span>
+                                        <span class="profile-value">{{ object.email }}</span>
+                                    </div>
+                                    <div class="profile-item-row">
+                                        <span class="profile-label">Phone:</span>
+                                        <span class="profile-value">{{ object.profile.phone_number|default:"-" }}</span>
+                                    </div>
+                                </div>
+
+
+                            </div>
+                        </div>
+
+                        {% with address=object.profile.address %}
+                            <div class="container-profile-colon">
+                                <h4>Address</h4>
+                                {% if not address %}
+                                    <h5>Not provided</h5>
+                                {% else %}
+                                    <div class="container-profile-row">
+                                        <div>
+
+                                            <div class="profile-item-row">
+                                                <span class="profile-label">House Number:</span>
+                                                <span class="profile-value">{{ address.house_number_or_name|default:"<span class=gray>-</span>" }}</span>
+                                            </div>
+
+                                            <div class="profile-item-row">
+                                                <span class="profile-label">Lane 1:</span>
+                                                <span class="profile-value">{{ address.line1|default:"<span class=gray>-</span>" }}</span>
+                                            </div>
+
+                                            <div class="profile-item-row">
+                                                <span class="profile-label">Lane 2:</span>
+                                                <span class="profile-value">{{ address.line2|default:"<span class=gray>-</span>" }}</span>
+                                            </div>
+
+                                            <div class="profile-item-row">
+                                                <span class="profile-label">Street:</span>
+                                                <span class="profile-value">{{ address.street|default:"<span class=gray>-</span>" }}</span>
+                                            </div>
+                                        </div>
+                                        <div>
+
+                                            <div class="profile-item-row">
+                                                <span class="profile-label">City:</span>
+                                                <span class="profile-value">{{ address.city|default:"<span class=gray>-</span>" }}</span>
+                                            </div>
+
+                                            <div class="profile-item-row">
+                                                <span class="profile-label">Postcode:</span>
+                                                <span class="profile-value">{{ address.postcode|default:"<span class=gray>-</span>" }}</span>
+                                            </div>
+
+                                            <div class="profile-item-row">
+                                                <span class="profile-label">Country:</span>
+                                                <span class="profile-value">{{ address.country.name|default:"<span class=gray>-</span>" }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endwith %}
+
+
+                        <div class="container-profile-colon">
+                            <h4>Work Information</h4>
+                            <div class="container-profile-row">
+
+                                <div class="profile-item-row">
+                                    <span class="profile-label">Department:</span>
+                                    <span class="profile-value">{{ object.profile.department.name|default:"-" }}</span>
+                                </div>
+                                <div class="profile-item-row">
+                                    <span class="profile-label">Team:</span>
+                                    <span class="profile-value">{{ object.profile.team.name|default:"-" }}</span>
+                                </div>
+                                <div class="profile-item-row">
+                                    <span class="profile-label">Shift:</span>
+                                    <span class="profile-value">{{ object.profile.shift.name|default:"-" }}</span>
+                                </div>
+                                <div class="profile-item-row">
+                                    <span class="profile-label">Employee ID:</span>
+                                    <span class="profile-value">{{ object.profile.employee_id|default:"-" }}</span>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <div class="dynamic-load">
+                    <div class="team-detail">
+ 
+
+                        <div class="history-section">
+                            <h3>History</h3>
+                            <div id="history-list"></div>
+                            <div id="history-pagination"></div>
+                        </div>
+                        
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        {#        {% endwith %}#}
+    </div>
+
+{% endblock %}
+
+{% block script %}
+    {% if api_config %}
+        <script>
+            const apiConfig = {{ api_config|to_json|safe }};
+            document.addEventListener('DOMContentLoaded', function () {
+                try {
+                    initializeDetails(apiConfig);
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            });
+        </script>
+    {% endif %}
+{#    <script src="{% static 'js/team-details.js' %}"></script>#}
+    <script src="{% static 'js/modules/history.js' %}"></script>
+    <script src="{% static 'js/modules/pagination.js' %}"></script>
+    <script src="{% static 'js/modules/utils.js' %}"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        loadHistory();
+    });
+</script>
+    
+{% endblock %}

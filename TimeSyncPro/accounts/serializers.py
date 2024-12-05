@@ -2,7 +2,8 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
-from TimeSyncPro.accounts.models import Company
+from TimeSyncPro.accounts.models import Profile
+from TimeSyncPro.companies.models import Company
 
 
 class SignupCompanySerializer(serializers.ModelSerializer):
@@ -54,3 +55,18 @@ class LoginSerializer(serializers.Serializer):
         if user and user.is_active:
             return user
         raise serializers.ValidationError("Invalid credentials")
+
+
+class EmployeeSerializer(serializers.ModelSerializer):
+    user_slug = serializers.CharField(source='user.slug', read_only=True)
+
+    class Meta:
+        model = Profile
+        fields = [
+            'id',
+            'first_name',
+            'last_name',
+            'role',
+            'employee_id',
+            'user_slug',
+        ]
