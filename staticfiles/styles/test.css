@@ -606,3 +606,120 @@ i {
     color: var(--secondary-red);
 }
 
+/* holiday Request */
+
+.holiday_days {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-evenly;
+    flex-wrap: wrap;
+    padding-bottom: 1rem;
+}
+
+.holiday_days h5 span{
+    min-width: 40px;
+}
+
+#requested-days {
+    display: inline-block; /* Prevents the block from expanding */
+}
+
+.pending {
+    color: var(--primary-blue);
+}
+
+.approved {
+    color: var(--secondary-dark-green);
+}
+
+.denied,
+.cancelled {
+    color: var(--secondary-dark-red);
+}
+
+.holiday-review {
+    font-size: 1.2em;
+}
+
+/* sort form */
+
+/* Filter Form Container */
+.filter-form {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    /*padding: 1rem;*/
+    /*margin: 1rem 0;*/
+    /*background-color: #f8f9fa;*/
+    /*border-radius: 0.5rem;*/
+    /*box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);*/
+}
+
+/* Label Styling */
+.filter-form label {
+    margin: 0;
+    font-weight: 500;
+    color: #374151;
+    white-space: nowrap;
+}
+
+/* Select Styling */
+.filter-form select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    padding: 0.5rem 2.5rem 0.5rem 1rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #374151;
+    background-color: white;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    min-width: 160px;
+    transition: all 0.2s ease;
+}
+
+/* Select Hover State */
+.filter-form select:hover {
+    border-color: #9ca3af;
+}
+
+/* Select Focus State */
+.filter-form select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Select Options Styling */
+.filter-form select option {
+    padding: 0.5rem;
+    background-color: white;
+    color: #374151;
+}
+
+/* Disabled State */
+.filter-form select:disabled {
+    background-color: #f3f4f6;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+    .filter-form {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+
+    .filter-form select {
+        width: 100%;
+    }
+}

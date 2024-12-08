@@ -1,26 +1,67 @@
-{% extends "layout/layout.html" %}
+{% extends 'layout/auth-user-layout.html' %}
+{% load static %}
+{% load custom_tags %}
 
-{% block content %}
-    <h1>My Holidays</h1>
-    <p>Here's a list of all your holidays.</p>
-    <table>
-        <thead>
-            <tr>
-                <th>Start Date</th>
-                <th>End Date</th>
-                <th>Duration</th>
-                <th>Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for holiday in holidays %}
-                <tr>
-                    <td>{{ holiday.start_date }}</td>
-                    <td>{{ holiday.end_date }}</td>
-                    <td>{{ holiday.duration }}</td>
-                    <td>{{ holiday.status }}</td>
-                </tr>
+{% block style %}
+    <link rel="stylesheet" href="{% static 'styles/pages/profile.css' %}">
+    <link rel="stylesheet" href="{% static 'styles/test.css' %}">
+    {% block extra_style %}{% endblock %}
+{% endblock %}
+
+{% block page-content %}
+    <div class="content-area">
+        {% include "partials/messages.html" %}
+        <div class="section-title-button">
+            <h2 class="section-title">My Holidays</h2>
+            {% include "partials/holiday_sort_filter.html" %}
+            <a href="{% url 'request_holiday' slug=user.slug %}" class="default-btn create"><i
+                    class="fa-solid fa-plus"></i>Request Holiday</a>
+        </div>
+        {% if not objects %}
+            <h3 class="not-found">No Holidays Found</h3>
+        {% else %}
+            {% if error %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endif %}
+            {% for object in objects %}
+                <div class="profile-content">
+                    <div class="profile-main">
+                        <section class="profile-section">
+                            <div class="section-content profile-section-container">
+
+                                <div class="container-profile-colon item-container">
+                                    <!-- Header Row -->
+                                    <div class="container-row">
+                                        <h4 class="obj-title">{{ object.start_date }} - {{ object.end_date }}</h4>
+                                        {% if object.status == "pending" or object.status == "approved" %}
+                                            <div class="crud-buttons">
+                                                <button
+                                                        type="button"
+                                                        class="holiday-status-button default-btn cancel-btn"
+                                                        data-holiday-id="{{ object.id }}"
+                                                        data-action="cancelled">
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="container-profile-row element-container employee-container">
+                                        {% include "partials/holiday_details.html" %}
+                                    </div>
+                                </div>
+
+                            </div>
+                        </section>
+                    </div>
+                </div>
             {% endfor %}
-        </tbody>
-    </table>
+        {% endif %}
+    </div>
+
+{% endblock %}
+
+{% block script %}
+    <script src="{% static 'js/holiday-status-update.js' %}"></script>
 {% endblock %}

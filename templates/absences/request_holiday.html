@@ -1,10 +1,96 @@
-{% extends "layout/layout.html" %}
+{% extends 'layout/auth-user-layout.html' %}
+{% load static %}
+{% load filters %}
 
-{% block content %}
+{% block style %}
+    <link rel="stylesheet" href="{% static 'styles/pages/profile.css' %}">
+    <link rel="stylesheet" href="{% static 'styles/test.css' %}">
+{% endblock %}
+
+
+{% block page-content %}
     
-    <form action="{% url 'request_holiday' %}" method="post">
-        {{ form.as_p }}
-        {% csrf_token %}
-    </form>
-    
+    <div class="content-area">
+
+        <div class="form-container">
+            <h2>Holiday Request</h2>
+
+            <form action="{% url 'request_holiday' slug=user.slug %}" method="post"
+                  enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" id="profile-id" value="{{ user.profile.id }}">
+                <div class="profile-form reg-form ">
+                    <div class="profile-form reg-form update-form formset">
+                        <div class="holiday_days">
+                            <h5>Remaining Days: {{ user.profile.remaining_leave_days }}</h5>
+                            <h5>Requested Days: <span id="requested-days"></span></h5>
+                        </div>
+                        <div class="part-form-container">
+                        {% include "partials/form_non_field_errors.html" %}
+                        
+                            {% for field in form %}
+                                {% if not field.is_hidden %}
+                                    {% render_field field wrapper_class="form-row" class="form-control" label_class="form-label" %}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <div class="btn-group update-form-btn">
+                            <button type="submit" class="default-btn">Request</button>
+                            {% include "partials/cancel_btn.html" %}
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+
+{% endblock %}
+
+{% block script %}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const startDateInput = document.getElementById('id_start_date');
+            const endDateInput = document.getElementById('id_end_date');
+            const profileId = document.getElementById('profile-id').value;
+            const resultDiv = document.getElementById('requested-days');
+
+            function calculateWorkingDays() {
+                const startDate = startDateInput.value;
+                const endDate = endDateInput.value;
+
+                if (startDate && endDate) {
+                    fetch(`/api/get-working-days/?start_date=${startDate}&end_date=${endDate}&profile_id=${profileId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.working_days !== undefined) {
+                                resultDiv.textContent = `${data.working_days}`;
+                                if (data.working_days > data.remaining_days || data.working_days <= 0) {
+                                    resultDiv.style.color = 'red'; // Set text color to red
+                                } else {
+                                    resultDiv.style.color = 'green'; // Set text color to green
+                                }
+                            } else {
+                                resultDiv.textContent = `Error: ${data.error}`;
+                                resultDiv.style.color = 'black'; // Reset text color to default
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error fetching working days:', error);
+                            resultDiv.textContent = 'Error calculating working days.';
+                            resultDiv.style.color = 'black'; // Reset text color to default
+                        });
+                } else {
+                    resultDiv.textContent = '';
+                    resultDiv.style.color = 'black'; // Reset text color to default
+                }
+            }
+
+            startDateInput.addEventListener('change', calculateWorkingDays);
+            endDateInput.addEventListener('change', calculateWorkingDays);
+        });
+    </script>
+
 {% endblock %}

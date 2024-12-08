@@ -17,9 +17,8 @@
         <ul class="profile-nav">
             <li><a href="{% url 'dashboard' slug=user.slug %}">Dashboard</a></li>
             <li><a href="{% url 'profile' slug=user.slug %}">Profile</a></li>
-{#            <li>{% include "partials/update_profile_button.html" %}</li>#}
-            <li><a href="#">My Requests</a></li>
-            <li><a href="#">Request Holiday</a></li>
+            <li><a href="{% url 'my_holidays' slug=user.slug %}">My Requests</a></li>
+            <li><a href="{% url 'request_holiday' slug=user.slug %}">Request Holiday</a></li>
             <li><a class="logout-link" href="#">Logout</a></li>
         </ul>
         {% endwith %}

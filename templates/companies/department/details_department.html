@@ -24,18 +24,17 @@
                     <div class="section-content profile-section-container">
 
                         <div class="container-profile-colon">
-                            <h4>Team Information</h4>
                             <div class="container-profile-row">
 
-                                <div class="profile-item-row">
-                                    <span class="profile-label">Department:</span>
-                                    <span class="profile-value">{{ object.department.name|default:"-" }}</span>
-                                </div>
-
-                                <div class="profile-item-row">
-                                    <span class="profile-label">Shifts:</span>
-                                    <span class="profile-value">{{ object.shift.name }}</span>
-                                </div>
+{#                                <div class="profile-item-row">#}
+{#                                    <span class="profile-label">Department:</span>#}
+{#                                    <span class="profile-value">{{ object.department.name|default:"-" }}</span>#}
+{#                                </div>#}
+{##}
+{#                                <div class="profile-item-row">#}
+{#                                    <span class="profile-label">Shifts:</span>#}
+{#                                    <span class="profile-value">{{ object.shift.name }}</span>#}
+{#                                </div>#}
                                 <div class="profile-item-row">
                                     <span class="profile-label">Employees:</span>
                                     <span class="profile-value">{{ object.employees.count }}</span>

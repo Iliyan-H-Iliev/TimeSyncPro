@@ -4,12 +4,14 @@
 {% block content %}
     <div class="profile-actions auth-container">
         <div class="page-content">
-        
+
             {% include "partials/profile_dash_side.html" %}
+            
+                
+                {% block page-content %}
+                {% endblock %}
         
-            {% block page-content %}
-            {% endblock %}
-        
+
         </div>
     </div>
 

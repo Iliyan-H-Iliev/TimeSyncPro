@@ -1,24 +1,79 @@
-{% extends "layout/layout.html" %}
+{% extends "layout/auth-user-layout.html" %}
+{% load static %}
 
-{% block content %}
-    <h1>Details for {{ holiday.start_date }}</h1>
-    <p>Here's a detailed view of the holiday you requested.</p>
-    <table>
-        <tr>
-            <th>Start Date</th>
-            <td>{{ holiday.start_date }}</td>
-        </tr>
-        <tr>
-            <th>End Date</th>
-            <td>{{ holiday.end_date }}</td>
-        </tr>
-        <tr>
-            <th>Duration</th>
-            <td>{{ holiday.duration }}</td>
-        </tr>
-        <tr>
-            <th>Status</th>
-            <td>{{ holiday.status }}</td>
-        </tr>
-    </table>
+{% block style %}
+    <link rel="stylesheet" href="{% static 'styles/pages/profile.css' %}">
+{% endblock %}
+
+{% block page-content %}
+    <div class="content-area">
+        <div class="profile-content">
+            <div class="profile-main">
+                <section class="profile-section">
+
+                    <div class="section-title-button">
+                        <h2 class="section-title">{{ object.start_date }} - {{ object.end_date }}</h2>
+                        <div>
+                            {% if object.status == 'pending' or object.status == 'approved' %}
+                            <a href="#" class="default-btn large-btn delete"><i class="fa-solid fa-trash-can"></i></a>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="section-content profile-section-container">
+
+                        <div class="container-profile-colon">
+{#                            <div class="container-profile-row">#}
+
+                                <div class="container-profile-row element-container employee-container">
+                                    {% if object.review_reason %}
+                                        <div class="profile-item-row">
+                                            {% if object.status == "Denied" %}
+                                                <span class="profile-label">Denied Reason:</span>
+                                            {% elif object.status == "Approved" %}
+                                                <span class="profile-label">Approved Reason:</span>
+                                            {% endif %}
+                                            <span class="profile-value">{{ object.review_reason }}</span>
+                                        </div>
+                                    {% endif %}
+
+                                    <div class="profile-item-row">
+                                        <span class="profile-label">Status:</span>
+                                        {% if object.status == "approved" %}
+                                            <span class="profile-value approved">{{ object.status }}</span>
+                                        {% elif object.status == "denied" or object.status == "Canceled" %}
+                                            <span class="profile-value denied">{{ object.status }}</span>
+                                        {% else %}
+                                            <span class="profile-value pending">{{ object.status }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="profile-item-row">
+                                        <span class="profile-label">Requested Days:</span>
+                                        <span class="profile-value">{{ object.days_requested }}</span>
+                                    </div>
+                                    <div class="profile-item-row">
+                                        <span class="profile-label">Reason:</span>
+                                        <span class="profile-value">{{ object.reason|default:"-" }}</span>
+                                    </div>
+                                    <div class="profile-item-row">
+                                        {% if object.status == "Approved" %}
+                                            <span class="profile-label">Approved By:</span>
+                                            <span class="profile-value">{{ object.reviewed_by }}</span>
+                                        {% elif object.status == "Denied" %}
+                                            <span class="profile-label">Denied By:</span>
+                                            <span class="profile-value">{{ object.reviewed_by }}</span>
+                                        {% else %}
+                                            <span class="profile-label">Approver:</span>
+                                            <span class="profile-value">{{ object.reviewer }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
 {% endblock %}

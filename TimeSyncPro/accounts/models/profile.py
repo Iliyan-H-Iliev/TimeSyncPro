@@ -1,3 +1,5 @@
+from datetime import timedelta, date
+
 from django.apps import apps
 from django.core.validators import MinLengthValidator
 from django.db import models
@@ -23,59 +25,59 @@ class Profile(HistoryMixin, CreatedModifiedMixin):
     MIN_AGE = 16
 
     class EmployeeRoles(models.TextChoices):
-        STAFF = 'Staff', 'Staff'
-        TEAM_LEADER = 'Team Leader', 'Team Leader'
-        MANAGER = 'Manager', 'Manager'
-        HR = 'HR', 'HR'
-        # ADMINISTRATOR = 'Administrator', 'Administrator'
+        STAFF = "Staff", "Staff"
+        TEAM_LEADER = "Team Leader", "Team Leader"
+        MANAGER = "Manager", "Manager"
+        HR = "HR", "HR"
+        # ADMINISTRATOR = "Administrator", "Administrator"
 
     # objects = EmployeeManager()
 
     tracked_fields = [
-        'first_name',
-        'last_name',
-        'employee_id',
-        'role',
-        'date_of_hire',
-        'days_off_left',
-        'phone_number',
-        'address',
-        'date_of_birth',
-        'department',
-        'manage_department',
-        'shift',
-        'team',
+        "first_name",
+        "last_name",
+        "employee_id",
+        "role",
+        "date_of_hire",
+        "days_off_left",
+        "phone_number",
+        "address",
+        "date_of_birth",
+        "department",
+        "manage_department",
+        "shift",
+        "team",
     ]
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=['employee_id', 'company'],
-                name='unique_employee_id_per_company'
+                fields=["employee_id", "company"],
+                name="unique_employee_id_per_company"
             )]
 
         permissions = [
-            ('add_company_admin', 'Can add Company Administrator'),
-            ('change_company_admin', 'Can change Company Administrator'),
-            ('delete_company_admin', 'Can delete Company Administrator'),
-            ('view_company_admin', 'Can view Company Administrator'),
-            ('add_hr', 'Can add HR'),
-            ('change_hr', 'Can change HR'),
-            ('delete_hr', 'Can delete HR'),
-            ('view_hr', 'Can view HR'),
-            ('add_manager', 'Can add Manager'),
-            ('change_manager', 'Can change Manager'),
-            ('delete_manager', 'Can delete Manager'),
-            ('view_manager', 'Can view Manager'),
-            ('add_team_leader', 'Can add TeamLeader'),
-            ('change_team_leader', 'Can change TeamLeader'),
-            ('delete_team_leader', 'Can delete TeamLeader'),
-            ('view_team_leader', 'Can view TeamLeader'),
-            ('add_staff', 'Can add Staff'),
-            ('change_staff', 'Can change Staff'),
-            ('delete_staff', 'Can delete Staff'),
-            ('view_staff', 'Can view Staff'),
-            ('view_employee', 'Can view Employees'),
+            ("add_company_admin", "Can add Company Administrator"),
+            ("change_company_admin", "Can change Company Administrator"),
+            ("delete_company_admin", "Can delete Company Administrator"),
+            ("view_company_admin", "Can view Company Administrator"),
+            ("add_hr", "Can add HR"),
+            ("change_hr", "Can change HR"),
+            ("delete_hr", "Can delete HR"),
+            ("view_hr", "Can view HR"),
+            ("add_manager", "Can add Manager"),
+            ("change_manager", "Can change Manager"),
+            ("delete_manager", "Can delete Manager"),
+            ("view_manager", "Can view Manager"),
+            ("add_team_leader", "Can add TeamLeader"),
+            ("change_team_leader", "Can change TeamLeader"),
+            ("delete_team_leader", "Can delete TeamLeader"),
+            ("view_team_leader", "Can view TeamLeader"),
+            ("add_staff", "Can add Staff"),
+            ("change_staff", "Can change Staff"),
+            ("delete_staff", "Can delete Staff"),
+            ("view_staff", "Can view Staff"),
+            ("view_employee", "Can view Employees"),
 
 
 
@@ -155,7 +157,7 @@ class Profile(HistoryMixin, CreatedModifiedMixin):
         null=True)
 
     address = models.OneToOneField(
-        'common.Address',
+        "common.Address",
         on_delete=models.SET_NULL,
         related_name="employee",
         blank=True,
@@ -171,7 +173,7 @@ class Profile(HistoryMixin, CreatedModifiedMixin):
     )
 
     profile_picture = models.ImageField(
-        upload_to='profile_pictures/',
+        upload_to="profile_pictures/",
         blank=True,
         null=True,
     )
@@ -212,36 +214,36 @@ class Profile(HistoryMixin, CreatedModifiedMixin):
         employee_role = [role.value for role in cls.EmployeeRoles]
         return employee_role
 
-    def get_role_specific_instance(self):
-        if self.is_company_admin:
-            AdministratorProxy = apps.get_model('accounts', 'AdministratorProxy')
-            return AdministratorProxy.objects.get(id=self.id)
-        if self.role == 'Manager':
-            ManagerProxy = apps.get_model('accounts', 'ManagerProxy')
-            return ManagerProxy.objects.get(id=self.id)
-        elif self.role == 'HR':
-            HRProxy = apps.get_model('accounts', 'HRProxy')
-            return HRProxy.objects.get(id=self.id)
-        elif self.role == 'Team Leader':
-            TeamLeaderProxy = apps.get_model('accounts', 'TeamLeaderProxy')
-            return TeamLeaderProxy.objects.get(id=self.id)
-        elif self.role == 'Staff':
-            StaffProxy = apps.get_model('accounts', 'StaffProxy')
-            return StaffProxy.objects.get(id=self.id)
-        return self
+    # def get_role_specific_instance(self):
+    #     if self.is_company_admin:
+    #         AdministratorProxy = apps.get_model("accounts", "AdministratorProxy")
+    #         return AdministratorProxy.objects.get(id=self.id)
+    #     if self.role == "Manager":
+    #         ManagerProxy = apps.get_model("accounts", "ManagerProxy")
+    #         return ManagerProxy.objects.get(id=self.id)
+    #     elif self.role == "HR":
+    #         HRProxy = apps.get_model("accounts", "HRProxy")
+    #         return HRProxy.objects.get(id=self.id)
+    #     elif self.role == "Team Leader":
+    #         TeamLeaderProxy = apps.get_model("accounts", "TeamLeaderProxy")
+    #         return TeamLeaderProxy.objects.get(id=self.id)
+    #     elif self.role == "Staff":
+    #         StaffProxy = apps.get_model("accounts", "StaffProxy")
+    #         return StaffProxy.objects.get(id=self.id)
+    #     return self
 
     @property
     def group_name(self):
         if self.is_company_admin:
-            return 'Company_Admin'
+            return "Company_Admin"
         return self.role
 
     @property
     def full_name(self):
-        return f'{self.first_name} {self.last_name}'
+        return f"{self.first_name} {self.last_name}"
 
     def get_employee_needed_permission_codename(self, action):
-        return f'{action}_{self.role.lower().replace(" ", "_")}'
+        return f"{action}_{self.role.lower().replace(' ', '_')}"
 
     def __str__(self):
         return f"{self.full_name} - {self.role}"
@@ -263,8 +265,8 @@ class Profile(HistoryMixin, CreatedModifiedMixin):
             super().save(*args, **kwargs, skip_history=True)
             # Then create history if we have a user
             # if self.user_id:
-            #     self._create_history('create', {
-            #         'user': {'old': None, 'new': self.user_id}
+            #     self._create_history("create", {
+            #         "user": {"old": None, "new": self.user_id}
             #     })
         else:
             super().save(*args, **kwargs)
@@ -288,10 +290,37 @@ class Profile(HistoryMixin, CreatedModifiedMixin):
 
     def get_shift(self):
         if self.shift:
-            return self.shift.name
+            return self.shift
         elif self.team and self.team.shift:
-            return self.team.shift.name
+            return self.team.shift
+
+    def get_team(self):
+        if self.team:
+            return self.team
         return None
+
+    def get_team_employees_holidays_at_a_time(self):
+        if hasattr(self, 'team') and self.team:
+            return self.team.employees_holidays_at_a_time
+        return None
+
+    def get_working_days_by_period(self, start_date, end_date):
+        working_days = 0
+        shift = self.get_shift()
+        if shift:
+            return shift.get_shift_working_days_by_period(start_date, end_date)
+
+        current_date = start_date
+        while current_date <= end_date:
+
+            if current_date.weekday() < 5:
+                working_days += 1
+            current_date += timedelta(days=1)
+
+        return working_days
+
+
+
 
 
 

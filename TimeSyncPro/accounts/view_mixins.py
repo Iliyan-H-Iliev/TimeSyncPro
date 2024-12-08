@@ -117,11 +117,11 @@ class DynamicPermissionMixin:
 
 
 class CRUDUrlsMixin:
-    crud_url_names = {  # Override in child class if needed
-        'create': 'create_{model}',
-        'detail': 'update_{model}',
-        'update': 'update_{model}',
-        'delete': 'delete_{model}'
+    crud_url_names = {
+        'create': '',
+        'detail': '',
+        'update': '',
+        'delete': ''
     }
 
     button_names = {

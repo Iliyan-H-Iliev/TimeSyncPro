@@ -8,12 +8,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>TimeSyncPro</title>
     <link rel="stylesheet" href="{% static 'styles/site.css' %}">
+    <meta name="csrf-token" content="{{ csrf_token }}">
     {% block style %}
     {% endblock style %}
 </head>
 
 <body>
-{% csrf_token %}
 <div class="page-container">
 
     <div class="content-wrap">

@@ -1,24 +1,92 @@
-{% extends "layout/layout.html" %}
+{% extends "layout/company-layout.html" %}
+{% load filters %}
 
 {% load static %}
 
-{% block content %}
-    
-    <h1>Review Holiday</h1>
-    <div>
-        <p>From: {{ holiday.user.profile.full_name }}</p>
-        <p>({{ holiday.start_date }} to {{ holiday.end_date }})</p>
-        Status: {{ holiday.status }}
-    
-        {% if holiday.reason %}
-            Reason: {{ holiday.reason }}
-        {% endif %}
+{% block style %}
+    <link rel="stylesheet" href="{% static 'styles/pages/profile.css' %}">
+{% endblock %}
+
+{% block page-content %}
+
+
+    <div class="content-area">
+
+        <div class="form-container">
+            <h2>Review Holiday Request</h2>
+
+            {#            <form action="{% url 'create_team' company_slug=user.company.slug %}" method="post"#}
+            {#                  enctype="multipart/form-data">#}
+            {#                {% csrf_token %}#}
+            <div class="profile-form reg-form ">
+                <div class="profile-form reg-form update-form formset">
+                    <div class="part-form-container">
+                        <h4>Information</h4>
+
+                        <div class="form-row form-label holiday-review">
+                            <p>Requester: {{ object.requester.full_name }}</p>
+                            <p>Period: {{ object.start_date }} - {{ object.end_date }}</p>
+                            <p>Requested Days: {{ object.days_requested }}</p>
+                            <p>Reason: {{ object.reason|default:"-" }}</p>
+                            <p>Status: <span class="status-{{ object.status }}">{{ object.status|title }}</span></p>
+                            {% if object.review_reason %}
+                                <p>{{ object.status|title }} Reason: {{ object.review_reason }}</p>
+                            {% endif %}
+                            {% if object.reviewer != user.profile %}
+                                <p>Reviewer: {{ object.reviewer.full_name }}</p>
+                            {% endif %}
+                            {% if requester_team and object.status == "pending" %}
+                                <p>Requester Team: {{ requester_team.name }}</p>
+                                <p>Maximum Team Members Holidays At A
+                                    Time: {{ requester_team.employees_holidays_at_a_time }}</p>
+                                <p>Team Members In Holiday: {{ team_members_in_holiday_count }} </p>
+                                <div class="table-container">
+                                    <table>
+                                        <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Start Date</th>
+                                            <th>End Date</th>
+                                            <th>Reason</th>
+                                            <th>Status</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% for holiday in team_members_in_holiday %}
+                                            <tr>
+                                                <td>{{ holiday.requester.first_name }} {{ holiday.requester.last_name }}</td>
+                                                <td>{{ holiday.start_date }}</td>
+                                                <td>{{ holiday.end_date }}</td>
+                                                <td>{{ holiday.reason|default:"-" }}</td>
+                                                <td class="status-{{ holiday.status|lower }}">{{ holiday.status }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% endif %}
+
+
+                        </div>
+                        {% if object.status == "pending" %}
+                            {% for field in form %}
+                                {% if not field.is_hidden %}
+                                    {% render_field field wrapper_class="form-row" class="form-control" label_class="form-label holiday-review" %}
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+
+                    </div>
+                    <div class="btn-group update-form-btn">
+                        <button type="submit" class="default-btn">Create</button>
+                        {% include "partials/cancel_btn.html" %}
+                    </div>
+                </div>
+            </div>
+            {#            </form>#}
+        </div>
     </div>
-    <form action="{% url 'review_holiday' pk=holiday.pk %}" method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" name="action" value={{ holiday.StatusChoices.APPROVE }}>Approve</button>
-        <button type="submit" name="action" value={{ holiday.StatusChoices.DENIED }}>Deny</button>
-    </form>
+
+
 
 {% endblock %}

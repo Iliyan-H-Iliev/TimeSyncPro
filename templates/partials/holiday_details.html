@@ -1,0 +1,37 @@
+{% if object.review_reason %}
+    <div class="profile-item-row">
+        <span class="profile-label">{{ object.status|title }} Reason:</span>
+        <span class="profile-value">{{ object.review_reason }}</span>
+    </div>
+{% endif %}
+
+<div class="profile-item-row">
+    <span class="profile-label">Status:</span>
+    <span class="profile-value {{ object.status|lower }}"
+          id="status-{{ object.id }}">
+                                                    {{ object.status|title }}
+                                            </span>
+</div>
+
+<div class="profile-item-row">
+    <span class="profile-label">Requested Days:</span>
+    <span class="profile-value">{{ object.days_requested }}</span>
+</div>
+
+<div class="profile-item-row">
+    <span class="profile-label">Reason:</span>
+    <span class="profile-value">{{ object.reason|default:"-" }}</span>
+</div>
+
+<div class="profile-item-row">
+    {% if object.status == "Approved" %}
+        <span class="profile-label">Approved By:</span>
+        <span class="profile-value">{{ object.reviewed_by }}</span>
+    {% elif object.status == "Denied" %}
+        <span class="profile-label">Denied By:</span>
+        <span class="profile-value">{{ object.reviewed_by }}</span>
+    {% else %}
+        <span class="profile-label">Approver:</span>
+        <span class="profile-value">{{ object.reviewer }}</span>
+    {% endif %}
+</div>

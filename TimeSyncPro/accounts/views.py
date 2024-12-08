@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -11,12 +12,13 @@ from django.contrib.auth.forms import SetPasswordForm
 from django.core.cache import cache
 from django.db import transaction, IntegrityError
 from django.db.models import Prefetch
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from django.views import generic as views
 from rest_framework import generics, status
 from rest_framework.response import Response
+from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.views import APIView
 
 from TimeSyncPro.accounts import forms
@@ -767,3 +769,22 @@ class LogoutAPIView(APIView):
                 {"error": "Failed to logout. Please try again."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+def get_working_days(request):
+    """API to calculate working days based on start_date and end_date."""
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    profile_id = request.GET.get('profile_id')  # Optional if needed to calculate shift-specific days
+
+    if start_date and end_date:
+        start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+        end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+
+        profile = get_object_or_404(Profile, id=profile_id)
+        working_days = profile.get_working_days_by_period(start_date, end_date)
+        remaining_days = profile.remaining_leave_days
+
+        return JsonResponse({'working_days': working_days, 'remaining_days': remaining_days})
+
+    return JsonResponse({'error': 'Invalid input'}, status=HTTP_400_BAD_REQUEST)
