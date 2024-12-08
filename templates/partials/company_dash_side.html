@@ -1,24 +1,26 @@
 {% load static %}
 
 
-
-    <div class="profile-sidebar">
-            {% with company=request.user.company %}
+<div class="profile-sidebar">
+    {% with company=request.user.company %}
         <div class="profile-info">
-{#            {% if profile.profile_picture %}#}
-{#                <img src="{{ profile.profile_picture.url }}" alt="{{ profile.full_name }}" class="avatar">#}
-{#            {% else %}#}
-                <img src="{% static 'images/TimeSyncPro-image.webp' %}" alt="{{ profile.full_name }}" class="avatar">
-{#            {% endif %}#}
+            {% if company.logo %}
+                <img src="{{ company.logo.url }}" alt="{{ company.name }}" class="avatar">
+            {% else %}
+                <img src="{% static 'images/TimeSyncPro-image.webp' %}" alt="{{ company.name }}" class="avatar">
+            {% endif %}
             <h2 class="profile-name">{{ company.name }}</h2>
-
         </div>
         <ul class="profile-nav">
             <li><a href="{% url 'company_profile' company_slug=user.company.slug %}">Company Details</a></li>
             <li><a href="{% url 'all_departments' company_slug=user.company.slug %}">Departments</a></li>
+            <li><a href="{% url 'company_members' company_slug=user.company.slug %}">Employees</a></li>
             <li><a href="{% url 'all_teams' company_slug=user.company.slug %}">Teams</a></li>
             <li><a href="{% url 'all_shifts' company_slug=company.slug %}">Shifts</a></li>
+            <li><a href="{% url 'company_holidays' company_slug=user.company.slug %}">Holiday Requests</a></li>
+            <li><a href="{% url 'all_departments' company_slug=user.company.slug %}">Absences</a></li>
         </ul>
-        {% endwith %}
-    </div>
+
+    {% endwith %}
+</div>
 

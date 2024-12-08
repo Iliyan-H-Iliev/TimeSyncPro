@@ -1,11 +1,13 @@
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.core.validators import MinValueValidator, MinLengthValidator, MaxValueValidator
+from django.db.models import Count
 from django.utils import timezone
 from django.utils.text import slugify
 from django_countries.fields import CountryField
 import pytz
 
+from TimeSyncPro.absences.models import Holiday
 from TimeSyncPro.accounts.models import Profile
 from datetime import timedelta
 
@@ -25,17 +27,17 @@ class Company(HistoryMixin, EmailFormatingMixin, CreatedModifiedMixin):
     MAX_SLUG_LENGTH = 100
 
     tracked_fields = [
-        'name',
-        'email',
-        'address',
-        'holiday_approver',
-        'location',
-        'time_zone',
-        'holiday_days_per_year',
-        'transferable_holiday_days',
-        'minimum_holiday_notice',
-        'maximum_holiday_days_per_request',
-        'working_on_local_holidays',
+        "name",
+        "email",
+        "address",
+        "holiday_approver",
+        "location",
+        "time_zone",
+        "holiday_days_per_year",
+        "transferable_holiday_days",
+        "minimum_holiday_notice",
+        "maximum_holiday_days_per_request",
+        "working_on_local_holidays",
     ]
 
     name = models.CharField(
@@ -56,21 +58,21 @@ class Company(HistoryMixin, EmailFormatingMixin, CreatedModifiedMixin):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='company',
+        related_name="company",
     )
 
     holiday_approver = models.ForeignKey(
-        'accounts.Profile',
+        "accounts.Profile",
         on_delete=models.DO_NOTHING,
         null=True,
         blank=True,
-        related_name='companies',
+        related_name="companies",
     )
 
     time_zone = models.CharField(
         max_length=MAX_TIMEZONE_LENGTH,
         choices=[(tz, tz) for tz in pytz.all_timezones],
-        default='UTC',
+        default="UTC",
         blank=False,
         null=False,
     )
@@ -118,7 +120,7 @@ class Company(HistoryMixin, EmailFormatingMixin, CreatedModifiedMixin):
                 country_timezones = pytz.country_timezones.get(self.address.country.code)[0]
                 if country_timezones:
                     return country_timezones  # Return the first timezone for the country
-        return 'UTC'
+        return "UTC"
 
     # TODO Check ii works correctly
     def save(self, *args, **kwargs):
@@ -140,16 +142,16 @@ class Company(HistoryMixin, EmailFormatingMixin, CreatedModifiedMixin):
     #     return Employee.objects.filter(company=self)
     #
     # def get_all_company_departments(self):
-    #     return apps.get_model('management', 'Department').objects.filter(company=self)
+    #     return apps.get_model("management", "Department").objects.filter(company=self)
     #
     # def get_all_company_teams(self):
-    #     return apps.get_model('management', 'Team').objects.filter(company=self)
+    #     return apps.get_model("management", "Team").objects.filter(company=self)
     #
     # def get_all_company_shift_patterns(self):
-    #     return apps.get_model('management', 'ShiftPattern').objects.filter(company=self)
+    #     return apps.get_model("management", "ShiftPattern").objects.filter(company=self)
 
     # def get_group_name(self):
-    #     return 'Company'
+    #     return "Company"
 
     def __str__(self):
         return f"{self.__class__.__name__} - {self.name}"
@@ -163,12 +165,12 @@ class Department(HistoryMixin, models.Model):
     MAX_DEPARTMENT_NAME_LENGTH = 50
     MIN_DEPARTMENT_NAME_LENGTH = 3
 
-    tracked_fields = ['name', 'holiday_approver']
+    tracked_fields = ["name", "holiday_approver"]
 
     company = models.ForeignKey(
         Company,
         on_delete=models.CASCADE,
-        related_name='departments',
+        related_name="departments",
         blank=False,
         null=False,
     )
@@ -185,11 +187,11 @@ class Department(HistoryMixin, models.Model):
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
-        related_name='departments',
+        related_name="departments",
     )
 
     class Meta:
-        unique_together = ('company', 'name')
+        unique_together = ("company", "name")
 
     def __str__(self):
         return self.name
@@ -204,12 +206,12 @@ class Shift(HistoryMixin, models.Model):
     MIN_ROTATION_WEEKS = 1
     MAX_ROTATION_WEEKS = 52
 
-    tracked_fields = ['name', 'description', 'start_date', 'rotation_weeks']
+    tracked_fields = ["name", "description", "start_date", "rotation_weeks"]
 
     company = models.ForeignKey(
         Company,
         on_delete=models.CASCADE,
-        related_name='shifts',
+        related_name="shifts",
         blank=False,
         null=False,
     )
@@ -248,7 +250,7 @@ class Shift(HistoryMixin, models.Model):
         end_date = current_date + timedelta(days=30)
 
         self.refresh_from_db()
-        blocks = self.blocks.all().order_by('order')
+        blocks = self.blocks.all().order_by("order")
 
         for block in blocks:
             block.working_dates.clear()
@@ -263,7 +265,7 @@ class Shift(HistoryMixin, models.Model):
                     for day in block.on_off_days:
                         if current_date > end_date:
                             break
-                        if day == 1:  # Only create assignments for working days
+                        if day == 1:
                             date_obj, created = Date.objects.get_or_create(date=current_date)
                             block.working_dates.add(date_obj)
                         current_date += timedelta(days=1)
@@ -271,7 +273,7 @@ class Shift(HistoryMixin, models.Model):
             print(e)
 
     class Meta:
-        unique_together = ('company', 'name')
+        unique_together = ("company", "name")
 
     def get_current_block(self):
         current_date = timezone.now().date()
@@ -288,6 +290,18 @@ class Shift(HistoryMixin, models.Model):
             else:
                 return "Custom"
         return "No pattern"
+
+    def get_shift_working_dates_by_period(self, start_date=None, end_date=None):
+        if not start_date:
+            start_date = timezone.now().date()
+        if not end_date:
+            end_date = start_date + timedelta(days=30)
+
+        queryset = Date.objects.filter(shift_blocks__pattern=self, date__gte=start_date, date__lte=end_date)
+        return queryset
+
+    def get_shift_working_days_by_period(self, start_date=None, end_date=None):
+        return self.get_shift_working_dates_by_period(start_date, end_date).count()
 
     def __str__(self):
         return f"{self.name}"
@@ -312,7 +326,7 @@ class ShiftBlock(HistoryMixin, models.Model):
     pattern = models.ForeignKey(
         Shift,
         on_delete=models.CASCADE,
-        related_name='blocks'
+        related_name="blocks"
     )
 
     on_off_days = ArrayField(
@@ -362,13 +376,13 @@ class ShiftBlock(HistoryMixin, models.Model):
     )
 
     working_dates = models.ManyToManyField(
-        'Date',
-        related_name='shift_blocks',
+        "Date",
+        related_name="shift_blocks",
         blank=True,
     )
 
     class Meta:
-        ordering = ['order']
+        ordering = ["order"]
 
     def __str__(self):
         return f"{self.pattern.name} - block {self.order}"
@@ -404,7 +418,7 @@ class Team(HistoryMixin, models.Model):
     company = models.ForeignKey(
         Company,
         on_delete=models.CASCADE,
-        related_name='teams',
+        related_name="teams",
         null=False,
         blank=False,
     )
@@ -421,7 +435,7 @@ class Team(HistoryMixin, models.Model):
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
-        related_name='teams',
+        related_name="teams",
     )
 
     holiday_approver = models.ForeignKey(
@@ -429,7 +443,7 @@ class Team(HistoryMixin, models.Model):
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
-        related_name='teams',
+        related_name="teams",
     )
 
     department = models.ForeignKey(
@@ -437,7 +451,7 @@ class Team(HistoryMixin, models.Model):
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
-        related_name='teams',
+        related_name="teams",
     )
 
     employees_holidays_at_a_time = models.PositiveIntegerField(
@@ -451,13 +465,44 @@ class Team(HistoryMixin, models.Model):
     )
 
     class Meta:
-        unique_together = ('company', 'name')
+        unique_together = ("company", "name")
 
     def get_team_members(self):
         return self.employees.all()
 
     def get_team_leaders(self):
         return self.employees.filter(role=Profile.EmployeeRoles.TEAM_LEADER)
+
+    def get_team_members_at_holiday(self, start_date=None, end_date=None, statuses=None):
+        if statuses is None:
+            statuses = [Holiday.StatusChoices.APPROVED, Holiday.StatusChoices.PENDING]
+
+        holidays = Holiday.objects.filter(
+            requester__team=self,
+            status__in=statuses
+        ).select_related('requester').order_by('requester__first_name', 'start_date')
+
+        if start_date and end_date:
+            holidays = holidays.filter(start_date__gte=start_date, end_date__lte=end_date)
+
+        return holidays
+
+    def get_numbers_of_team_members_holiday_by_period(self, start_date=None, end_date=None):
+        return (self.get_team_members_at_holiday(start_date, end_date)
+                .filter(status=Holiday.StatusChoices.APPROVED,)
+                .values('requester__id')
+                .annotate(request_count=Count('id'))
+                .distinct()
+                .count())
+
+    @staticmethod
+    def get_numbers_of_team_members_holiday_days_by_queryset(queryset):
+        return (queryset
+                .filter(status=Holiday.StatusChoices.APPROVED,)
+                .values('requester__id')
+                .annotate(request_count=Count('id'))
+                .distinct().count())
+
 
     def __str__(self):
         return self.name
@@ -472,7 +517,7 @@ class Date(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=['date']),
+            models.Index(fields=["date"]),
         ]
 
     def is_holiday(self, company):
@@ -484,11 +529,11 @@ class Date(models.Model):
 
 # class ShiftAssignment(models.Model):
 #     date = models.DateField()
-#     shift_block = models.ForeignKey(ShiftBlock, on_delete=models.CASCADE, related_name='assignments')
+#     shift_block = models.ForeignKey(ShiftBlock, on_delete=models.CASCADE, related_name="assignments")
 #
 #     class Meta:
 #         # TODO make it unique for many companies
-#         unique_together = ('date', 'shift_block',)
+#         unique_together = ("date", "shift_block",)
 #
 #     def __str__(self):
 #         return f"{self.shift_block.pattern.name} - {self.date}"

@@ -6,5 +6,12 @@
 
 
 {% block element %}
-    {% include "partials/team_details.html" %}
+    <div class="profile-item-row">
+        <span class="profile-label">Employees:</span>
+        <span class="profile-value">{{ object.employees.count }}</span>
+    </div>
+    <div class="profile-item-row">
+        <span class="profile-label">Holiday Approver:</span>
+        <span class="profile-value">{{ object.holiday_approver|default:"-" }}</span>
+    </div>
 {% endblock %}

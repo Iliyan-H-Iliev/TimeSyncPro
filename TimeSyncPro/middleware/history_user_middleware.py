@@ -12,13 +12,13 @@ class HistoryUserMiddleware(MiddlewareMixin):
     def process_request(self, request):
         """Set current user and cache permissions"""
         if request.user.is_authenticated:
-            if not hasattr(request.user, '_cached_permissions'):
+            if not hasattr(request.user, "_cached_permissions"):
                 # Cache all permissions
                 all_permissions = request.user.get_all_permissions()
                 request.user._cached_permissions = all_permissions
                 # Cache permission codenames
                 request.user.user_permissions_codenames = {
-                    perm.split('.')[-1] for perm in all_permissions
+                    perm.split(".")[-1] for perm in all_permissions
                 }
             set_current_user(request.user)
         else:
@@ -37,7 +37,7 @@ class HistoryUserMiddleware(MiddlewareMixin):
 
 
 def get_current_user():
-    return getattr(_user, 'value', None)
+    return getattr(_user, "value", None)
 
 
 def set_current_user(user):

@@ -1,48 +1,133 @@
-/*table {*/
-/*    background: #fff;*/
-/*    border-collapse: collapse;*/
-/*}*/
+/* Table Container */
+.table-container {
+    margin: 1.5rem 0;
+    overflow-x: auto;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
 
-/*table,*/
-/*table th,*/
-/*table td {*/
-/*    border: 1px solid #ccc;*/
-/*}*/
+/* Table Styles */
+.table-container table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    text-align: left;
+    font-size: 0.95rem;
+}
 
-/*table th,*/
-/*table td {*/
-/*    padding: 0.5em 1em;*/
-/*}*/
+/* Header Styles */
+.table-container thead {
+    background-color: #f8f9fa;
+}
 
-/*table thead th,*/
-/*table thead td {*/
-/*    background: #333;*/
-/*    color: #fff;*/
-/*}*/
+.table-container th {
+    padding: 1rem;
+    font-weight: 600;
+    color: #374151;
+    border-bottom: 2px solid #e5e7eb;
+    white-space: nowrap;
+    position: relative;
+}
 
+/* Add subtle divider between header cells */
+.table-container th:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 25%;
+    height: 50%;
+    width: 1px;
+    background-color: #e5e7eb;
+}
 
-/*@media (max-width: 800px) {*/
-/*    table, tbody, tr, td, th {*/
-/*        display: block;*/
-/*    }*/
+/* Body Styles */
+.table-container td {
+    padding: 1rem;
+    /*color: #4b5563;*/
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: middle;
+}
 
-/*    thead {*/
-/*        display: none;*/
-/*    }*/
+/* Row Hover Effect */
+.table-container tbody tr:hover {
+    background-color: #f9fafb;
+}
 
-/*    tbody tr {*/
-/*        border: 1px solid #000;*/
-/*    }*/
+/* Status Colors */
+.table-container td:last-child {
+    font-weight: 500;
+}
 
-/*    tbody td {*/
-/*        display: flex;*/
-/*    }*/
+/* Alternating Row Colors */
+.table-container tbody tr:nth-child(even) {
+    background-color: #fafafa;
+}
 
-/*    tbody td:before {*/
-/*        display: inline-block;*/
-/*        content: attr(data-title);*/
-/*        font-weight: bold;*/
-/*        padding-right: 1em;*/
-/*        flex: 0 0 80px;*/
-/*    }*/
-/*}*/
+/* First and Last Cells Border Radius */
+.table-container thead tr:first-child th:first-child {
+    border-top-left-radius: 8px;
+}
+
+.table-container thead tr:first-child th:last-child {
+    border-top-right-radius: 8px;
+}
+
+.table-container tbody tr:last-child td:first-child {
+    border-bottom-left-radius: 8px;
+}
+
+.table-container tbody tr:last-child td:last-child {
+    border-bottom-right-radius: 8px;
+}
+
+/* Empty State */
+.table-container tbody tr:first-child:last-child td {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #6b7280;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .table-container {
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    .table-container table {
+        font-size: 0.875rem;
+    }
+
+    .table-container th,
+    .table-container td {
+        padding: 0.75rem;
+    }
+
+    /* Optional: Hide less important columns on mobile */
+    .table-container th:nth-child(4),
+    .table-container td:nth-child(4) {
+        display: none;
+    }
+}
+
+/* Status-specific styles - add these classes to your status cells */
+.status-pending {
+    color: #b45309;
+    background-color: #fef3c7;
+}
+
+.status-approved {
+    color: #065f46;
+    background-color: #d1fae5;
+}
+
+.status-denied {
+    color: #991b1b;
+    background-color: #fee2e2;
+}
+
+.status-cancelled {
+    color: #1f2937;
+    background-color: #f3f4f6;
+}
