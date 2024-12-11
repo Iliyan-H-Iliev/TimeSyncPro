@@ -1,3 +1,5 @@
+from datetime import date, timedelta
+
 from django import forms
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -41,6 +43,9 @@ class RequestHolidayForm(LabelMixin, forms.ModelForm):
         remaining_days = requester.remaining_leave_days
         requested_days = requester.get_working_days_by_period(start_date, end_date)
         today = timezone.now().date()
+        company = requester.company
+        working_days = requester.get_default_working_days(start_date, end_date)
+        minimum_notice_date = date.today() + timedelta(days=company.minimum_leave_notice)
 
         if not start_date or not end_date:
             return cleaned_data
@@ -56,6 +61,18 @@ class RequestHolidayForm(LabelMixin, forms.ModelForm):
         if requested_days > remaining_days:
             self.add_error('start_date', 'You do not have enough holiday days remaining for this request.')
 
+        if requested_days > company.maximum_leave_days_per_request:
+            self.add_error('start_date', f'You cannot request more than {company.maximum_leave_days_per_request} days at a time.')
+
+        if start_date not in working_days:
+            self.add_error('start_date', 'You cannot request a holiday on a non-working day.')
+
+        if end_date not in working_days:
+            self.add_error('end_date', 'You cannot request a holiday on a non-working day.')
+
+        if start_date < minimum_notice_date:
+            self.add_error('start_date', f'You must provide at least {company.minimum_leave_notice} days notice for a holiday request.')
+
         overlapping_holidays = Holiday.objects.filter(
             requester=requester,
             start_date__lte=end_date,
@@ -63,9 +80,7 @@ class RequestHolidayForm(LabelMixin, forms.ModelForm):
         )
 
         if overlapping_holidays.exists():
-            raise ValidationError(
-                f"Holiday request already exists for the date range {start_date} to {end_date}."
-            )
+            self.add_error('start_date', 'You already have a holiday request for this date range.')
 
         return cleaned_data
 

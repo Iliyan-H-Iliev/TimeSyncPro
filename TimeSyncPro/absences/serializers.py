@@ -9,6 +9,8 @@ class HolidayStatusUpdateSerializer(serializers.ModelSerializer):
         fields = ("status", "review_reason", "reviewed_by")
 
     def validate(self, data):
+        data = super().validate(data)
+        request = self.context.get('request')
         holiday = self.instance
         new_status = data.get("status")
         current_status = holiday.status
@@ -31,6 +33,9 @@ class HolidayStatusUpdateSerializer(serializers.ModelSerializer):
 
         if new_status == Holiday.StatusChoices.DENIED and not data.get("review_reason"):
             raise serializers.ValidationError("A review reason is required to deny the holiday request.")
+
+        if new_status in [Holiday.StatusChoices.APPROVED, Holiday.StatusChoices.DENIED]:
+            data['reviewed_by'] = request.user.profile
 
         return data
 

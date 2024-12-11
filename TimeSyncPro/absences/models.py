@@ -96,8 +96,8 @@ class Holiday(AbsenceBase):
     class Meta:
         ordering = ["start_date"]
         permissions = [
-            ("can_view_all_holiday", "Can view all holiday requests"),
-            ("can_update_holiday_status", "Can update holiday status"),
+            ("can_view_all_holidays_requests", "Can view all holiday requests"),
+            ("can_update_holiday_requests_status", "Can update holiday status"),
         ]
 
     def __str__(self):
@@ -120,7 +120,7 @@ class Holiday(AbsenceBase):
         return self.status == self.StatusChoices.CANCELLED
 
     def get_reviewer(self):
-        return self.requester.get_leave_approver()
+        return self.requester.get_holiday_approver()
 
     def get_requested_days(self):
         return self.requester.get_working_days_by_period(self.start_date, self.end_date)
@@ -137,6 +137,15 @@ class Holiday(AbsenceBase):
 class Absence(HistoryMixin, AbsenceBase):
 
     tracked_fields = ["start_date", "end_date", "reason"]
+
+    class Meta:
+        ordering = ["start_date"]
+        permissions = [
+            ("view_all_absences", "Can view all absences"),
+            ("view_department_absences", "Can view department absences"),
+            ("view_team_absences", "Can view own absences"),
+            ("add_absences", "Can add absences"),
+        ]
 
     class AbsenceTypes(models.TextChoices):
         SICK = "sick", "Sick Leave"

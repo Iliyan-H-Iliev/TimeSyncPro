@@ -23,32 +23,6 @@ class OwnerRequiredMixin:
 
         return super().dispatch(request, *args, **kwargs)
 
-    # def post(self, request, *args, **kwargs):
-    #     # Same check for POST requests
-    #     user = get_object_or_404(UserModel, slug=kwargs.get('slug'))
-    #
-    #     if request.user != user:
-    #         return self._handle_no_permission()
-    #
-    #     return super().post(request, *args, **kwargs)
-
-
-class SuccessUrlMixin:
-    success_url = "index"
-
-    def get_success_url(self):
-        user = self.request.user
-
-        if user.is_authenticated:
-            return reverse(
-                self.success_url,
-                kwargs={
-                    'slug': user.slug,
-                    "company_slug": user.profile.company.slug
-                }
-            )
-        return reverse(self.success_url)
-
 
 class DynamicPermissionMixin:
 
@@ -77,26 +51,6 @@ class DynamicPermissionMixin:
         obj_app_label = obj._meta.app_label
         permission_codename = self.get_action_permission_codename(obj, action)
         return f"{obj_app_label}.{permission_codename}"
-
-    # @staticmethod
-    # def get_all_user_permissions( user):
-    #     all_permissions = user.get_all_permissions()
-    #     print(all_permissions)
-    #     return user.get_all_permissions()
-
-    # def has_needed_permission(self, user, obj, action):
-    #
-    #     try:
-    #         needed_permission_codename = self.get_action_permission_codename(obj, action)
-    #     except AttributeError:
-    #         return False
-    #     try:
-    #         user_permissions_codenames = user.user_permissions_codenames
-    #     except AttributeError:
-    #         return False
-    #
-    #     has_permission = needed_permission_codename in user_permissions_codenames
-    #     return has_permission
 
     def has_needed_permission(self, user, obj, action):
         try:

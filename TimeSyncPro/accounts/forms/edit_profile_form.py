@@ -91,11 +91,18 @@ class DetailedEditOwnProfileForm(RequiredFieldsFormMixin, EditProfileBaseForm):
     )
 
     def clean_is_company_admin(self):
-        count_company_admins = Profile.objects.filter(company=self.instance.company, is_company_admin=True).count()
-        obj = self.instance
-        if self.request.user.is_company_admin and obj == self.request.user.profile:
-            if not self.cleaned_data.get("is_company_admin") and count_company_admins == 1:
+        is_company_admin = self.cleaned_data.get("is_company_admin")
+        if self.request.user.is_company_admin and self.instance == self.request.user.profile:
+            count_company_admins = Profile.objects.filter(
+                company=self.instance.company,
+                is_company_admin=True
+            ).count()
+
+            if not is_company_admin and count_company_admins == 1:
                 raise forms.ValidationError("There must be at least one company admin.")
+
+        return is_company_admin
+
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

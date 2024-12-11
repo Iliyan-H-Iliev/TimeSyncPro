@@ -25,22 +25,34 @@
 
                         <div class="form-row form-label holiday-review">
                             <p>Requester: {{ object.requester.full_name }}</p>
-                            <p>Period: {{ object.start_date }} - {{ object.end_date }}</p>
+                            <p>Requested on: {{ object.created_at|date:"d/m/Y, H:i:s" }}</p>
+                            <p>Period: {{ object.start_date|date:"d/m/Y" }} - {{ object.end_date|date:"d/m/Y" }}</p>
                             <p>Requested Days: {{ object.days_requested }}</p>
                             <p>Reason: {{ object.reason|default:"-" }}</p>
                             <p>Status: <span class="status-{{ object.status }}">{{ object.status|title }}</span></p>
                             {% if object.review_reason %}
                                 <p>{{ object.status|title }} Reason: {{ object.review_reason }}</p>
                             {% endif %}
-                            {% if object.reviewer != user.profile %}
-                                <p>Reviewer: {{ object.reviewer.full_name }}</p>
+                            {% if object.status == "approved" %}
+                                <p>Approved On: {{ object.modified_at|date:"d/m/Y, H:i:s" }}</p>
+                            {% elif object.status == "denied" %}
+                                <p>Denied On: {{ object.modified_at|date:"d/m/Y, H:i:s" }}</p>
+                            {% endif %}
+
+                            {% if object.status == "approved" %}
+                                <p>Approved By: {{ object.reviewed_by }}</p>
+                            {% elif object.status == "denied" %}
+                                <p>Denied By: {{ object.reviewed_by }}</p>
+                            {% else %}
+                                <p>Approver: {{ object.reviewer }}</p>
                             {% endif %}
                             {% if requester_team and object.status == "pending" %}
-                                <p>Requester Team: {{ requester_team.name }}</p>
+
                                 <p>Maximum Team Members Holidays At A
                                     Time: {{ requester_team.employees_holidays_at_a_time }}</p>
                                 <p>Team Members In Holiday: {{ team_members_in_holiday_count }} </p>
                                 <div class="table-container">
+                                    <p class="table-title">{{ requester_team.name }} Members Requests</p>
                                     <table>
                                         <thead>
                                         <tr>
@@ -65,8 +77,6 @@
                                     </table>
                                 </div>
                             {% endif %}
-
-
                         </div>
                         {% if object.status == "pending" %}
                             {% for field in form %}
@@ -77,10 +87,17 @@
                         {% endif %}
 
                     </div>
-                    <div class="btn-group update-form-btn">
-                        <button type="submit" class="default-btn">Create</button>
-                        {% include "partials/cancel_btn.html" %}
-                    </div>
+                    {% if object.status == "pending" %}
+                        <div class="btn-group update-form-btn">
+                            <button type="button" class="holiday-status-button default-btn create"
+                                    data-holiday-id="{{ object.id }}" data-action="approved">Approve
+                            </button>
+                            <button type="button" class="holiday-status-button default-btn cancel-btn"
+                                    data-holiday-id="{{ object.id }}"
+                                    data-action="denied">Deny
+                            </button>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
             {#            </form>#}
@@ -89,4 +106,8 @@
 
 
 
+{% endblock %}
+
+{% block script %}
+    <script src="{% static 'js/holiday-status-update.js' %}"></script>
 {% endblock %}

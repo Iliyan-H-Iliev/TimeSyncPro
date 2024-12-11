@@ -12,7 +12,7 @@
     <div class="content-area">
         {% include "partials/messages.html" %}
         <div class="section-title-button">
-            <h2 class="section-title">My Holidays</h2>
+            <h2 class="section-title">My Requests</h2>
             {% include "partials/holiday_sort_filter.html" %}
             <a href="{% url 'request_holiday' slug=user.slug %}" class="default-btn create"><i
                     class="fa-solid fa-plus"></i>Request Holiday</a>

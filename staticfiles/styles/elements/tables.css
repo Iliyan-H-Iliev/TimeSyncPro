@@ -131,3 +131,8 @@
     color: #1f2937;
     background-color: #f3f4f6;
 }
+
+.table-title {
+    text-align: center;
+    padding: 0.5rem 0;
+}

@@ -12,16 +12,18 @@
     <div class="content-area">
         <div class="section-title-button">
             <h2 class="section-title">{{ title }}</h2>
-
-            <form method="get" class="search-form">
-                {% for key, value in request.GET.items %}
-                    {% if key != 'search' and key != 'page' %}
-                        <input type="hidden" name="{{ key }}" value="{{ value }}">
-                    {% endif %}
-                {% endfor %}
-                <input type="text" name="search" value="{{ search_value }}" class="search-input" placeholder="Search">
-                <button type="submit" class="search-button">Search</button>
-            </form>
+            {% block search %}
+                <form method="get" class="search-form">
+                    {% for key, value in request.GET.items %}
+                        {% if key != 'search' and key != 'page' %}
+                            <input type="hidden" name="{{ key }}" value="{{ value }}">
+                        {% endif %}
+                    {% endfor %}
+                    <input type="text" name="search" value="{{ search_value }}" class="search-input"
+                           placeholder="Search">
+                    <button type="submit" class="search-button">Search</button>
+                </form>
+            {% endblock %}
             {% block sort %}
             {% endblock %}
 
@@ -43,29 +45,29 @@
                     <div class="profile-main">
                         <section class="profile-section">
                             <div class="section-content profile-section-container">
-                            {% block obj_information %}
+                                {% block obj_information %}
 
-                                <div class="container-profile-colon item-container">
-                                    <div class="container-row">
-                                        {% if object.name %}
-                                            <h4 class="obj-title">{{ object.name }}</h4>
-                                        {% elif object.profile %}
-                                            <h4 class="obj-title">{{ object.profile.full_name }} -
-                                                {{ object.profile.role }}{% if object.profile.is_company_admin %} -
-                                                    Company Administrator{% endif %}</h4>
-                                        {% endif %}
+                                    <div class="container-profile-colon item-container">
+                                        <div class="container-row">
+                                            {% if object.name %}
+                                                <h4 class="obj-title">{{ object.name }}</h4>
+                                            {% elif object.profile %}
+                                                <h4 class="obj-title">{{ object.profile.full_name }} -
+                                                    {{ object.profile.role }}{% if object.profile.is_company_admin %} -
+                                                        Company Administrator{% endif %}</h4>
+                                            {% endif %}
 
-                                        {% block crud_buttons %}
+                                            {% block crud_buttons %}
 
-                                        {% endblock %}
+                                            {% endblock %}
+                                        </div>
+                                        <div class="container-profile-row element-container employee-container">
+                                            {% block element %}
+
+                                            {% endblock %}
+                                        </div>
                                     </div>
-                                    <div class="container-profile-row element-container employee-container">
-                                        {% block element %}
-
-                                        {% endblock %}
-                                    </div>
-                                </div>
-                            {% endblock %}
+                                {% endblock %}
 
                             </div>
                         </section>

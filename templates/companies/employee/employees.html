@@ -6,9 +6,17 @@
 {% endblock %}
 
 {% block crud_buttons %}
+    <div class="crud-buttons">
+    {% if object.pk in requesters_pk or view_requests %}
+        <a href="{% url 'employee_requests' slug=object.slug company_slug=user.company.slug %}"
+                               class="default-btn details">Requests</a>
+    {% endif %}
+    <a href="{% url 'add_absence' slug=object.slug company_slug=user.company.slug %}"
+                               class="default-btn details">Absence</a>
     {% if object.profile.role|title in view_permissions %}
     {% include "partials/crud_buttons_employees.html" %}
     {% endif %}
+    </div>
 {% endblock %}
 
 {% block add_button %}
@@ -50,7 +58,7 @@
 
             <div class="profile-item-row">
                 <span class="profile-label">Holiday Approver:</span>
-                <span class="profile-value">{{ object.profile.get_leave_approver|default:"-" }}</span>
+                <span class="profile-value">{{ object.profile.get_holiday_approver|default:"-" }}</span>
             </div>
         </div>
     </div>

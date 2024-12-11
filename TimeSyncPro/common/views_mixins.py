@@ -138,16 +138,6 @@ class MultiplePermissionsRequiredMixin(AccessMixin):
 
 # TODO remove company_name and company_slug
 class UserDataMixin:
-    # def get_queryset(self):
-    #     return super().get_queryset().select_related(
-    #         'profile',
-    #         'profile__company',
-    #         'profile__company__address',
-    #         'profile__department',
-    #         'profile__team',
-    #         'profile__shift_pattern',
-    #         'profile__address',
-    #     )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -158,17 +148,13 @@ class UserDataMixin:
             'team': self.request.user.profile.team,
             'shift': self.request.user.profile.shift,
             'address': self.request.user.profile.address,
-            'leave_approver': self.request.user.profile.get_leave_approver,
+            'holiday_approver': self.request.user.profile.get_holiday_approver,
         }
         return context
 
 
 class AuthenticatedUserMixin(UserPassesTestMixin):
-    """
-    Mixin to handle authenticated users access:
-    - Regular users are redirected to their profile
-    - Staff/Superusers can access all pages
-    """
+
     success_url_name = "profile"
 
     def test_func(self):
@@ -214,10 +200,9 @@ class SmallPagination(PageNumberPagination):
 
 class ReturnToPageMixin:
     default_return_url = None
-    fallback_url = 'dashboard'  # General fallback
+    fallback_url = 'dashboard'
 
     def get_success_url(self):
-        # Try all return URL options
         return (
                 self._get_next_url() or
                 self._get_session_url() or
@@ -257,31 +242,15 @@ class ReturnToPageMixin:
 
     def _get_fallback_url(self):
         try:
-            # Try parent's success_url first
             return super().get_success_url()
         except:
-            # Final fallback
             try:
                 return reverse(self.fallback_url, kwargs={
                     'slug': self.request.user.slug
                 })
             except:
-                # If all else fails, go to home
                 return reverse('index')
 
     def get(self, request, *args, **kwargs):
-        # Store current page in session
         request.session['previous_page'] = request.META.get('HTTP_REFERER')
         return super().get(request, *args, **kwargs)
-
-# class FormatNameMixin:
-#
-#     @staticmethod
-#     def format_name(name):
-#
-#         if not name:
-#             return ""
-#
-#         name = " ".join(name.split())
-#
-#         return name.title()

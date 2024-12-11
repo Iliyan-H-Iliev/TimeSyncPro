@@ -30,7 +30,7 @@ from TimeSyncPro.accounts.forms.edit_profile_form import AdminEditProfileForm, D
 from TimeSyncPro.accounts.models import Profile
 from TimeSyncPro.accounts.serializers import EmployeeSerializer
 from TimeSyncPro.accounts.view_mixins import OwnerRequiredMixin, \
-    DynamicPermissionMixin, SuccessUrlMixin
+    DynamicPermissionMixin
 from TimeSyncPro.common.models import Address
 # from TimeSyncPro.core.utils import format_email
 from TimeSyncPro.common.views_mixins import CompanyObjectsAccessMixin, \
@@ -477,7 +477,7 @@ class EditProfileBaseView(ReturnToPageMixin, LoginRequiredMixin, views.UpdateVie
             if address_form:
                 address = address_form.save()
 
-            if address and obj.profile.address == None:
+            if address and obj.profile.address is None:
                 obj.profile.address = address
                 obj.profile.save()
 

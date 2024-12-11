@@ -14,6 +14,7 @@ from django.views import generic as views
 
 from TimeSyncPro.common.views_mixins import CompanyObjectsAccessMixin
 from ..views_mixins import CheckOwnCompanyMixin
+from ...absences.models import Holiday
 from ...accounts.models import Profile
 from ...accounts.view_mixins import CRUDUrlsMixin
 from ...common.forms import AddressForm
@@ -151,7 +152,7 @@ class CompanyMembersView(CRUDUrlsMixin, CheckOwnCompanyMixin, PermissionRequired
     context_object_name = 'objects'
     paginate_by = 10
     ordering = ['first_name', 'last_name']
-    permission_required = "accounts.view_employee"
+    permission_required = "accounts.view_employees"
 
     view_permission = (
         "accounts.view_hr",
@@ -168,7 +169,6 @@ class CompanyMembersView(CRUDUrlsMixin, CheckOwnCompanyMixin, PermissionRequired
                 perm = permission.split('.')[1]
                 perm = perm.split('_')[1:]
                 permissions.append(" ".join(perm).title())
-
         return permissions
 
     crud_url_names = {
@@ -185,9 +185,10 @@ class CompanyMembersView(CRUDUrlsMixin, CheckOwnCompanyMixin, PermissionRequired
     def get_queryset(self):
         query = self.request.GET.get('search', '')
 
-        queryset = self.model.objects.select_related(
+        queryset = (self.model.objects.select_related(
             "profile",
             "profile__company",
+            "profile__company__holiday_approver",
             "profile__department",
             "profile__department__holiday_approver",
             "profile__team",
@@ -204,7 +205,7 @@ class CompanyMembersView(CRUDUrlsMixin, CheckOwnCompanyMixin, PermissionRequired
                 default=Value(5),
                 output_field=IntegerField(),
             )
-        ).order_by('sort_priority', 'profile__first_name', 'profile__last_name')
+        ).order_by('sort_priority', 'profile__first_name', 'profile__last_name'))
 
         if query:
             queryset = queryset.filter(
@@ -220,8 +221,6 @@ class CompanyMembersView(CRUDUrlsMixin, CheckOwnCompanyMixin, PermissionRequired
 
         return queryset
 
-
-
     def get(self, request, *args, **kwargs):
         company = request.user.profile.company
 
@@ -232,15 +231,19 @@ class CompanyMembersView(CRUDUrlsMixin, CheckOwnCompanyMixin, PermissionRequired
 
     # # TODO check if this is the right way to fetch related models for the user profile
     def get_context_data(self, **kwargs):
-        user_permissions = self.request.user.get_all_permissions()
+        holidays_requests = Holiday.objects.filter(
+            Q(requester__company=self.request.user.profile.company) |
+            Q(reviewer=self.request.user.profile)
+        ).order_by('start_date')
+
+        requesters_pk = holidays_requests.values_list('requester', flat=True)
+
         context = super().get_context_data(**kwargs)
-        company = self.get_queryset().first()
+        context["requesters_pk"] = requesters_pk
         context["title"] = "Employees"
         context["search_value"] = self.request.GET.get('search', '')
         context["view_permissions"] = self._get_view_permission()
-
-        # context['employees'] = company.employees.all()
-
+        context["view_requests"] = self.request.user.has_perm("absences.can_view_all_holidays_requests")
         return context
 
 

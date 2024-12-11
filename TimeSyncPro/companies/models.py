@@ -1,3 +1,5 @@
+import holidays
+from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.core.validators import MinValueValidator, MinLengthValidator, MaxValueValidator
@@ -119,7 +121,7 @@ class Company(HistoryMixin, EmailFormatingMixin, CreatedModifiedMixin):
             if self.address.country:
                 country_timezones = pytz.country_timezones.get(self.address.country.code)[0]
                 if country_timezones:
-                    return country_timezones  # Return the first timezone for the country
+                    return country_timezones
         return "UTC"
 
     # TODO Check ii works correctly
@@ -159,6 +161,12 @@ class Company(HistoryMixin, EmailFormatingMixin, CreatedModifiedMixin):
     @staticmethod
     def slug_generator(name, max_length):
         return slugify(name)[:max_length]
+
+    @property
+    def country_code(self):
+        if self.address.country.code:
+            return self.address.country.code
+        return getattr(settings, 'DEFAULT_COUNTRY_CODE', 'GB')
 
 
 class Department(HistoryMixin, models.Model):
@@ -245,13 +253,14 @@ class Shift(HistoryMixin, models.Model):
     )
 
     def generate_shift_working_dates(self):
-        # end_date = date(date.today().year + 1, 12, 31)
         current_date = self.start_date
         end_date = current_date + timedelta(days=30)
+        work_on_local_holidays = self.company.working_on_local_holidays
 
         self.refresh_from_db()
         blocks = self.blocks.all().order_by("order")
 
+        # Clear existing dates
         for block in blocks:
             block.working_dates.clear()
 
@@ -261,16 +270,21 @@ class Shift(HistoryMixin, models.Model):
                 count += 1
                 if count > 1000:
                     raise ValueError("Too many iterations")
+
                 for block in blocks:
-                    for day in block.on_off_days:
-                        if current_date > end_date:
-                            break
-                        if day == 1:
-                            date_obj, created = Date.objects.get_or_create(date=current_date)
+
+                    day_index = (current_date - self.start_date).days % len(block.on_off_days)
+
+                    if block.on_off_days[day_index] == 1:
+                        date_obj, created = Date.objects.get_or_create(date=current_date)
+                        if work_on_local_holidays or not date_obj.is_holiday(self.company):
                             block.working_dates.add(date_obj)
-                        current_date += timedelta(days=1)
+
+                # Move to next day after processing all blocks
+                current_date += timedelta(days=1)
+
         except ValueError as e:
-            print(e)
+            print(f"Error generating working dates: {e}")
 
     class Meta:
         unique_together = ("company", "name")
@@ -521,8 +535,15 @@ class Date(models.Model):
         ]
 
     def is_holiday(self, company):
-        #TODO Implement holiday check logic
-        pass
+        try:
+            country_code = company.country_code
+
+            country_holidays = holidays.country_holidays(country_code)
+
+            return self.date in country_holidays
+
+        except (AttributeError, KeyError, ValueError) as e:
+            return False
 
     def is_working_day(self, shift):
         return self.shift_blocks.filter(pattern=shift).exists()

@@ -1,0 +1,43 @@
+{% extends 'layout/company-layout.html' %}
+{% load static %}
+{% load filters %}
+
+{% block page-content %}
+
+
+    <div class="content-area">
+
+        <div class="form-container">
+            <h2>Add Absence to {{ absentee.profile.full_name }}</h2>
+
+            <form action="{% url 'add_absence' slug=absentee.slug company_slug=user.company.slug %}" method="post"
+                  enctype="multipart/form-data">
+                {% csrf_token %}
+                            <div class="profile-form reg-form ">
+                <div class="profile-form reg-form update-form formset">
+                    <div class="part-form-container">
+                        <h4>Information</h4>
+                        {% for field in form %}
+                            {% if not field.is_hidden %}
+                                {% if field.name == 'team_members' %}
+                                    {% render_field field wrapper_class="form-row" class="form-control select2-checkbox" label_class="form-label" %}
+                                {% else %}
+                                    {% render_field field wrapper_class="form-row" class="form-control" label_class="form-label" %}
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
+
+                    </div>
+                    <div class="btn-group update-form-btn">
+                        <button type="submit" class="default-btn">Create</button>
+                        {% include "partials/cancel_btn.html" %}
+                    </div>
+                </div>
+            </div>
+            </form>
+        </div>
+    </div>
+
+
+
+{% endblock %}

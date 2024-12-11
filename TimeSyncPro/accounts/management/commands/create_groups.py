@@ -92,10 +92,13 @@ class Command(BaseCommand):
                 "change_employee",
                 "delete_employee",
                 "view_employee",
+                "view_employees",
                 "add_department",
                 "change_department",
                 "delete_department",
                 "view_department",
+                "can_view_all_holidays_requests",
+                "can_update_holiday_requests_status",
             ]
         )
 
@@ -121,6 +124,7 @@ class Command(BaseCommand):
                 "change_employee",
                 "delete_employee",
                 "view_employee",
+                "view_employees",
                 "add_shift",
                 "change_shift",
                 "delete_shift",
@@ -129,6 +133,8 @@ class Command(BaseCommand):
                 "change_team",
                 "delete_team",
                 "view_team",
+                "can_view_all_holidays_requests",
+                "can_update_holiday_requests_status",
             ]
         )
 
@@ -136,6 +142,7 @@ class Command(BaseCommand):
             codename__in=[
                 "change_employee",
                 "view_employee",
+                "can_view_all_holidays_requests",
             ]
         )
 
@@ -148,7 +155,6 @@ class Command(BaseCommand):
 
         staff_permissions = Permission.objects.filter(
             codename__in=[
-                "view_employee",
             ]
         )
 

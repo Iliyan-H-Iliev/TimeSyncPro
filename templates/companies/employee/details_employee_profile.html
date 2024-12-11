@@ -15,15 +15,17 @@
             <div class="profile-main">
                 <section class="profile-section">
                     <div class="section-title-button">
-                        <h2 class="section-title">Profile Information</h2>
+                        <h2 class="section-title">Employee Information</h2>
                         <div>
+                            <a href="{% url 'employee_requests' slug=object.slug company_slug=user.company.slug %}"
+                               class="default-btn details">Requests</a>
                             {% if has_detailed_change_permission %}
-                            <a href="{% url 'update_employee' slug=object.slug company_slug=user.company.slug %}"
-                               class="default-btn edit"><i class="fa-regular fa-pen-to-square"></i></a>
+                                <a href="{% url 'update_employee' slug=object.slug company_slug=user.company.slug %}"
+                                   class="default-btn edit"><i class="fa-regular fa-pen-to-square"></i></a>
                             {% endif %}
                             {% if has_delete_permission and user != object %}
-                            <a href="{% url 'delete_employee' slug=object.slug company_slug=user.company.slug %}"
-                                 class="default-btn delete"><i class="fa-regular fa-trash-can"></i></a>
+                                <a href="{% url 'delete_employee' slug=object.slug company_slug=user.company.slug %}"
+                                   class="default-btn delete"><i class="fa-regular fa-trash-can"></i></a>
                             {% endif %}
                             {#                    <a href="{% url 'update_profile' slug=user.slug %}" class="edit-profile-btn">Edit Profile</a>#}
                             {#                                <a href="{% url 'password_change' %}" class="default-btn change-password">Change#}
@@ -187,14 +189,14 @@
             });
         </script>
     {% endif %}
-{#    <script src="{% static 'js/team-details.js' %}"></script>#}
+    {#    <script src="{% static 'js/team-details.js' %}"></script>#}
     <script src="{% static 'js/modules/history.js' %}"></script>
     <script src="{% static 'js/modules/pagination.js' %}"></script>
     <script src="{% static 'js/modules/utils.js' %}"></script>
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        loadHistory();
-    });
-</script>
+        document.addEventListener('DOMContentLoaded', function () {
+            loadHistory();
+        });
+    </script>
 
 {% endblock %}

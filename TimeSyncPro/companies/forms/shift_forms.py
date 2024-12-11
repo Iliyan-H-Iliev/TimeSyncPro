@@ -25,7 +25,7 @@ class ShiftBaseForm(CheckExistingNamePerCompanyMixin, ReadonlyFieldsFormMixin, L
         required=False,
         widget=Select2SlideCheckboxWidget(attrs={
             'class': 'select2-checkbox',
-            'data-placeholder': 'Select members...'
+            'data-placeholder': 'Select teams...'
         })
     )
 
@@ -39,6 +39,11 @@ class ShiftBaseForm(CheckExistingNamePerCompanyMixin, ReadonlyFieldsFormMixin, L
             "shift_teams",
             'rotation_weeks',
         ]
+
+        widgets = {
+            'start_date': forms.DateInput(attrs={'type': 'date'}),
+            'description': forms.Textarea(attrs={'rows': 5}),
+        }
 
     # def clean(self):
     #     cleaned_data = super().clean()

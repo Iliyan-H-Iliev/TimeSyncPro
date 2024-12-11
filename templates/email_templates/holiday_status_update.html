@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: {% if is_approved %}#4CAF50{% else %}#f44336{% endif %}; 
+                 color: white; padding: 20px; text-align: center; }
+        .content { padding: 20px; }
+        .footer { text-align: center; padding: 20px; color: #666; }
+        .details { background-color: #f9f9f9; padding: 15px; margin: 15px 0; }
+    </style>
+    <title>Email</title>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Holiday Request {{ status }}</h2>
+        </div>
+        <div class="content">
+            <p>Dear {{ requester_name }},</p>
+            
+            <p>Your holiday request has been <strong>{{ status }}</strong> by {{ reviewer_name }}.</p>
+            
+            <div class="details">
+                <p><strong>Period:</strong> {{ start_date }} to {{ end_date }}</p>
+                <p><strong>Days Requested:</strong> {{ days_requested }}</p>
+                {% if review_reason %}
+                <p><strong>Reason:</strong> {{ review_reason }}</p>
+                {% endif %}
+            </div>
+
+            {% if is_approved %}
+            <p>Enjoy your time off!</p>
+            {% else %}
+            <p>If you have any questions about this decision, please contact your manager.</p>
+            {% endif %}
+        </div>
+        <div class="footer">
+            <p>This is an automated message. Please do not reply directly to this email.</p>
+        </div>
+    </div>
+</body>
+</html>

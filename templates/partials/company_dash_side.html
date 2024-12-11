@@ -12,13 +12,14 @@
             <h2 class="profile-name">{{ company.name }}</h2>
         </div>
         <ul class="profile-nav">
-            <li><a href="{% url 'company_profile' company_slug=user.company.slug %}">Company Details</a></li>
-            <li><a href="{% url 'all_departments' company_slug=user.company.slug %}">Departments</a></li>
-            <li><a href="{% url 'company_members' company_slug=user.company.slug %}">Employees</a></li>
-            <li><a href="{% url 'all_teams' company_slug=user.company.slug %}">Teams</a></li>
-            <li><a href="{% url 'all_shifts' company_slug=company.slug %}">Shifts</a></li>
-            <li><a href="{% url 'company_holidays' company_slug=user.company.slug %}">Holiday Requests</a></li>
-            <li><a href="{% url 'all_departments' company_slug=user.company.slug %}">Absences</a></li>
+            <li><a href="{% url 'company_profile' company_slug=user.company.slug %}" class="dash-button">Company Details</a></li>
+            <li><a href="{% url 'all_departments' company_slug=user.company.slug %}" class="dash-button">Departments</a></li>
+            <li><a href="{% url 'company_members' company_slug=user.company.slug %}" class="dash-button">Employees</a></li>
+            <li><a href="{% url 'all_teams' company_slug=user.company.slug %}" class="dash-button">Teams</a></li>
+            <li><a href="{% url 'all_shifts' company_slug=company.slug %}" class="dash-button">Shifts</a></li>
+            <li><a href="{% url 'company_holidays' company_slug=user.company.slug %}" class="dash-button">Holiday Requests</a></li>
+            <li><a href="{% url 'all_departments' company_slug=user.company.slug %}" class="dash-button">Absences</a></li>
+            <li><a href="{% url 'all_departments' company_slug=user.company.slug %}" class="dash-button">Reports</a></li>
         </ul>
 
     {% endwith %}

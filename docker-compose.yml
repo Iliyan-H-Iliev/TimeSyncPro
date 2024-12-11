@@ -160,6 +160,10 @@
 #      retries: 5
 
 
+
+
+
+
 services:
   redis:
     image: redis
@@ -171,24 +175,24 @@ services:
       timeout: 5s
       retries: 3
 
-  mailhog:
-    image: mailhog/mailhog
-    ports:
-      - "1025:1025"
-      - "8025:8025"
+#  mailhog:
+#    image: mailhog/mailhog
+#    ports:
+#      - "1025:1025"
+#      - "8025:8025"
 
-  celery:
-    build: .
-    volumes:
-      - .:/app
-    depends_on:
-      redis:
-        condition: service_healthy
-      mailhog:
-        condition: service_started
-    environment:
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
-      - EMAIL_HOST=mailhog
-      - EMAIL_PORT=1025
-      - REDIS_HOST=redis
+#  celery:
+#    build: .
+#    volumes:
+#      - .:/app
+#    depends_on:
+#      redis:
+#        condition: service_healthy
+#      mailhog:
+#        condition: service_started
+#    environment:
+#      - CELERY_BROKER_URL=redis://redis:6379/0
+#      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+#      - EMAIL_HOST=mailhog
+#      - EMAIL_PORT=1025
+#      - REDIS_HOST=redis

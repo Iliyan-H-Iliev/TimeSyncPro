@@ -12,6 +12,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from .views_mixins import HolidayReviewAccessMixin, EmployeeHolidayRequestsAccessMixin, AllHolidayRequestsAccessMixin
 from ..forms import RequestHolidayForm, ReviewHolidayForm
 from ..models import Absence, Holiday
 from ..serializers import HolidayStatusUpdateSerializer
@@ -31,6 +32,7 @@ class AllHolidaysBaseView(LoginRequiredMixin, views.ListView):
     def get_queryset(self):
         query = self.request.GET.get('search', '')
         status_filter = self.request.GET.get('status', None)
+        user = self.request.user
 
         queryset = (Holiday.objects.select_related(
             'requester',
@@ -38,6 +40,9 @@ class AllHolidaysBaseView(LoginRequiredMixin, views.ListView):
             'reviewed_by',
             "requester__team",
         ).filter(requester__company=self.request.user.profile.company)).order_by('start_date')
+
+        if not user.has_perm('absences.can_view_all_holidays_requests'):
+            queryset = queryset.filter(reviewer=user.profile)
 
         if status_filter:
             queryset = queryset.filter(status=status_filter)
@@ -62,12 +67,24 @@ class AllHolidaysBaseView(LoginRequiredMixin, views.ListView):
         return context
 
 
-class AllHolidaysView(CompanyAccessMixin, AllHolidaysBaseView):
+class AllHolidaysView(AllHolidayRequestsAccessMixin, CompanyAccessMixin, AllHolidaysBaseView):
     pass
 
 
+class EmployeeHolidaysView(EmployeeHolidayRequestsAccessMixin, AllHolidaysBaseView):
+    template_name = 'absences/employee_requests.html'
+
+    def get_object(self):
+        return get_object_or_404(User_Model, slug=self.kwargs['slug'])
+
+    def get_queryset(self):
+        employee = self.get_object()
+        queryset = super().get_queryset()
+        return queryset.filter(requester=employee.profile)
+
+
 class MyHolidaysView(AllHolidaysBaseView):
-    template_name = 'absences/my_holidays.html'
+    template_name = 'absences/my_requests.html'
 
     def dispatch(self, request, *args, **kwargs):
         target_requester = None
@@ -109,31 +126,7 @@ class RequestHolidayView(LoginRequiredMixin, views.CreateView):
         return super().form_invalid(form)
 
 
-# class ReviewHolidayView(LoginRequiredMixin, views.DetailView):
-#     model = Holiday
-#     form_class = ReviewHolidayForm
-#     template_name = 'absences/review_holiday.html'
-#
-#     def dispatch(self, request, *args, **kwargs):
-#         holiday = self.get_object()
-#         if (holiday.reviewer != request.user.profile and
-#                 not request.user.has_perm('absences.can_update_holiday_status')):
-#             raise PermissionDenied('You do not have permission to review this holiday request.')
-#         return super().dispatch(request, *args, **kwargs)
-#
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         holiday = self.get_object()
-#         requester_team = holiday.requester.get_team()
-#         if requester_team:
-#             team_members_in_holiday = requester_team.get_team_members_at_holiday(holiday.start_date, holiday.end_date)
-#             context['requester_team'] = requester_team
-#             context['team_members_in_holiday'] = team_members_in_holiday
-#             context['team_members_in_holiday_count'] = requester_team.get_numbers_of_team_members_holiday_days_by_queryset(team_members_in_holiday)
-#         context['form'] = self.form_class()
-#         return context
-
-class ReviewHolidayView(LoginRequiredMixin, views.DetailView):
+class ReviewHolidayView(HolidayReviewAccessMixin, LoginRequiredMixin, views.DetailView):
     model = Holiday
     form_class = ReviewHolidayForm
     template_name = 'absences/review_holiday.html'
@@ -144,13 +137,6 @@ class ReviewHolidayView(LoginRequiredMixin, views.DetailView):
             'requester__team',
             'reviewer'
         )
-
-    def dispatch(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        if (self.object.reviewer != request.user.profile and
-                not request.user.has_perm('absences.can_update_holiday_status')):
-            raise PermissionDenied('You do not have permission to review this holiday request.')
-        return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -183,23 +169,21 @@ class HolidayRequestStatusUpdateView(UpdateAPIView):
     def get_object(self):
         holiday = super().get_object()
 
-        if self.request.user.profile == holiday.requester:
-            if self.request.data.get('status') != holiday.StatusChoices.CANCELLED:
+        if self.request.user.profile != holiday.requester:
+            if self.request.data.get('status') == holiday.StatusChoices.CANCELLED:
                 raise PermissionDenied('You can only cancel your own holiday requests.')
         elif (self.request.user.profile == holiday.reviewer or
-              self.request.user.profile.has_perm('absences.can_update_holiday_status')):
+              self.request.user.has_perm('absences.can_update_holiday_requests_status')):
             pass
         else:
             raise PermissionDenied('You do not have permission to update this holiday request.')
 
         return holiday
 
-    def perform_update(self, serializer):
-        holiday = serializer.get_object()
-
-        if serializer.validated_data['status'] in (holiday.StatusChoices.APPROVED, holiday.StatusChoices.DENIED):
-            holiday.reviewed_by = self.request.user.profile
-        serializer.save()
+    # def get_serializer_context(self):
+    #     context = super().get_serializer_context()
+    #     context['request'] = self.request
+    #     return context
 
     def partial_update(self, request, *args, **kwargs):
         try:
@@ -214,8 +198,3 @@ class HolidayRequestStatusUpdateView(UpdateAPIView):
                 {"error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-
-
-
-
-

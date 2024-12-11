@@ -234,10 +234,14 @@ i {
 
 .container-row {
     padding-bottom: 10px;
+    align-items: center;
+
 }
 
 .container-row h4 {
     border-bottom: none;
+    text-align: center;
+    font-weight: 600;
 }
 
 .section-title-button {
@@ -617,7 +621,7 @@ i {
     padding-bottom: 1rem;
 }
 
-.holiday_days h5 span{
+.holiday_days h5 span {
     min-width: 40px;
 }
 
@@ -723,3 +727,4 @@ i {
         width: 100%;
     }
 }
+

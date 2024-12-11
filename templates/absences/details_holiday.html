@@ -56,10 +56,10 @@
                                         <span class="profile-value">{{ object.reason|default:"-" }}</span>
                                     </div>
                                     <div class="profile-item-row">
-                                        {% if object.status == "Approved" %}
+                                        {% if object.status == "approved" %}
                                             <span class="profile-label">Approved By:</span>
                                             <span class="profile-value">{{ object.reviewed_by }}</span>
-                                        {% elif object.status == "Denied" %}
+                                        {% elif object.status == "denied" %}
                                             <span class="profile-label">Denied By:</span>
                                             <span class="profile-value">{{ object.reviewed_by }}</span>
                                         {% else %}

@@ -250,9 +250,6 @@ class Profile(HistoryMixin, CreatedModifiedMixin):
 
     def save(self, *args, **kwargs):
 
-        if self.is_company_admin is None:
-            self.is_company_admin = False
-
         if self.first_name:
             self.first_name = self.format_name(self.first_name)
         if self.last_name:
@@ -261,7 +258,6 @@ class Profile(HistoryMixin, CreatedModifiedMixin):
         is_new = not self.pk
 
         if is_new and not self.user_id:
-            # First save without history
             super().save(*args, **kwargs, skip_history=True)
             # Then create history if we have a user
             # if self.user_id:
@@ -281,7 +277,7 @@ class Profile(HistoryMixin, CreatedModifiedMixin):
 
         return name.title()
 
-    def get_leave_approver(self):
+    def get_holiday_approver(self):
         if self.team and self.team.holiday_approver:
             return self.team.holiday_approver
         elif self.department and self.department.holiday_approver:
@@ -298,6 +294,19 @@ class Profile(HistoryMixin, CreatedModifiedMixin):
         if self.team:
             return self.team
         return None
+
+    def get_default_working_days(self, start_date, end_date):
+        shift = self.get_shift()
+        if shift:
+            return shift.get_shift_working_dates_by_period(start_date, end_date)
+
+        working_days = []
+        current_date = start_date
+        while current_date <= end_date:
+            if current_date.weekday() < 5:  # 0-4 are Monday to Friday
+                working_days.append(current_date)
+            current_date += timedelta(days=1)  # Move to the next day
+        return working_days
 
     def get_team_employees_holidays_at_a_time(self):
         if hasattr(self, 'team') and self.team:

@@ -1,0 +1,18 @@
+<div class="container-profile-colon item-container">
+    <!-- Header Row -->
+    <div class="container-row">
+        <h4 class="obj-title">{{ object.requester.full_name }}: {{ object.start_date|date:"d/m/Y" }} - {{ object.end_date|date:"d/m/Y" }}</h4>
+        <div class="crud-buttons">
+            <a href="{% url 'review_holiday' pk=object.pk company_slug=user.company.slug %}"
+               class="default-btn details"><i class="fa-solid fa-info"></i></a>
+        </div>
+    </div>
+
+    <!-- Details Section -->
+    <div class="container-profile-row element-container employee-container">
+
+        {% block element %}
+            {% include "partials/holiday_details.html" %}
+        {% endblock %}
+    </div>
+</div>
