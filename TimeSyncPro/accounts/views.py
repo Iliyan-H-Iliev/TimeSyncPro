@@ -1,11 +1,7 @@
 import asyncio
 import logging
-from datetime import datetime, date
-
-import pytz
+from datetime import datetime, date, timedelta
 from asgiref.sync import sync_to_async
-from dateutil import parser
-from dateutil.relativedelta import relativedelta
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
 from django.contrib import messages
@@ -32,7 +28,7 @@ from TimeSyncPro.accounts import forms
 from TimeSyncPro.accounts.forms import SignupCompanyAdministratorForm, \
     BasicEditTSPUserForm, DetailedEditTSPUserForm, CustomSetPasswordForm, \
     DetailedEditProfileForm, BasicEditProfileForm
-from TimeSyncPro.accounts.forms.edit_profile_form import AdminEditProfileForm, DetailedEditOwnProfileForm
+from TimeSyncPro.accounts.forms.edit_profile_forms import AdminEditProfileForm, DetailedEditOwnProfileForm
 from TimeSyncPro.accounts.models import Profile
 from TimeSyncPro.accounts.serializers import EmployeeSerializer
 from TimeSyncPro.accounts.view_mixins import DynamicPermissionMixin, EmployeeButtonPermissionMixin
@@ -54,7 +50,9 @@ UserModel = get_user_model()
 class SignupCompanyAdministratorUser(AuthenticatedUserMixin, views.CreateView):
     template_name = "accounts/signup_company_administrator.html"
     form_class = SignupCompanyAdministratorForm
-    success_url_name = "create_profile_company"
+
+    def get_success_url(self):
+        return reverse("create_profile_company", kwargs={'slug': self.object.slug})
 
     def form_valid(self, form):
         logger.debug("Entering form_valid method")
@@ -73,7 +71,9 @@ class SignupCompanyAdministratorUser(AuthenticatedUserMixin, views.CreateView):
             if user.slug is None:
                 return HttpResponseRedirect(reverse('index'))
 
-            return redirect(self.success_url_name, slug=user.slug)
+            self.object = user
+
+            return self.get_success_url()
 
         except Exception as e:
             logger.error(f"Error in form_valid: {str(e)}")
@@ -95,7 +95,8 @@ class CreateProfileAndCompanyView(OwnerRequiredMixin, views.CreateView):
     company_address_form_class = common_forms.AddressForm
 
     def dispatch(self, request, *args, **kwargs):
-        if hasattr(request.user, 'profile') and hasattr(request.user.profile, 'company'):
+        if ((hasattr(request.user, 'profile') and request.user.profile is not None) and
+                (hasattr(request.user.profile, 'company') and request.user.profile.company is not None)):
             return redirect("dashboard", slug=request.user.slug)
         return super().dispatch(request, *args, **kwargs)
 
@@ -196,6 +197,10 @@ class SignInUserView(auth_views.LoginView):
     def get_success_url(self):
         user = self.request.user
 
+        if (user.is_superuser or user.is_staff) and not hasattr(user.profile, 'company'):
+            return reverse("profile", kwargs={'slug': user.slug})
+
+
         if not hasattr(user, 'profile'):
             return reverse("create_profile_and_company", kwargs={'slug': user.slug})
 
@@ -264,9 +269,11 @@ class SignupEmployeeView(PermissionRequiredMixin, LoginRequiredMixin, views.Crea
         )
 
     def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if "form" not in kwargs:
+            kwargs['form'] = self.get_form()
         if 'address_form' not in kwargs:
             kwargs['address_form'] = common_forms.AddressForm()
-        context = super().get_context_data(**kwargs)
         company = self.request.user.company
         context['company_slug'] = company.slug if company else None
         return context
@@ -372,7 +379,7 @@ class DashboardView(DetailsOwnProfileView):
         context = super().get_context_data(**kwargs)
         today = datetime.now().date()
         profile = context['profile']
-        next_holidays = profile.holidays.filter(start_date__gte=today, status="approve").first()
+        next_holidays = profile.holidays.filter(start_date__gte=today, status="approved").order_by('start_date').first()
         absences = profile.absences.all().count()
         context['next_holiday'] = next_holidays
         context['absences'] = absences
@@ -721,91 +728,6 @@ class ActivateAndSetPasswordView(views.View):
             return redirect('index')
 
 
-# class CalendarEventsView(views.View):
-#     def get(self, request, *args, **kwargs):
-#         start_str = request.GET.get('start')
-#         end_str = request.GET.get('end')
-#         event_type = request.GET.get('type')
-#
-#         try:
-#             def clean_date(date_str):
-#                 if not date_str:
-#                     return None
-#                 if 'T' in date_str:
-#                     date_str = date_str.split('T')[0]
-#                 return date_str
-#
-#             start = datetime.strptime(clean_date(start_str), '%Y-%m-%d').date()
-#             end = datetime.strptime(clean_date(end_str), '%Y-%m-%d').date()
-#
-#         except (ValueError, TypeError, AttributeError) as e:
-#             print(f"Error parsing dates: {e}")
-#             return JsonResponse({'error': 'Invalid date format'}, status=400)
-#
-#         profile = getattr(request.user, 'profile', None)
-#         if not profile:
-#             return JsonResponse({'error': 'Profile not found for user'}, status=404)
-#
-#         response_data = {}
-#
-#         if event_type == 'holidays':
-#             holidays = Holiday.objects.filter(
-#                 start_date__range=[start, end],
-#                 status='approved'
-#             )
-#             response_data['holidays'] = [
-#                 {
-#                     'date': h.start_date.isoformat(),
-#                     'title': f"Holiday: {h.reason}"
-#                 } for h in holidays
-#             ]
-#
-#         elif event_type == 'absences':
-#             absences = Absence.objects.filter(
-#                 start_date__range=[start, end],
-#                 absentee=profile
-#             )
-#             response_data['absences'] = [
-#                 {
-#                     'start_date': a.start_date.isoformat(),
-#                     'end_date': a.end_date.isoformat(),
-#                     'title': f"Absence: {a.reason}"
-#                 } for a in absences
-#             ]
-#
-#         else:  # Default: return all data
-#             working_days = profile.get_working_days(start, end)
-#             holidays = Holiday.objects.filter(
-#                 start_date__range=[start, end],
-#                 status='approved'
-#             )
-#             absences = Absence.objects.filter(
-#                 start_date__range=[start, end],
-#                 absentee=profile
-#             )
-#             days_off = profile.get_days_off(start, end)
-#
-#             response_data = {
-#                 'workingDays': [d.isoformat() for d in working_days],
-#                 'holidays': [
-#                     {
-#                         'date': h.start_date.isoformat(),
-#                         'title': f"Holiday: {h.reason}"
-#                     } for h in holidays
-#                 ],
-#                 'absences': [
-#                     {
-#                         'start_date': a.start_date.isoformat(),
-#                         'end_date': a.end_date.isoformat(),
-#                         'title': f"Absence: {a.reason}"
-#                     } for a in absences
-#                 ],
-#                 'daysOff': [d.isoformat() for d in days_off]
-#             }
-#
-#         return JsonResponse(response_data)
-
-
 class CalendarEventsView(views.View):
     @sync_to_async
     def get_profile(self, user):
@@ -821,6 +743,14 @@ class CalendarEventsView(views.View):
 
     @sync_to_async
     def get_absences(self, profile, start, end):
+        аbsences = list(Absence.objects.filter(
+            start_date__range=[start, end],
+            absentee=profile
+        ))
+
+        for absence in аbsences:
+            print(absence.start_date, absence.end_date, absence.reason, absence.absentee)
+
         return list(Absence.objects.filter(
             start_date__range=[start, end],
             absentee=profile
@@ -833,6 +763,14 @@ class CalendarEventsView(views.View):
     @sync_to_async
     def get_days_off(self, profile, start, end):
         return list(profile.get_days_off(start, end))
+
+    def generate_date_range(self, start_date, end_date):
+        days = []
+        current = start_date
+        while current <= end_date:
+            days.append(current)
+            current += timedelta(days=1)
+        return days
 
     async def get(self, request, *args, **kwargs):
         start_str = request.GET.get('start')
@@ -867,24 +805,6 @@ class CalendarEventsView(views.View):
             self.get_days_off(*args)
         )
 
-        # response_data = {
-        #     'workingDays': [d.isoformat() for d in working_days],
-        #     'holidays': [
-        #         {
-        #             'date': h.start_date.isoformat(),
-        #             'title': f"Holiday: {h.reason}"
-        #         } for h in holidays
-        #     ],
-        #     'absences': [
-        #         {
-        #             'start_date': a.start_date.isoformat(),
-        #             'end_date': a.end_date.isoformat(),
-        #             'title': f"Absence: {a.reason}"
-        #         } for a in absences
-        #     ],
-        #     'daysOff': [d.isoformat() for d in days_off]
-        # }
-
         formatted_working_days = [
             {
                 'date': date.isoformat(),
@@ -894,21 +814,31 @@ class CalendarEventsView(views.View):
             for date, times in working_days_and_time.items()
         ]
 
+        holiday_events = []
+        for holiday in holidays:
+            date_range = self.generate_date_range(holiday.start_date, holiday.end_date)
+            for date in date_range:
+                holiday_events.append({
+                    'date': date.isoformat(),
+                    'title': f"Holiday: {holiday.reason}",
+                    'days': (holiday.end_date - holiday.start_date).days + 1
+                })
+
+        # Process absences - create an event for each day
+        absence_events = []
+        for absence in absences:
+            date_range = self.generate_date_range(absence.start_date, absence.end_date)
+            for date in date_range:
+                absence_events.append({
+                    'date': date.isoformat(),
+                    'title': f"Absence: {absence.reason}",
+                    'days': (absence.end_date - absence.start_date).days + 1
+                })
+
         response_data = {
             'workingDays': formatted_working_days,
-            'holidays': [
-                {
-                    'date': h.start_date.isoformat(),
-                    'title': f"Holiday: {h.reason}"
-                } for h in holidays
-            ],
-            'absences': [
-                {
-                    'start_date': a.start_date.isoformat(),
-                    'end_date': a.end_date.isoformat(),
-                    'title': f"Absence: {a.reason}"
-                } for a in absences
-            ],
+            'holidays': holiday_events,
+            'absences': absence_events,
             'daysOff': [d.isoformat() for d in days_off]
         }
 

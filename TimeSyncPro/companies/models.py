@@ -262,7 +262,6 @@ class Shift(HistoryMixin, models.Model):
         self.refresh_from_db()
         blocks = self.blocks.all().order_by("order")
 
-        # Clear existing dates
         for block in blocks:
             block.working_dates.clear()
 

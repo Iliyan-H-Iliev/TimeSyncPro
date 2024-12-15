@@ -85,10 +85,15 @@ def assign_user_to_group(sender, instance, created, **kwargs):
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_profile(sender, instance: UserModel, created: bool, **kwargs):
 
+    if not created:
+        return
+
+    if hasattr(instance, 'skip_profile_creation') and instance.skip_profile_creation:
+        return
+
     try:
         Profile.objects.get(user=instance)
     except Profile.DoesNotExist:
-        # Create address and profile in a transaction
         with transaction.atomic():
             address = Address.objects.create()
             Profile.objects.create(

@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Get CSRF token from meta tag
+    const csrftoken = document.querySelector('meta[name="csrf-token"]').content;
+
     // Select all elements with the logout-link class
     const logoutLinks = document.querySelectorAll('.logout-link');
 
@@ -6,22 +9,24 @@ document.addEventListener('DOMContentLoaded', function() {
     logoutLinks.forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
-            logout();
+            logout(csrftoken);
         });
     });
 });
 
-
-function logout() {
-    fetch('/sign_out/', {
+function logout(csrftoken) {
+    fetch('/sign-out/', {  // Changed from /sign_out/ to /sign-out/
         method: 'POST',
         headers: {
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            'X-CSRFToken': csrftoken,
+            'Content-Type': 'application/json'
         },
         credentials: 'include'
     }).then(response => {
         if (response.ok) {
-            window.location.href = '/sign_in/';
+            window.location.href = '/sign-in/';
         }
+    }).catch(error => {
+        console.error('Logout error:', error);
     });
 }

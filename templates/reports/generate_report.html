@@ -1,0 +1,142 @@
+{% extends "layout/company-layout.html" %}
+{% load static %}
+{% load filters %}
+
+{% block style %}
+    <link rel="stylesheet" href="{% static 'styles/pages/generate-report.css' %}">
+{% endblock %}
+
+{% block page-content %}
+    <div class="content-area">
+        <div class="report-container">
+            <div class="filter-card">
+                <div class="filter-header">
+                    <h3 class="filter-title">Generate Report</h3>
+                </div>
+                <div class="filter-body">
+                    <form method="get" class="mb-4">
+
+                        <div class="row g-3">
+                            <div class="date-range-container">
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label class="form-label">Start Date</label>
+                                        <input type="date" name="start_date" class="form-control"
+                                               value="{{ start_date|date:'Y-m-d' }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label class="form-label">End Date</label>
+                                        <input type="date" name="end_date" class="form-control"
+                                               value="{{ end_date|date:'Y-m-d' }}">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="select-container">
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label class="form-label">Department</label>
+                                        <select name="department" class="form-control form-select">
+                                            <option value="">All Departments</option>
+                                            {% for dept in departments %}
+                                                <option value="{{ dept.id }}"
+                                                        {% if selected_department.id == dept.id %}selected{% endif %}>
+                                                    {{ dept.name }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label class="form-label">Team</label>
+                                        <select name="team" class="form-control form-select">
+                                            <option value="">All Teams</option>
+                                            {% for team in teams %}
+                                                <option value="{{ team.id }}"
+                                                        {% if selected_team.id == team.id %}selected{% endif %}>
+                                                    {{ team.name }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <button type="submit" class="btn default-btn">Generate</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {% if absence_by_type %}
+                <div class="summary-card">
+                    <div class="summary-item">
+                        <span class="summary-label">Period:</span>
+                        <span class="summary-value">{{ start_date|date:"d M Y" }} - {{ end_date|date:"d M Y" }}</span>
+                    </div>
+                    {% if selected_department %}
+                        <div class="summary-item">
+                            <span class="summary-label">Department:</span>
+                            <span class="summary-value">{{ selected_department.name }}</span>
+                        </div>
+                    {% endif %}
+                    {% if selected_team %}
+                        <div class="summary-item">
+                            <span class="summary-label">Team:</span>
+                            <span class="summary-value">{{ selected_team.name }}</span>
+                        </div>
+                    {% endif %}
+                    <div class="summary-item">
+                        <span class="summary-label">Total Records:</span>
+                        <span class="summary-value">{{ total_absences }}</span>
+                    </div>
+                </div>
+
+                {% for type, records in absence_by_type.items %}
+                    <div class="results-card">
+                        <div class="results-header">
+                            <h4 class="results-title">{{ type }}</h4>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="report-table">
+                                <thead>
+                                <tr>
+                                    <th>Employee</th>
+                                    <th>Department</th>
+                                    <th>Team</th>
+                                    <th>Start Date</th>
+                                    <th>End Date</th>
+                                    <th>Days</th>
+                                    <th>Reason</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for record in records %}
+                                    <tr>
+                                        <td>{{ record.employee }}</td>
+                                        <td>{{ record.department }}</td>
+                                        <td>{{ record.team }}</td>
+                                        <td>{{ record.start_date|date:"d M Y" }}</td>
+                                        <td>{{ record.end_date|date:"d M Y" }}</td>
+                                        <td>{{ record.days }}</td>
+                                        <td>{{ record.reason|default:"-" }}</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% elif not absence_by_type %}
+                <div class="results-card">
+                    <div class="no-results">
+                        No records found for the selected criteria.
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

@@ -73,11 +73,11 @@ class RequestsView(HasAnyOfPermissionMixin, CompanyAccessMixin, HolidaysBaseView
         user = self.request.user
 
         if not user.has_perm("absences.view_all_holidays_requests"):
-            if user.has_perm("absences.view_department_holidays_requests"):
+            if user.has_perm("absences.view_department_holidays_requests") and user.profile.department:
                 queryset = queryset.filter(
                     requester__team__department=user.profile.department
                 )
-            elif user.has_perm("absences.view_team_holidays_requests"):
+            elif user.has_perm("absences.view_team_holidays_requests") and user.profile.team:
                 queryset = queryset.filter(
                     requester__team=user.profile.team
                 )

@@ -1,0 +1,167 @@
+.bradford-container {
+    padding: 2rem;
+    min-width: 1000px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.report-header {
+    display: flex;
+    justify-content: space-between;
+    background: linear-gradient(to right, #f8f9fa, #e9ecef);
+    padding: 2rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.risk-levels-card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.risk-levels-card .card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    padding: 1rem;
+    font-weight: 600;
+}
+
+.risk-levels-list {
+    list-style: none;
+    padding: 1rem;
+    margin: 0;
+}
+
+.risk-levels-list li {
+    padding: 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.risk-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.risk-low { background-color: var(--secondary-green); }
+.risk-medium { background-color: var(--secondary-yellow); }
+.risk-high { background-color: var(--secondary-red); }
+
+.bradford-table {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.bradford-table .table {
+    width: 100%;
+}
+
+
+.bradford-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    padding: 1rem;
+    border: none;
+}
+
+.bradford-table td {
+    padding: 1rem;
+    vertical-align: middle;
+    border-color: #e9ecef;
+}
+
+.bradford-table .table tr:nth-child(even) td {
+    border-bottom: 1px solid var(--neutral-medium);
+}
+.bradford-score {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.risk-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+.details-button {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    border: none;
+    background-color: var(--primary-blue);
+    color: white;
+    transition: all 0.2s;
+}
+
+.details-button:hover {
+    background-color: var(--primary-dark);
+}
+
+.absence-details {
+    background-color: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 0 0 8px 8px;
+}
+
+.absence-item {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background: white;
+    border-radius: 6px;
+    border-left: 4px solid var(--primary-blue);
+}
+
+.absence-date {
+    font-weight: 600;
+    color: #495057;
+}
+
+.absence-reason {
+    color: #6c757d;
+    margin-top: 0.5rem;
+}
+
+/* Export button styling */
+.export-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background-color: var(--secondary-green);
+    color: white;
+    border-radius: 6px;
+    border: none;
+    transition: all 0.2s;
+    text-decoration: none;
+    margin-bottom: 1rem;
+}
+
+.export-btn:hover {
+    background-color: #218838;
+    color: white;
+}
+
+.bg-danger {
+    background-color: var(--secondary-red);
+    color: white;
+}
+
+.bg-warning {
+    background-color: var(--secondary-yellow);
+    color: white;
+}
+
+.bg-success {
+    background-color: var(--secondary-green);
+    color: white;
+}
+

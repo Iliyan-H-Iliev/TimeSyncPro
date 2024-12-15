@@ -156,7 +156,7 @@ class CompanyMembersView(
     context_object_name = 'objects'
     paginate_by = 10
     ordering = ['first_name', 'last_name']
-    permission_required = "accounts.view_employees"
+    permission_required = "accounts.view_employee"
 
     view_permission = (
         "accounts.view_hr",

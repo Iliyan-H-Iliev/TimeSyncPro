@@ -1,10 +1,6 @@
 from django.urls import path, include
 
 from . import views
-# from .views import CreateShiftPatternView, ShiftPatternsView, CreateTeamView, TeamsView, \
-#     DetailsShiftPatternView, \
-#     EditTeamView, EditShiftPatternView, DeleteShiftPatternView, DeleteTeamView, CompanyMembersView, \
-#     DetailsCompanyView, EditCompanyView, DeleteCompanyView, CreateCompanyView
 from ..accounts.views import SignupEmployeeView, DetailsEmployeesProfileView, DetailedEditProfileView, \
     DeleteEmployeeView, TeamEmployeesAPIView, ShiftEmployeesAPIView, DepartmentEmployeesAPIView
 from ..history.views import TeamHistoryAPIView, ShiftHistoryAPIView, EmployeeHistoryAPIView, DepartmentHistoryAPIView

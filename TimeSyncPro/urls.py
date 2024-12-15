@@ -25,6 +25,7 @@ urlpatterns = [
     path("", include("TimeSyncPro.accounts.urls")),
     path("", include("TimeSyncPro.companies.urls")),
     path("", include("TimeSyncPro.absences.urls")),
+    path("", include("TimeSyncPro.reports.urls")),
 ]
 
 if settings.DEBUG:

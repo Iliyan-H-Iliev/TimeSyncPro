@@ -100,6 +100,7 @@ class Holiday(AbsenceBase):
             ("view_department_holidays_requests", "Can view department holiday requests"),
             ("view_team_holidays_requests", "Can view own holiday requests"),
             ("update_holiday_requests_status", "Can update holiday status"),
+            ("view_holidays_requests", "Can view holiday requests"),
         ]
 
     def __str__(self):
@@ -146,6 +147,7 @@ class Absence(HistoryMixin, AbsenceBase):
             ("view_all_absences", "Can view all absences"),
             ("view_department_absences", "Can view department absences"),
             ("view_team_absences", "Can view own absences"),
+            ("view_absences", "Can view absences"),
         ]
 
     class AbsenceTypes(models.TextChoices):
@@ -176,6 +178,20 @@ class Absence(HistoryMixin, AbsenceBase):
         blank=True,
         null=True,
     )
+
+    days_of_absence = models.PositiveSmallIntegerField(
+        blank=True,
+        null=True,
+    )
+
+    def get_days_of_absence(self):
+        return self.absentee.get_count_of_working_days_by_period(self.start_date, self.end_date)
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        if not self.days_of_absence:
+            self.days_of_absence = self.get_days_of_absence()
+        super().save(*args, **kwargs)
 
     # TODO - Add duration field
 

@@ -25,9 +25,9 @@ class SignupCompanyAdministratorForm(UserCreationForm):
     def save(self, commit=True):
         try:
             user = super().save(commit=False)
+            user.skip_profile_creation = True
             user.email = self.cleaned_data["email"]
             user.save()
-
             return user
 
         except Exception as e:
@@ -48,7 +48,6 @@ class SignupEmployeeForm(RequiredFieldsFormMixin, CleanEmailMixin, UserCreationF
         "remaining_leave_days",
         "employee_id",
         "department",
-        "manages_departments",
         "team",
         "shift",
     )
@@ -125,24 +124,21 @@ class SignupEmployeeForm(RequiredFieldsFormMixin, CleanEmailMixin, UserCreationF
 
         if not teams.exists():
             self.fields["team"].widget = forms.HiddenInput()
-            self.fields["team"].initial = None  # Add this
+            self.fields["team"].initial = None
         else:
             self.fields["team"].queryset = teams
 
         if not shifts.exists():
             self.fields["shift"].widget = forms.HiddenInput()
-            self.fields["shift"].initial = None  # Add this
+            self.fields["shift"].initial = None
         else:
             self.fields["shift"].queryset = shifts
 
         if not departments.exists():
             self.fields["department"].widget = forms.HiddenInput()
-            self.fields["department"].initial = None  # Add this
-            self.fields["manages_departments"].widget = forms.HiddenInput()
-            self.fields["manages_departments"].initial = None  # Add this
+            self.fields["department"].initial = None
         else:
             self.fields["department"].queryset = departments
-            self.fields["manages_departments"].queryset = departments
 
         self.fields["password1"].widget = forms.HiddenInput()
         self.fields["password2"].widget = forms.HiddenInput()
@@ -218,9 +214,6 @@ class SignupEmployeeForm(RequiredFieldsFormMixin, CleanEmailMixin, UserCreationF
                 }
 
                 employee = Profile.objects.create(**common_data)
-
-                if employee.role == "Manager" and self.cleaned_data["manages_departments"]:
-                    employee.manages_departments.set(self.cleaned_data["manages_departments"])
 
             try:
                 email = user.email

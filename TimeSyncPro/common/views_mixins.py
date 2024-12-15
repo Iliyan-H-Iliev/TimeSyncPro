@@ -179,11 +179,15 @@ class AuthenticatedUserMixin(UserPassesTestMixin):
     def get_success_url(self):
         user = self.request.user
 
-        if hasattr(user, 'profile') and hasattr(user, 'slug') and hasattr(user.profile, 'company'):
-            return reverse("dashboard", kwargs={'slug': user.slug})
+        if not hasattr(user, 'profile'):
+            return reverse("create_profile_company", kwargs={'slug': user.slug})
 
         if hasattr(user, 'profile') and hasattr(user, 'slug'):
             return reverse(self.success_url_name, kwargs={'slug': user.slug})
+
+        if hasattr(user, 'profile') and hasattr(user, 'slug') and hasattr(user.profile, 'company'):
+            if user.profile is not None and user.profile.company is not None:
+                return reverse("dashboard", kwargs={'slug': user.slug})
 
         return reverse('index')
 

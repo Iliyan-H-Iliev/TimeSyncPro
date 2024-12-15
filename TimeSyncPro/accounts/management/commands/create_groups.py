@@ -49,6 +49,10 @@ class Command(BaseCommand):
                 "change_staff",
                 "delete_staff",
                 "view_staff",
+                "add_department",
+                "change_department",
+                "delete_department",
+                "view_department",
                 "add_shift",
                 "change_shift",
                 "delete_shift",
@@ -68,14 +72,19 @@ class Command(BaseCommand):
                 "view_department",
                 "view_all_holidays_requests",
                 "update_holiday_requests_status",
+                "view_absences",
                 "add_absence",
                 "view_all_absences",
                 "view_all_employees",
+                "generate_all_reports",
+                "generate_reports",
+                "generate_all_reports",
             ]
         )
 
         hr_permissions = Permission.objects.filter(
             codename__in=[
+                "view_employee",
                 "add_user",
                 "change_user",
                 "delete_user",
@@ -88,7 +97,7 @@ class Command(BaseCommand):
                 "change_manager",
                 "delete_manager",
                 "view_manager",
-                "add_teamleader"
+                "add_teamleader",
                 "change_teamleader",
                 "delete_teamleader",
                 "view_teamleader",
@@ -97,6 +106,10 @@ class Command(BaseCommand):
                 "delete_employee",
                 "view_employee",
                 "view_employees",
+                "add_department",
+                "change_department",
+                "delete_department",
+                "view_department",
                 "add_shift",
                 "change_shift",
                 "delete_shift",
@@ -106,29 +119,48 @@ class Command(BaseCommand):
                 "delete_team",
                 "view_team",
                 "view_all_holidays_requests",
+                "view_holidays_requests",
                 "update_holiday_requests_status",
                 "add_absence",
-                "view_all_absences"
+                "view_absences",
+                "view_all_absences",
                 "view_all_employees",
+                "generate_all_reports",
+                "generate_reports",
+                "generate_all_reports",
             ]
         )
 
         manager_permissions = Permission.objects.filter(
             codename__in=[
+                "view_shift",
+                "view_team",
+                "view_employee",
                 "change_employee",
                 "view_department_employee",
                 "view_department_holidays_requests",
+                "view_holidays_requests",
                 "view_department_absences",
+                "view_absences",
                 "view_department_employees",
+                "generate_department_reports",
+                "generate_reports",
+                "generate_department_reports",
             ]
         )
 
         team_leader_permissions = Permission.objects.filter(
             codename__in=[
+                "view_employee",
                 "view_team_employee",
                 "view_team_holidays_requests",
+                "view_holidays_requests",
+                "view_absences",
                 "view_team_absences",
                 "view_team_employees",
+                "generate_team_reports",
+                "generate_reports",
+                "generate_team_reports",
             ]
         )
 

@@ -1,0 +1,87 @@
+{% extends 'layout/company-layout.html' %}
+
+{% load static %}
+{% load custom_tags %}
+
+{% block style %}
+    <link rel="stylesheet" href="{% static 'styles/pages/bradford-factor.css' %}">
+{% endblock %}
+
+{% block page-content %}
+    <div class="content-area">
+        <div class="bradford-container">
+            <div class="report-header">
+                <div class="report-header-title">
+
+                <h2>Bradford Factor Report</h2>
+                <p class="text-muted">Last 52 weeks</p>
+            </div>
+            <div class="report-header-buttons">
+                <a href="#" class="export-btn">
+                    <i class="fas fa-file-pdf"></i>
+                    Export to PDF
+                </a>
+            </div>
+            </div>
+            <div class="risk-levels-card">
+                <div class="card-header">Risk Levels</div>
+                <ul class="risk-levels-list">
+                    <li><span class="risk-indicator risk-low"></span> 0-400: Low Risk</li>
+                    <li><span class="risk-indicator risk-medium"></span> 401-900: Medium Risk</li>
+                    <li><span class="risk-indicator risk-high"></span> >900: High Risk</li>
+                </ul>
+            </div>
+
+            <div class="bradford-table">
+                <table class="table mb-0">
+                    <thead>
+                    <tr>
+                        <th>Employee</th>
+                        <th>Department</th>
+                        <th>Absence Spells</th>
+                        <th>Total Days</th>
+                        <th>Bradford Score</th>
+                        <th>Risk Level</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for data in bradford_data %}
+                        <tr>
+                            <td>{{ data.employee }}</td>
+                            <td>{{ data.department }}</td>
+                            <td>{{ data.spells }}</td>
+                            <td>{{ data.total_days }}</td>
+                            <td class="bradford-score">{{ data.bradford_score|floatformat:0 }}</td>
+                            <td>
+                        <span class="risk-badge {% if data.risk_level == 'High' %}bg-danger{% elif data.risk_level == 'Medium' %}bg-warning{% else %}bg-success{% endif %}">
+                            {{ data.risk_level }}
+                        </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="7" class="p-0">
+                                <div class="collapse" id="absences-{{ forloop.counter }}">
+                                    <div class="absence-details">
+                                        <h6>Absence History</h6>
+                                        {% for absence in data.absences %}
+                                            <div class="absence-item">
+                                                <div class="absence-date">
+                                                    {{ absence.start_date|date:"d M Y" }}
+                                                    - {{ absence.end_date|date:"d M Y" }}
+                                                </div>
+                                                <div class="absence-reason">
+                                                    {{ absence.reason }}
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -10,93 +10,7 @@
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script>
     <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/interaction@6.1.15/index.global.min.js"></script>
     {#    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>#}
-    {#        <script>#}
-    {#            document.addEventListener('DOMContentLoaded', function () {#}
-    {#                var calendarEl = document.getElementById('calendar');#}
-    {#                var calendar = new FullCalendar.Calendar(calendarEl, {#}
-    {#                    initialView: 'dayGridMonth',#}
-    {#                    headerToolbar: {#}
-    {#                        left: 'prev,next today',#}
-    {#                        center: 'title',#}
-    {#                        right: 'dayGridMonth,timeGridWeek,timeGridDay'#}
-    {#                    },#}
-    {#                    editable: false,#}
-    {#                    selectable: false,#}
-    {#                    events: function (info, successCallback, failureCallback) {#}
-    {#                        // Fetch events for the visible date range#}
-    {#                        fetch(`/api/events/?start=${info.startStr}&end=${info.endStr}`)#}
-    {#                            .then(response => {#}
-    {#                                if (!response.ok) {#}
-    {#                                    throw new Error('Failed to fetch events');#}
-    {#                                }#}
-    {#                                return response.json();#}
-    {#                            })#}
-    {#                            .then(data => {#}
-    {#                                let events = [];#}
-    {##}
-    {#                                // Add working days#}
-    {##}
-    {##}
-    {#                                // Add holidays#}
-    {#                                data.holidays.forEach(holiday => {#}
-    {#                                    events.push({#}
-    {#                                        title: holiday.title || 'Holiday',#}
-    {#                                        start: holiday.date,#}
-    {#                                        backgroundColor: '#2ecc71',#}
-    {#                                        borderColor: '#2ecc71',#}
-    {#                                        classNames: ['holiday']#}
-    {#                                    });#}
-    {#                                });#}
-    {##}
-    {#                                // Add absences#}
-    {#                                data.absences.forEach(absence => {#}
-    {#                                    events.push({#}
-    {#                                        title: absence.title || 'Absence',#}
-    {#                                        start: absence.start_date,#}
-    {#                                        end: absence.end_date,#}
-    {#                                        backgroundColor: '#e74c3c',#}
-    {#                                        borderColor: '#e74c3c',#}
-    {#                                        classNames: ['absence']#}
-    {#                                    });#}
-    {#                                });#}
-    {##}
-    {#                                data.workingDays.forEach(date => {#}
-    {#                                    events.push({#}
-    {#                                        title: 'Working Day',#}
-    {#                                        start: date,#}
-    {#                                        backgroundColor: '#3788d8',#}
-    {#                                        borderColor: '#3788d8',#}
-    {#                                        classNames: ['working-day']#}
-    {#                                    });#}
-    {#                                });#}
-    {##}
-    {#                                // Add days off#}
-    {#                                data.daysOff.forEach(dayOff => {#}
-    {#                                    events.push({#}
-    {#                                        title: 'Day Off',#}
-    {#                                        start: dayOff,#}
-    {#                                        backgroundColor: '#f39c12',#}
-    {#                                        borderColor: '#f39c12',#}
-    {#                                        classNames: ['day-off']#}
-    {#                                    });#}
-    {#                                });#}
-    {##}
-    {#                                successCallback(events);#}
-    {#                            })#}
-    {#                            .catch(error => {#}
-    {#                                console.error('Error fetching events:', error);#}
-    {#                                failureCallback(error);#}
-    {#                            });#}
-    {#                    },#}
-    {#                    eventClick: function (info) {#}
-    {#                        alert('Event: ' + info.event.title);#}
-    {#                    }#}
-    {#                });#}
-    {##}
-    {#                calendar.render();#}
-    {#            });#}
-    {##}
-    {#        </script>#}
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             var calendarEl = document.getElementById('calendar');
@@ -140,8 +54,7 @@
                             data.absences.forEach(absence => {
                                 events.push({
                                     title: absence.title,
-                                    start: absence.start_date,
-                                    end: absence.end_date,
+                                    start: absence.date,
                                     backgroundColor: '#e74c3c',
                                     borderColor: '#e74c3c'
                                 });

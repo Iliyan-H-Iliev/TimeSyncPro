@@ -9,7 +9,7 @@ from TimeSyncPro.accounts.form_mixins import ReadonlyFieldsFormMixin, RequiredFi
 UserModel = get_user_model()
 
 
-class CreateAbsenceForm(RequiredFieldsFormMixin, ReadonlyFieldsFormMixin, forms.ModelForm):
+class CreateAbsenceForm(RequiredFieldsFormMixin, forms.ModelForm):
 
     required_fields = [
         "reason",
@@ -64,6 +64,7 @@ class CreateAbsenceForm(RequiredFieldsFormMixin, ReadonlyFieldsFormMixin, forms.
         absence = super().save(commit=False)
         absence.added_by = self.request.user.profile
         absence.absentee = self.absentee.profile
+        absence.days_requested = self.working_days
         if commit:
             absence.save()
         return absence

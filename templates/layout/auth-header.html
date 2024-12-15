@@ -11,7 +11,7 @@
             <a href="{% url 'company_members' company_slug=user.company.slug %}" class="nav-button">Employees</a>
         </li>
         <li>
-            <a href="{% url 'register_employee' company_slug=user.company.slug %}" class="nav-button">Reports</a>
+            <a href="{% url 'generate_report' company_slug=user.company.slug %}" class="nav-button">Reports</a>
         </li>
     </ul>
     

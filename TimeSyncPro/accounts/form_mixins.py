@@ -46,7 +46,6 @@ class ReadonlyFieldsFormMixin(forms.ModelForm):
                 'tabindex': '-1'
             })
 
-
     @property
     def readonly_field_names(self):
         if self.readonly_fields[0] == "__all__":

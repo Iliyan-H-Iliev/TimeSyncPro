@@ -193,42 +193,22 @@ logger = logging.getLogger(__name__)
 #         logger.error(f"Error sending email: {str(e)}")
 #         raise
 
+
 @shared_task
 def send_activation_email(email, domain, protocol, relative_url):
-    import smtplib
-    from email.mime.text import MIMEText
-    from email.mime.multipart import MIMEMultipart
-
-    activation_url = f'{protocol}://{domain}{relative_url}'
-
-    msg = MIMEMultipart()
-    msg['Subject'] = 'Activate your account'
-    msg['From'] = 'from@example.com'
-    msg['To'] = email
-
-    # Create HTML and plain text versions
-    text = f'Click here to activate: {activation_url}'
-    html = f'''
-    <html>
-        <body>
-            <h2>Account Activation</h2>
-            <p>Please click the link below to activate your account:</p>
-            <p><a href="{activation_url}">Activate Account</a></p>
-        </body>
-    </html>
-    '''
-
-    text_part = MIMEText(text, 'plain')
-    html_part = MIMEText(html, 'html')
-
-    msg.attach(text_part)
-    msg.attach(html_part)
-
     try:
-        # Connect to MailHog
-        with smtplib.SMTP('mailhog', 1025) as server:
-            server.send_message(msg)
-            return f"Email sent successfully to {email}"
+        activation_url = f"{protocol}://{domain}{relative_url}"
+        subject = 'Activate your account'
+        message = f'Please click the following link to activate your account: {activation_url}'
+
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=settings.EMAIL_HOST_USER or 'noreply@example.com',
+            recipient_list=[email],
+            fail_silently=False,
+        )
+        return True
     except Exception as e:
-        print(f"Error sending email: {e}")
-        raise
+        print(f"Failed to send email: {str(e)}")
+        return False

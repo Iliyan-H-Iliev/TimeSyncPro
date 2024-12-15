@@ -28,9 +28,9 @@ DEBUG_TOOLBAR_PANELS = [
     'debug_toolbar.panels.redirects.RedirectsPanel',
 ]
 
-DEBUG_TOOLBAR_CONFIG = {
-    'SHOW_TOOLBAR_CALLBACK': lambda request: True,
-}
+# DEBUG_TOOLBAR_CONFIG = {
+#     'SHOW_TOOLBAR_CALLBACK': lambda request: True,
+# }
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
 
@@ -55,14 +55,16 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
 
-    "TimeSyncPro.accounts.apps.AccountsConfig",
-    "TimeSyncPro.companies.apps.CompaniesConfig",
-    "TimeSyncPro.common.apps.CommonConfig",
     "TimeSyncPro.absences.apps.AbsencesConfig",
+    "TimeSyncPro.accounts.apps.AccountsConfig",
+    "TimeSyncPro.common.apps.CommonConfig",
+    "TimeSyncPro.companies.apps.CompaniesConfig",
     "TimeSyncPro.history.apps.HistoryConfig",
+    "TimeSyncPro.reports.apps.ReportsConfig",
     
     "storages",
-    "debug_toolbar"
+    "debug_toolbar",
+
 ]
 
 MIDDLEWARE = [

@@ -103,9 +103,14 @@ class DetailedEditOwnProfileForm(RequiredFieldsFormMixin, EditProfileBaseForm):
 
         return is_company_admin
 
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        if self.request.user.is_superuser or (not hasattr(self.request.user.profile, 'company') or self.request.user.company is None):
+            self.required_fields = (
+                "first_name",
+                "last_name",
+            )
         self._apply_required_on_fields()
 
 
