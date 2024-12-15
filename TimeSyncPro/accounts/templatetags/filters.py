@@ -60,7 +60,7 @@ def render_field(field, **kwargs):
             html += str(field)
             html += '</div>'
             if field.errors:
-                html += f'<div class="field-errors">{"".join(field.errors)}</div>'
+                html += f'<div class="field-errors">{" ".join(field.errors)}</div>'
             if field.help_text:
                 html += f'<small class="form-text text-muted">{field.help_text}</small>'
             html += '</div>'

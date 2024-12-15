@@ -1,3 +1,4 @@
+from django.db.models import F
 from rest_framework import serializers
 
 from TimeSyncPro.absences.models import Holiday
@@ -38,4 +39,5 @@ class HolidayStatusUpdateSerializer(serializers.ModelSerializer):
             data['reviewed_by'] = request.user.profile
 
         return data
+
 

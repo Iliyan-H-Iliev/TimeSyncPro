@@ -6,7 +6,6 @@ from django.core.validators import MinValueValidator, MinLengthValidator, MaxVal
 from django.db.models import Count
 from django.utils import timezone
 from django.utils.text import slugify
-from django_countries.fields import CountryField
 import pytz
 
 from TimeSyncPro.absences.models import Holiday
@@ -85,19 +84,19 @@ class Company(HistoryMixin, EmailFormatingMixin, CreatedModifiedMixin):
     )
 
     max_carryover_leave = models.PositiveSmallIntegerField(
-        # default=DEFAULT_TRANSFERABLE_LEAVE_DAYS,
+        default=DEFAULT_TRANSFERABLE_LEAVE_DAYS,
         null=False,
         blank=False,
     )
 
     minimum_leave_notice = models.PositiveSmallIntegerField(
-        # default=MIN_LEAVE_NOTICE,
+        default=MIN_LEAVE_NOTICE,
         null=False,
         blank=False,
     )
 
     maximum_leave_days_per_request = models.PositiveSmallIntegerField(
-        # default=MAX_LEAVE_DAYS_PER_REQUEST,
+        default=MAX_LEAVE_DAYS_PER_REQUEST,
         null=False,
         blank=False,
     )
@@ -167,6 +166,9 @@ class Company(HistoryMixin, EmailFormatingMixin, CreatedModifiedMixin):
         if self.address.country.code:
             return self.address.country.code
         return getattr(settings, 'DEFAULT_COUNTRY_CODE', 'GB')
+
+    def get_company_holiday_approvers(self):
+        return Profile.objects.filter(company=self, permissions__codename="update_holiday_requests_status")
 
 
 class Department(HistoryMixin, models.Model):
@@ -254,7 +256,7 @@ class Shift(HistoryMixin, models.Model):
 
     def generate_shift_working_dates(self):
         current_date = self.start_date
-        end_date = current_date + timedelta(days=30)
+        end_date = current_date + timedelta(days=300)
         work_on_local_holidays = self.company.working_on_local_holidays
 
         self.refresh_from_db()
@@ -305,7 +307,7 @@ class Shift(HistoryMixin, models.Model):
                 return "Custom"
         return "No pattern"
 
-    def get_shift_working_dates_by_period(self, start_date=None, end_date=None):
+    def get_queryset_of_shift_working_dates_by_period(self, start_date=None, end_date=None):
         if not start_date:
             start_date = timezone.now().date()
         if not end_date:
@@ -314,8 +316,20 @@ class Shift(HistoryMixin, models.Model):
         queryset = Date.objects.filter(shift_blocks__pattern=self, date__gte=start_date, date__lte=end_date)
         return queryset
 
-    def get_shift_working_days_by_period(self, start_date=None, end_date=None):
-        return self.get_shift_working_dates_by_period(start_date, end_date).count()
+    def get_shift_working_dates_by_period(self, start_date=None, end_date=None):
+        dates_queryset = self.get_queryset_of_shift_working_dates_by_period(start_date, end_date)
+        return [d.date for d in dates_queryset] or []
+
+    def get_count_of_shift_working_days_by_period(self, start_date=None, end_date=None):
+        return self.get_queryset_of_shift_working_dates_by_period(start_date, end_date).count()
+
+    def get_shift_working_dates_with_time_by_period(self, start_date=None, end_date=None):
+        dates_queryset = self.get_queryset_of_shift_working_dates_by_period(start_date, end_date)
+        dates_dict = {}
+        for d in dates_queryset:
+            shift_block = d.shift_blocks.get(pattern=self)
+            dates_dict[d.date] = {"start_time": shift_block.start_time, "end_time": shift_block.end_time}
+        return dates_dict
 
     def __str__(self):
         return f"{self.name}"
@@ -460,14 +474,6 @@ class Team(HistoryMixin, models.Model):
         related_name="teams",
     )
 
-    department = models.ForeignKey(
-        Department,
-        on_delete=models.SET_NULL,
-        blank=True,
-        null=True,
-        related_name="teams",
-    )
-
     employees_holidays_at_a_time = models.PositiveIntegerField(
         default=DEFAULT_EMPLOYEES_HOLIDAYS_AT_A_TIME,
         validators=[
@@ -491,19 +497,19 @@ class Team(HistoryMixin, models.Model):
         if statuses is None:
             statuses = [Holiday.StatusChoices.APPROVED, Holiday.StatusChoices.PENDING]
 
-        holidays = Holiday.objects.filter(
+        team_holidays = Holiday.objects.filter(
             requester__team=self,
             status__in=statuses
         ).select_related('requester').order_by('requester__first_name', 'start_date')
 
         if start_date and end_date:
-            holidays = holidays.filter(start_date__gte=start_date, end_date__lte=end_date)
+            team_holidays = team_holidays.filter(start_date__gte=start_date, end_date__lte=end_date)
 
-        return holidays
+        return team_holidays
 
     def get_numbers_of_team_members_holiday_by_period(self, start_date=None, end_date=None):
         return (self.get_team_members_at_holiday(start_date, end_date)
-                .filter(status=Holiday.StatusChoices.APPROVED,)
+                .filter(status=Holiday.StatusChoices.APPROVED, )
                 .values('requester__id')
                 .annotate(request_count=Count('id'))
                 .distinct()
@@ -512,11 +518,10 @@ class Team(HistoryMixin, models.Model):
     @staticmethod
     def get_numbers_of_team_members_holiday_days_by_queryset(queryset):
         return (queryset
-                .filter(status=Holiday.StatusChoices.APPROVED,)
+                .filter(status=Holiday.StatusChoices.APPROVED, )
                 .values('requester__id')
                 .annotate(request_count=Count('id'))
                 .distinct().count())
-
 
     def __str__(self):
         return self.name

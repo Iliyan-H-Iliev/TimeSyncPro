@@ -1,12 +1,17 @@
+import asyncio
 import logging
-from datetime import datetime
+from datetime import datetime, date
 
+import pytz
+from asgiref.sync import sync_to_async
+from dateutil import parser
+from dateutil.relativedelta import relativedelta
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
 from django.contrib import messages
 from django.contrib.auth import views as auth_views, login, logout, authenticate, get_user_model
 from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin
-from django.contrib.auth.models import Group, Permission
+from django.contrib.auth.models import Group
 from django.contrib.auth.views import PasswordResetConfirmView
 from django.contrib.auth.forms import SetPasswordForm
 from django.core.cache import cache
@@ -21,23 +26,22 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.views import APIView
 
+from TimeSyncPro.absences.models import Holiday, Absence
 from TimeSyncPro.accounts import forms
 
-from TimeSyncPro.accounts.forms import SignupEmployeeForm, SignupCompanyAdministratorForm, \
+from TimeSyncPro.accounts.forms import SignupCompanyAdministratorForm, \
     BasicEditTSPUserForm, DetailedEditTSPUserForm, CustomSetPasswordForm, \
     DetailedEditProfileForm, BasicEditProfileForm
 from TimeSyncPro.accounts.forms.edit_profile_form import AdminEditProfileForm, DetailedEditOwnProfileForm
 from TimeSyncPro.accounts.models import Profile
 from TimeSyncPro.accounts.serializers import EmployeeSerializer
-from TimeSyncPro.accounts.view_mixins import OwnerRequiredMixin, \
-    DynamicPermissionMixin
+from TimeSyncPro.accounts.view_mixins import DynamicPermissionMixin, EmployeeButtonPermissionMixin
 from TimeSyncPro.common.models import Address
-# from TimeSyncPro.core.utils import format_email
 from TimeSyncPro.common.views_mixins import CompanyObjectsAccessMixin, \
-    MultiplePermissionsRequiredMixin, AuthenticatedUserMixin, UserDataMixin, SmallPagination, ReturnToPageMixin
+    MultiplePermissionsRequiredMixin, AuthenticatedUserMixin, SmallPagination, ReturnToPageMixin, OwnerRequiredMixin, \
+    EmployeePermissionMixin
 import TimeSyncPro.companies.forms as company_forms
 import TimeSyncPro.common.forms as common_forms
-from TimeSyncPro.companies.models import Team
 from TimeSyncPro.companies.views_mixins import ApiConfigMixin
 
 # TODO Employee not see another employee profile
@@ -50,7 +54,7 @@ UserModel = get_user_model()
 class SignupCompanyAdministratorUser(AuthenticatedUserMixin, views.CreateView):
     template_name = "accounts/signup_company_administrator.html"
     form_class = SignupCompanyAdministratorForm
-    success_url_name = "profile"
+    success_url_name = "create_profile_company"
 
     def form_valid(self, form):
         logger.debug("Entering form_valid method")
@@ -69,7 +73,7 @@ class SignupCompanyAdministratorUser(AuthenticatedUserMixin, views.CreateView):
             if user.slug is None:
                 return HttpResponseRedirect(reverse('index'))
 
-            return redirect("create_profile_company", slug=user.slug)
+            return redirect(self.success_url_name, slug=user.slug)
 
         except Exception as e:
             logger.error(f"Error in form_valid: {str(e)}")
@@ -89,6 +93,11 @@ class CreateProfileAndCompanyView(OwnerRequiredMixin, views.CreateView):
     company_form_class = company_forms.CreateCompanyForm
     profile_address_form_class = common_forms.AddressForm
     company_address_form_class = common_forms.AddressForm
+
+    def dispatch(self, request, *args, **kwargs):
+        if hasattr(request.user, 'profile') and hasattr(request.user.profile, 'company'):
+            return redirect("dashboard", slug=request.user.slug)
+        return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -136,12 +145,13 @@ class CreateProfileAndCompanyView(OwnerRequiredMixin, views.CreateView):
             company.address = company_address
             company.save()
 
+            user = self.request.user
+
             profile = form.save(commit=False)
-            profile.user = self.request.user
+            profile.user = user
             profile.address = profile_address
             profile.company = company
             profile.is_company_admin = True
-            user = self.request.user
 
             profile.save()
 
@@ -180,11 +190,14 @@ class SignInUserView(auth_views.LoginView):
     redirect_authenticated_user = True
     form_class = forms.SignInUserForm
     MAX_LOGIN_ATTEMPTS = 5
-    LOCKOUT_DURATION = 300  # 5 minutes
-    REMEMBER_ME_DURATION = 1209600  # 2 weeks
+    LOCKOUT_DURATION = 300
+    REMEMBER_ME_DURATION = 1209600
 
     def get_success_url(self):
         user = self.request.user
+
+        if not hasattr(user, 'profile'):
+            return reverse("create_profile_and_company", kwargs={'slug': user.slug})
 
         if not hasattr(user.profile, 'company'):
             return reverse("profile", kwargs={'slug': user.slug})
@@ -231,7 +244,7 @@ class SignInUserView(auth_views.LoginView):
         return super().form_invalid(form)
 
 
-class SignupEmployeeView(MultiplePermissionsRequiredMixin, LoginRequiredMixin, views.CreateView):
+class SignupEmployeeView(PermissionRequiredMixin, LoginRequiredMixin, views.CreateView):
     template_name = 'accounts/register_employee.html'
     form_class = forms.SignupEmployeeForm
     object = None
@@ -243,6 +256,12 @@ class SignupEmployeeView(MultiplePermissionsRequiredMixin, LoginRequiredMixin, v
         'accounts.add_team_leader',
         'accounts.add_staff',
     ]
+
+    def has_permission(self):
+        return any(
+            self.request.user.has_perm(perm)
+            for perm in self.permissions_required
+        )
 
     def get_context_data(self, **kwargs):
         if 'address_form' not in kwargs:
@@ -320,17 +339,19 @@ class DetailsProfileBaseView(ApiConfigMixin, DynamicPermissionMixin, LoginRequir
         return self.model.objects.select_related(
             'profile',
             'profile__company',
+            "profile__company__holiday_approver",
             'profile__department',
+            "profile__department__holiday_approver",
             'profile__team',
+            "profile__team__holiday_approver",
             'profile__address',
             'profile__shift',
-        )
+        ).filter(slug=self.kwargs.get('slug'))
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # all_user_permissions = set(self.request.user.get_all_permissions())
         user = self.request.user
-
         context.update({
             'profile': self.object.profile,
             'has_detailed_change_permission': self.has_needed_permission(user, self.object, "change"),
@@ -347,17 +368,42 @@ class DashboardView(DetailsOwnProfileView):
     def get_template_names(self):
         return ["accounts/dashboard.html"]
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        today = datetime.now().date()
+        profile = context['profile']
+        next_holidays = profile.holidays.filter(start_date__gte=today, status="approve").first()
+        absences = profile.absences.all().count()
+        context['next_holiday'] = next_holidays
+        context['absences'] = absences
+        return context
+
 
 class DetailsEmployeesProfileView(
     CompanyObjectsAccessMixin,
-    PermissionRequiredMixin,
+    EmployeePermissionMixin,
+    EmployeeButtonPermissionMixin,
+    # PermissionRequiredMixin,
     DetailsProfileBaseView,
 ):
     employee_history_api_url_name = 'employee_history_api'
 
-    def get_permission_required(self):
-        user_to_view = self.get_object()
-        return [self.get_action_permission(user_to_view, "view")]
+    # permissions_required = [
+    #     'accounts.view_all_employees',
+    #     'accounts.view_department_employees',
+    #     'accounts.view_team_employees',
+    # ]
+    #
+    # def has_permission(self):
+    #     permision =  any(
+    #         self.request.user.has_perm(perm)
+    #         for perm in self.permissions_required
+    #     )
+    #     return permision
+
+    # def get_permission_required(self):
+    #     user_to_view = self.get_object()
+    #     return [self.get_action_permission(user_to_view, "view")]
 
 
 class EditProfileDispatcherView(OwnerRequiredMixin, DynamicPermissionMixin, views.View):
@@ -437,7 +483,7 @@ class EditProfileBaseView(ReturnToPageMixin, LoginRequiredMixin, views.UpdateVie
                 return DetailedEditProfileForm
             else:
                 return BasicEditProfileForm
-#
+        #
         except ValueError as e:
             messages.error(self.request, str(e))
             return None
@@ -566,13 +612,17 @@ class DeleteEmployeeView(
         )
         return queryset
 
-    def dispatch(self, request, *args, **kwargs):
-        user = request.user
-        user_slug = self.kwargs['slug']
-        user_to_delete = get_object_or_404(self.queryset, slug=user_slug)
-        permission = self.get_action_permission(user_to_delete, "delete")
-        self.permission_required = permission
-        return super().dispatch(request, *args, **kwargs)
+    # def dispatch(self, request, *args, **kwargs):
+    #     user = request.user
+    #     user_slug = self.kwargs['slug']
+    #     user_to_delete = get_object_or_404(self.queryset, slug=user_slug)
+    #     permission = self.get_action_permission(user_to_delete, "delete")
+    #     self.permission_required = permission
+    #     return super().dispatch(request, *args, **kwargs)
+
+    def get_permission_required(self):
+        user_to_delete = self.get_object()
+        return [self.get_action_permission(user_to_delete, "delete")]
 
     # def get_context_data(self, **kwargs):
     #     context = super().get_context_data(**kwargs)
@@ -586,17 +636,11 @@ class DeleteEmployeeView(
     def get_success_url(self):
         user = self.request.user
         company_slug = user.profile.company.slug
-        return reverse('company members', kwargs={"company_slug": company_slug})
+        return reverse("company_members", kwargs={"company_slug": company_slug})
 
     def post(self, request, *args, **kwargs):
         user_to_delete = get_object_or_404(self.queryset, slug=self.kwargs['slug'])
         related_instance = user_to_delete.profile
-
-        if related_instance.role == 'Manager':
-            manager_teams = related_instance.teams.all()
-            for team in manager_teams:
-                team.manager = None
-                team.save()
 
         related_instance.delete()
         user_to_delete.delete()
@@ -675,6 +719,200 @@ class ActivateAndSetPasswordView(views.View):
         except UserModel.DoesNotExist:
             messages.error(request, "Invalid or expired activation link.")
             return redirect('index')
+
+
+# class CalendarEventsView(views.View):
+#     def get(self, request, *args, **kwargs):
+#         start_str = request.GET.get('start')
+#         end_str = request.GET.get('end')
+#         event_type = request.GET.get('type')
+#
+#         try:
+#             def clean_date(date_str):
+#                 if not date_str:
+#                     return None
+#                 if 'T' in date_str:
+#                     date_str = date_str.split('T')[0]
+#                 return date_str
+#
+#             start = datetime.strptime(clean_date(start_str), '%Y-%m-%d').date()
+#             end = datetime.strptime(clean_date(end_str), '%Y-%m-%d').date()
+#
+#         except (ValueError, TypeError, AttributeError) as e:
+#             print(f"Error parsing dates: {e}")
+#             return JsonResponse({'error': 'Invalid date format'}, status=400)
+#
+#         profile = getattr(request.user, 'profile', None)
+#         if not profile:
+#             return JsonResponse({'error': 'Profile not found for user'}, status=404)
+#
+#         response_data = {}
+#
+#         if event_type == 'holidays':
+#             holidays = Holiday.objects.filter(
+#                 start_date__range=[start, end],
+#                 status='approved'
+#             )
+#             response_data['holidays'] = [
+#                 {
+#                     'date': h.start_date.isoformat(),
+#                     'title': f"Holiday: {h.reason}"
+#                 } for h in holidays
+#             ]
+#
+#         elif event_type == 'absences':
+#             absences = Absence.objects.filter(
+#                 start_date__range=[start, end],
+#                 absentee=profile
+#             )
+#             response_data['absences'] = [
+#                 {
+#                     'start_date': a.start_date.isoformat(),
+#                     'end_date': a.end_date.isoformat(),
+#                     'title': f"Absence: {a.reason}"
+#                 } for a in absences
+#             ]
+#
+#         else:  # Default: return all data
+#             working_days = profile.get_working_days(start, end)
+#             holidays = Holiday.objects.filter(
+#                 start_date__range=[start, end],
+#                 status='approved'
+#             )
+#             absences = Absence.objects.filter(
+#                 start_date__range=[start, end],
+#                 absentee=profile
+#             )
+#             days_off = profile.get_days_off(start, end)
+#
+#             response_data = {
+#                 'workingDays': [d.isoformat() for d in working_days],
+#                 'holidays': [
+#                     {
+#                         'date': h.start_date.isoformat(),
+#                         'title': f"Holiday: {h.reason}"
+#                     } for h in holidays
+#                 ],
+#                 'absences': [
+#                     {
+#                         'start_date': a.start_date.isoformat(),
+#                         'end_date': a.end_date.isoformat(),
+#                         'title': f"Absence: {a.reason}"
+#                     } for a in absences
+#                 ],
+#                 'daysOff': [d.isoformat() for d in days_off]
+#             }
+#
+#         return JsonResponse(response_data)
+
+
+class CalendarEventsView(views.View):
+    @sync_to_async
+    def get_profile(self, user):
+        return getattr(user, 'profile', None)
+
+    @sync_to_async
+    def get_holidays(self, profile, start, end):
+        return list(Holiday.objects.filter(
+            requester=profile,
+            start_date__range=[start, end],
+            status='approved'
+        ))
+
+    @sync_to_async
+    def get_absences(self, profile, start, end):
+        return list(Absence.objects.filter(
+            start_date__range=[start, end],
+            absentee=profile
+        ))
+
+    @sync_to_async
+    def get_working_days_and_time(self, profile, start, end):
+        return profile.get_working_days_with_time(start, end)
+
+    @sync_to_async
+    def get_days_off(self, profile, start, end):
+        return list(profile.get_days_off(start, end))
+
+    async def get(self, request, *args, **kwargs):
+        start_str = request.GET.get('start')
+        end_str = request.GET.get('end')
+        event_type = request.GET.get('type')
+
+        try:
+            def clean_date(date_str):
+                if not date_str:
+                    return None
+                if 'T' in date_str:
+                    date_str = date_str.split('T')[0]
+                return date_str
+
+            start = datetime.strptime(clean_date(start_str), '%Y-%m-%d').date()
+            end = datetime.strptime(clean_date(end_str), '%Y-%m-%d').date()
+
+        except (ValueError, TypeError, AttributeError) as e:
+            print(f"Error parsing dates: {e}")
+            return JsonResponse({'error': 'Invalid date format'}, status=400)
+
+        profile = await self.get_profile(request.user)
+        if not profile:
+            return JsonResponse({'error': 'Profile not found for user'}, status=404)
+
+        args = (profile, start, end)
+
+        working_days_and_time, holidays, absences, days_off = await asyncio.gather(
+            self.get_working_days_and_time(*args),
+            self.get_holidays(*args),
+            self.get_absences(*args),
+            self.get_days_off(*args)
+        )
+
+        # response_data = {
+        #     'workingDays': [d.isoformat() for d in working_days],
+        #     'holidays': [
+        #         {
+        #             'date': h.start_date.isoformat(),
+        #             'title': f"Holiday: {h.reason}"
+        #         } for h in holidays
+        #     ],
+        #     'absences': [
+        #         {
+        #             'start_date': a.start_date.isoformat(),
+        #             'end_date': a.end_date.isoformat(),
+        #             'title': f"Absence: {a.reason}"
+        #         } for a in absences
+        #     ],
+        #     'daysOff': [d.isoformat() for d in days_off]
+        # }
+
+        formatted_working_days = [
+            {
+                'date': date.isoformat(),
+                'start_time': times['start_time'].strftime('%H:%M'),
+                'end_time': times['end_time'].strftime('%H:%M')
+            }
+            for date, times in working_days_and_time.items()
+        ]
+
+        response_data = {
+            'workingDays': formatted_working_days,
+            'holidays': [
+                {
+                    'date': h.start_date.isoformat(),
+                    'title': f"Holiday: {h.reason}"
+                } for h in holidays
+            ],
+            'absences': [
+                {
+                    'start_date': a.start_date.isoformat(),
+                    'end_date': a.end_date.isoformat(),
+                    'title': f"Absence: {a.reason}"
+                } for a in absences
+            ],
+            'daysOff': [d.isoformat() for d in days_off]
+        }
+
+        return JsonResponse(response_data)
 
 
 class TeamEmployeesAPIView(generics.ListAPIView):
@@ -772,7 +1010,6 @@ class LogoutAPIView(APIView):
 
 
 def get_working_days(request):
-    """API to calculate working days based on start_date and end_date."""
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
     profile_id = request.GET.get('profile_id')  # Optional if needed to calculate shift-specific days
@@ -782,7 +1019,7 @@ def get_working_days(request):
         end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
 
         profile = get_object_or_404(Profile, id=profile_id)
-        working_days = profile.get_working_days_by_period(start_date, end_date)
+        working_days = profile.get_count_of_working_days_by_period(start_date, end_date)
         remaining_days = profile.remaining_leave_days
 
         return JsonResponse({'working_days': working_days, 'remaining_days': remaining_days})

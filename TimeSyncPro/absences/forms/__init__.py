@@ -1,1 +1,2 @@
-from .holiday_forms import RequestHolidayForm, ReviewHolidayForm
+from .holiday_forms import *
+from .absence_forms import *

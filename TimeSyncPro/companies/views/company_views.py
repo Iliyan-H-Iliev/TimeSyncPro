@@ -12,11 +12,10 @@ from ..models import Company
 from ..forms import EditCompanyForm, CreateCompanyForm
 from django.views import generic as views
 
-from TimeSyncPro.common.views_mixins import CompanyObjectsAccessMixin
+from TimeSyncPro.common.views_mixins import CompanyObjectsAccessMixin, CRUDUrlsMixin
 from ..views_mixins import CheckOwnCompanyMixin
 from ...absences.models import Holiday
 from ...accounts.models import Profile
-from ...accounts.view_mixins import CRUDUrlsMixin
 from ...common.forms import AddressForm
 
 UserModel = get_user_model()
@@ -144,8 +143,13 @@ class EditCompanyView(CheckOwnCompanyMixin, LoginRequiredMixin, PermissionRequir
             return self.form_invalid(form, address_form)
 
 
-class CompanyMembersView(CRUDUrlsMixin, CheckOwnCompanyMixin, PermissionRequiredMixin, LoginRequiredMixin,
-                         views.ListView):
+class CompanyMembersView(
+    CRUDUrlsMixin,
+    CheckOwnCompanyMixin,
+    PermissionRequiredMixin,
+    LoginRequiredMixin,
+    views.ListView
+):
     # model = Company
     model = UserModel
     template_name = "companies/employee/employees.html"
@@ -234,7 +238,7 @@ class CompanyMembersView(CRUDUrlsMixin, CheckOwnCompanyMixin, PermissionRequired
         holidays_requests = Holiday.objects.filter(
             Q(requester__company=self.request.user.profile.company) |
             Q(reviewer=self.request.user.profile)
-        ).order_by('start_date')
+        ).order_by('-start_date')
 
         requesters_pk = holidays_requests.values_list('requester', flat=True)
 
@@ -243,7 +247,7 @@ class CompanyMembersView(CRUDUrlsMixin, CheckOwnCompanyMixin, PermissionRequired
         context["title"] = "Employees"
         context["search_value"] = self.request.GET.get('search', '')
         context["view_permissions"] = self._get_view_permission()
-        context["view_requests"] = self.request.user.has_perm("absences.can_view_all_holidays_requests")
+        context["view_requests"] = self.request.user.has_perm("absences.view_all_holidays_requests")
         return context
 
 

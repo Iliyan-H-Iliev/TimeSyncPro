@@ -10,7 +10,7 @@ class Index(AuthenticatedUserMixin, views.TemplateView):
 
     def test_func(self):
         user = self.request.user
-        return not user.is_authenticated or user.is_staff or user.is_superuser
+        return not user.is_authenticated
 
 
 def about(request):
@@ -35,3 +35,11 @@ def contact(request):
 
 def features(request):
     return render(request, 'common/features.html')
+
+
+def custom_403(request, exception):
+    return render(request, '403.html', status=403)
+
+
+def custom_404(request, exception):
+    return render(request, '404.html', status=404)

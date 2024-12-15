@@ -1,0 +1,52 @@
+{% extends 'layout/auth-user-layout.html' %}
+{% load static %}
+{% load custom_tags %}
+
+{% block style %}
+    <link rel="stylesheet" href="{% static 'styles/pages/profile.css' %}">
+    <link rel="stylesheet" href="{% static 'styles/test.css' %}">
+    {% block extra_style %}{% endblock %}
+{% endblock %}
+
+{% block page-content %}
+    <div class="content-area">
+        {% include "partials/messages.html" %}
+        <div class="section-title-button">
+            <h2 class="section-title">My Absences</h2>
+            {% block search %}
+
+            {% endblock %}
+            {% include "partials/absence_type_filter.html" %}
+        </div>
+        {% if not objects %}
+            <h3 class="not-found">You have no absences </h3>
+        {% else %}
+            {% if error %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endif %}
+            {% for object in objects %}
+                <div class="profile-content">
+                    <div class="profile-main">
+                        <section class="profile-section">
+                            <div class="section-content profile-section-container">
+
+                                <div class="container-profile-colon item-container">
+                                    <div class="container-row">
+                                        <h4 class="obj-title">{{ object.start_date|date:"d/m/Y" }} - {{ object.end_date|date:"d/m/Y" }}</h4>
+                                    </div>
+                                    <div class="container-profile-row element-container employee-container">
+                                        {% include "partials/absence_details.html" %}
+                                    </div>
+                                </div>
+
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+{% endblock %}

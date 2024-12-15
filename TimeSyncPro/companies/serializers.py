@@ -22,10 +22,8 @@ class ShiftTeamsSerializer(serializers.ModelSerializer):
         """Add additional formatted data to the serialized output"""
         data = super().to_representation(instance)
 
-        # Add employee count
         data['employee_count'] = instance.employees.count()
 
-        # Format holidays limit
         data['max_holidays'] = (f"{instance.employees_holidays_at_a_time} "
                                 f"{'employee' if instance.employees_holidays_at_a_time == 1 else 'employees'} "
                                 f"at a time")

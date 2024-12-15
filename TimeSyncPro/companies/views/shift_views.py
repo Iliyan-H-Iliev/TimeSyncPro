@@ -12,13 +12,11 @@ from django.views import generic as views
 
 from ..utils import handle_shift_post
 from TimeSyncPro.common.views_mixins import CompanyObjectsAccessMixin, MultiplePermissionsRequiredMixin, \
-    CompanyAccessMixin
+    CompanyAccessMixin, CRUDUrlsMixin
 from ..views_mixins import ApiConfigMixin
 from ...accounts.models import Profile
-from ...accounts.view_mixins import CRUDUrlsMixin
 
 
-# TODO Can See Only Own Company Shifts
 class ShiftsView(CompanyAccessMixin, CRUDUrlsMixin, LoginRequiredMixin, PermissionRequiredMixin, views.ListView):
     model = Shift
     template_name = 'companies/shift/all_shifts.html'
@@ -72,7 +70,6 @@ class DetailsShiftView(ApiConfigMixin, LoginRequiredMixin, PermissionRequiredMix
     history_api_url_name = 'shift-history-api'
     team_api_url_name = 'shift-teams-api'
 
-
     def get_queryset(self):
         return super().get_queryset().prefetch_related(
             "blocks",
@@ -86,8 +83,6 @@ class DetailsShiftView(ApiConfigMixin, LoginRequiredMixin, PermissionRequiredMix
         context["shift_teams"] = shift.teams.all()
         return context
 
-
-# TODO Check logic for block to work with work on local holidays
 class CreateShiftView(LoginRequiredMixin, PermissionRequiredMixin, views.CreateView):
     model = Shift
     template_name = 'companies/shift/create_shift.html'
@@ -245,6 +240,3 @@ class DeleteShiftView(CompanyObjectsAccessMixin, LoginRequiredMixin, PermissionR
 
         messages.success(request, f"Shift and all related data were successfully deleted.")
         return HttpResponseRedirect(success_url)
-
-
-

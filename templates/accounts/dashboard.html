@@ -3,11 +3,100 @@
 
 
 {% block style %}
+    {#    <script src='https://cdn.jsdelivr.net/npm/fullcalendar/main.min.js'></script>#}
+    {#    <script type="module" src="path/to/main.min.js"></script>#}
     <link rel="stylesheet" href="{% static 'styles/pages/profile.css' %}">
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script>
     <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/interaction@6.1.15/index.global.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    {#    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>#}
+    {#        <script>#}
+    {#            document.addEventListener('DOMContentLoaded', function () {#}
+    {#                var calendarEl = document.getElementById('calendar');#}
+    {#                var calendar = new FullCalendar.Calendar(calendarEl, {#}
+    {#                    initialView: 'dayGridMonth',#}
+    {#                    headerToolbar: {#}
+    {#                        left: 'prev,next today',#}
+    {#                        center: 'title',#}
+    {#                        right: 'dayGridMonth,timeGridWeek,timeGridDay'#}
+    {#                    },#}
+    {#                    editable: false,#}
+    {#                    selectable: false,#}
+    {#                    events: function (info, successCallback, failureCallback) {#}
+    {#                        // Fetch events for the visible date range#}
+    {#                        fetch(`/api/events/?start=${info.startStr}&end=${info.endStr}`)#}
+    {#                            .then(response => {#}
+    {#                                if (!response.ok) {#}
+    {#                                    throw new Error('Failed to fetch events');#}
+    {#                                }#}
+    {#                                return response.json();#}
+    {#                            })#}
+    {#                            .then(data => {#}
+    {#                                let events = [];#}
+    {##}
+    {#                                // Add working days#}
+    {##}
+    {##}
+    {#                                // Add holidays#}
+    {#                                data.holidays.forEach(holiday => {#}
+    {#                                    events.push({#}
+    {#                                        title: holiday.title || 'Holiday',#}
+    {#                                        start: holiday.date,#}
+    {#                                        backgroundColor: '#2ecc71',#}
+    {#                                        borderColor: '#2ecc71',#}
+    {#                                        classNames: ['holiday']#}
+    {#                                    });#}
+    {#                                });#}
+    {##}
+    {#                                // Add absences#}
+    {#                                data.absences.forEach(absence => {#}
+    {#                                    events.push({#}
+    {#                                        title: absence.title || 'Absence',#}
+    {#                                        start: absence.start_date,#}
+    {#                                        end: absence.end_date,#}
+    {#                                        backgroundColor: '#e74c3c',#}
+    {#                                        borderColor: '#e74c3c',#}
+    {#                                        classNames: ['absence']#}
+    {#                                    });#}
+    {#                                });#}
+    {##}
+    {#                                data.workingDays.forEach(date => {#}
+    {#                                    events.push({#}
+    {#                                        title: 'Working Day',#}
+    {#                                        start: date,#}
+    {#                                        backgroundColor: '#3788d8',#}
+    {#                                        borderColor: '#3788d8',#}
+    {#                                        classNames: ['working-day']#}
+    {#                                    });#}
+    {#                                });#}
+    {##}
+    {#                                // Add days off#}
+    {#                                data.daysOff.forEach(dayOff => {#}
+    {#                                    events.push({#}
+    {#                                        title: 'Day Off',#}
+    {#                                        start: dayOff,#}
+    {#                                        backgroundColor: '#f39c12',#}
+    {#                                        borderColor: '#f39c12',#}
+    {#                                        classNames: ['day-off']#}
+    {#                                    });#}
+    {#                                });#}
+    {##}
+    {#                                successCallback(events);#}
+    {#                            })#}
+    {#                            .catch(error => {#}
+    {#                                console.error('Error fetching events:', error);#}
+    {#                                failureCallback(error);#}
+    {#                            });#}
+    {#                    },#}
+    {#                    eventClick: function (info) {#}
+    {#                        alert('Event: ' + info.event.title);#}
+    {#                    }#}
+    {#                });#}
+    {##}
+    {#                calendar.render();#}
+    {#            });#}
+    {##}
+    {#        </script>#}
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             var calendarEl = document.getElementById('calendar');
@@ -18,55 +107,78 @@
                     center: 'title',
                     right: 'dayGridMonth,timeGridWeek,timeGridDay'
                 },
-                editable: true,
-                selectable: true,
-                events: '/api/events/',
-                eventClick: function (info) {
-                    alert('Event: ' + info.event.title);
-                },
-                select: function (info) {
-                    var title = prompt('Event Title:');
-                    if (title) {
-                        var eventData = {
-                            title: title,
-                            start: info.startStr,
-                            end: info.endStr,
-                            allDay: info.allDay
-                        };
-                        $.ajax({
-                            url: '/api/events/',
-                            type: 'POST',
-                            data: JSON.stringify(eventData),
-                            contentType: 'application/json',
-                            headers: {
-                                'X-CSRFToken': getCookie('csrftoken')
-                            },
-                            success: function (response) {
-                                calendar.addEvent(response);
-                            }
+                editable: false,
+                selectable: false,
+                events: function (info, successCallback, failureCallback) {
+                    fetch(`/api/events/?start=${info.startStr}&end=${info.endStr}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            let events = [];
+
+                            // Working days with time
+                            data.workingDays.forEach(workDay => {
+                                events.push({
+                                    title: `${workDay.start_time}-${workDay.end_time}`,
+                                    start: workDay.date,
+                                    allDay: true,
+                                    backgroundColor: '#3788d8',
+                                    borderColor: '#3788d8',
+                                });
+                            });
+
+                            // Holidays
+                            data.holidays.forEach(holiday => {
+                                events.push({
+                                    title: holiday.title,
+                                    start: holiday.date,
+                                    backgroundColor: '#2ecc71',
+                                    borderColor: '#2ecc71'
+                                });
+                            });
+
+                            // Absences
+                            data.absences.forEach(absence => {
+                                events.push({
+                                    title: absence.title,
+                                    start: absence.start_date,
+                                    end: absence.end_date,
+                                    backgroundColor: '#e74c3c',
+                                    borderColor: '#e74c3c'
+                                });
+                            });
+
+                            // Simple days off
+                            data.daysOff.forEach(date => {
+                                events.push({
+                                    title: 'Off',
+                                    start: date,
+                                    allDay: true,
+                                    backgroundColor: '#f39c12',
+                                    borderColor: '#f39c12'
+                                });
+                            });
+
+                            successCallback(events);
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            failureCallback(error);
                         });
+                },
+                eventClick: function (info) {
+                    // Enhanced event click handler
+                    let eventDetails = `${info.event.title}`;
+                    if (info.event.classNames.includes('working-day')) {
+                        const startTime = info.event.start.toLocaleTimeString();
+                        const endTime = info.event.end.toLocaleTimeString();
+                        eventDetails += `\nTime: ${startTime} - ${endTime}`;
                     }
-                    calendar.unselect();
+                    alert(eventDetails);
                 }
             });
+
             calendar.render();
         });
-
-        // Function to get CSRF token
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
     </script>
 {% endblock %}
 
@@ -83,12 +195,17 @@
                         <p>{{ profile.remaining_leave_days }} days</p>
                     </div>
                     <div class="card">
-                        <h4>Next Leave:</h4>
-                        <p>25/12/2024</p>
+
+                        <h4>Next Holiday:</h4>
+                        {% if next_holiday %}
+                            <p>{{ next_holiday.start_date|date:"d/m/Y" }}</p>
+                        {% else %}
+                            <p>No Upcoming Holidays</p>
+                        {% endif %}
                     </div>
                     <div class="card">
-                        <h4>Next Leave After:</h4>
-                        <p>4 days</p>
+                        <h4>Absences:</h4>
+                        <p>{{ absences }}</p>
                     </div>
                 </div>
             </section>
@@ -105,7 +222,7 @@
 
                     <section class="profile-section stats-section">
                         <h2 class="section-title">Contact Information</h2>
-                       
+
                         <div class="contact-item">
                             <span class="contact-label">Email</span>
                             <span class="contact-value">{{ user.email }}</span>
@@ -154,10 +271,10 @@
                                 <span class="work-label">Leave Approver:</span>
                                 <span class="work-value">{{ profile.get_holiday_approver }}</span>
                             </div>
-                            
+
                         </div>
                     </section>
-                
+
                 </div>
             </div>
 
@@ -168,6 +285,9 @@
 
 
 {% block script %}
+    <script src='https://cdn.jsdelivr.net/npm/@fullcalendar/core@5.11.3/main.min.js'></script>
+    <script src='https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@5.11.3/main.min.js'></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 
     {#    <script>#}
     {#        feather.replace();#}

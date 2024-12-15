@@ -1,25 +1,3 @@
-# from celery import shared_task
-# from django.core.mail import send_mail
-#
-#
-# @shared_task
-# def send_holiday_status_email(start_date, end_date, status, review_reason, recipient_email):
-#     action = status.lower()
-#     subject = f"Your holiday request has been {action}"
-#     message = f"Your holiday request from {start_date} to {end_date} has been {action}."
-#
-#     if review_reason:
-#         message += f"\n\nReason: {review_reason}"
-#
-#     return send_mail(
-#         subject,
-#         message,
-#         'from@abv.com',  # TODO - Update this email address
-#         [recipient_email],
-#         fail_silently=False,
-#     )
-
-
 import logging
 from celery import shared_task
 from django.core.mail import EmailMultiAlternatives
@@ -28,6 +6,108 @@ from django.utils.html import strip_tags
 from datetime import datetime, timedelta
 
 logger = logging.getLogger(__name__)
+
+
+@shared_task(
+    bind=True,
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+    retry_kwargs={'max_retries': 5},
+    queue='emails'
+)
+def send_email_to_reviewer(
+        self,
+        start_date,
+        end_date,
+        requester_name,
+        reviewer_email,
+        reviewer_name,
+        days_requested
+):
+    try:
+        start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+        end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+
+        context = {
+            'requester_name': requester_name,
+            'reviewer_name': reviewer_name,
+            'start_date': start_date.strftime('%B %d, %Y'),
+            'end_date': end_date.strftime('%B %d, %Y'),
+            'days_requested': days_requested
+        }
+
+        html_content = render_to_string('email_templates/new_request_for_review.html', context)
+        text_content = strip_tags(html_content)
+
+        subject = f"New Holiday Request for Review - {start_date.strftime('%B %d')} to {end_date.strftime('%B %d')}"
+
+        email = EmailMultiAlternatives(
+            subject=subject,
+            body=text_content,
+            from_email='timesyncpro@donotreply.com',
+            to=[reviewer_email],
+        )
+
+        email.attach_alternative(html_content, "text/html")
+
+        email.send()
+
+        logger.info(f"New holiday request email sent successfully to {reviewer_email}")
+        return True
+
+    except Exception as e:
+        logger.error(f"Failed to send new holiday request email: {str(e)}")
+        raise self.retry(exc=e)
+
+
+@shared_task(
+    bind=True,
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+    retry_kwargs={'max_retries': 5},
+    queue='emails'
+)
+def send_new_holiday_request_email(
+        self,
+        start_date,
+        end_date,
+        requester_email,
+        requester_name,
+        days_requested
+):
+    try:
+        start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+        end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+
+        context = {
+            'requester_name': requester_name,
+            'start_date': start_date.strftime('%B %d, %Y'),
+            'end_date': end_date.strftime('%B %d, %Y'),
+            'days_requested': days_requested
+        }
+
+        html_content = render_to_string('email_templates/new_holiday_request.html', context)
+        text_content = strip_tags(html_content)
+
+        subject = f"New Holiday Request - {start_date.strftime('%B %d')} to {end_date.strftime('%B %d')}"
+
+        email = EmailMultiAlternatives(
+            subject=subject,
+            body=text_content,
+            from_email='timesyncpro@donotreply.com',
+            to=[requester_email],
+        )
+
+        email.attach_alternative(html_content, "text/html")
+
+        email.send()
+
+        logger.info(f"New holiday request email sent successfully to {requester_email}")
+        return True
+
+    except Exception as e:
+        logger.error(f"Failed to send new holiday request email: {str(e)}")
+        raise self.retry(exc=e)
 
 
 @shared_task(
@@ -48,25 +128,10 @@ def send_holiday_status_email(
         reviewer_name,
         days_requested
 ):
-    """
-    Send holiday status update email with HTML template and error handling.
-
-    Args:
-        start_date (str): Holiday start date
-        end_date (str): Holiday end date
-        status (str): Holiday status (approved/denied)
-        review_reason (str): Reason for approval/denial
-        recipient_email (str): Email address of recipient
-        requester_name (str): Name of person requesting holiday
-        reviewer_name (str): Name of person reviewing request
-        days_requested (int): Number of days requested
-    """
     try:
-        # Convert string dates to datetime objects
         start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
         end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
 
-        # Prepare context for email template
         context = {
             'requester_name': requester_name,
             'reviewer_name': reviewer_name,
@@ -78,26 +143,20 @@ def send_holiday_status_email(
             'is_approved': status == 'approved'
         }
 
-        # Render email templates
         html_content = render_to_string('email_templates/holiday_status_update.html', context)
         text_content = strip_tags(html_content)
 
-        # Create email subject
         subject = f"Holiday Request {status.title()} - {start_date.strftime('%B %d')} to {end_date.strftime('%B %d')}"
 
-        # Create email message
         email = EmailMultiAlternatives(
             subject=subject,
             body=text_content,
-            from_email='your-company@example.com',
+            from_email='timesyncpro@donotreply.com',
             to=[recipient_email],
-            reply_to=['hr@your-company.com']
         )
 
-        # Attach HTML content
         email.attach_alternative(html_content, "text/html")
 
-        # Send email
         email.send()
 
         logger.info(f"Holiday status email sent successfully to {recipient_email}")

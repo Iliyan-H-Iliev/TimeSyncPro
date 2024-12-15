@@ -10,7 +10,6 @@ UserModel = get_user_model()
 
 
 class CreateAbsenceForm(RequiredFieldsFormMixin, ReadonlyFieldsFormMixin, forms.ModelForm):
-    readonly_fields = ['absentee']
 
     required_fields = [
         "reason",
@@ -20,17 +19,17 @@ class CreateAbsenceForm(RequiredFieldsFormMixin, ReadonlyFieldsFormMixin, forms.
         model = Absence
         fields = ["start_date", "end_date", "absence_type", "reason"]
         widgets = {
-            'start_date': forms.DateInput(attrs={'type': 'date'}),
-            'end_date': forms.DateInput(attrs={'type': 'date'}),
+            "start_date": forms.DateInput(attrs={"type": "date"}),
+            "end_date": forms.DateInput(attrs={"type": "date"}),
         }
 
     def clean(self):
         cleaned_data = super().clean()
-        start_date = cleaned_data.get('start_date')
-        end_date = cleaned_data.get('end_date')
-        absence_type = cleaned_data.get('absence_type')
+        start_date = cleaned_data.get("start_date")
+        end_date = cleaned_data.get("end_date")
+        absence_type = cleaned_data.get("absence_type")
         absentee = self.absentee
-        working_days = absentee.profile.get_default_working_days(start_date, end_date)
+        working_days = absentee.profile.get_working_days(start_date, end_date)
 
         overlapping_absence = Absence.objects.filter(
             absentee=absentee.profile,
@@ -39,25 +38,25 @@ class CreateAbsenceForm(RequiredFieldsFormMixin, ReadonlyFieldsFormMixin, forms.
         )
 
         if overlapping_absence.exists():
-            self.add_error('start_date', 'An absence already exists for this period.')
+            self.add_error("start_date", "An absence already exists for this period.")
 
         if start_date > end_date:
-            self.add_error('start_date', 'Start date must be before end date.')
+            self.add_error("start_date", "Start date must be before end date.")
 
         if absence_type is None:
-            self.add_error('absence_type', 'Please select an absence type.')
+            self.add_error("absence_type", "Please select an absence type.")
 
         if start_date not in working_days:
-            self.add_error('start_date', 'Cannot create an absence for a non-working day.')
+            self.add_error("start_date", "Cannot create an absence for a non-working day.")
 
         if end_date not in working_days:
-            self.add_error('end_date', 'Cannot create an absence for a non-working day.')
+            self.add_error("end_date", "Cannot create an absence for a non-working day.")
 
         return cleaned_data
 
     def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request', None)
-        self.absentee = kwargs.pop('absentee', None)
+        self.request = kwargs.pop("request", None)
+        self.absentee = kwargs.pop("absentee", None)
         super().__init__(*args, **kwargs)
         self._apply_required_on_fields()
 

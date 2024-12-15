@@ -1,4 +1,5 @@
 {% extends 'layout/company-layout.html' %}
+{% load custom_tags %}
 {% load static %}
 
 {% block style %}
@@ -7,14 +8,17 @@
 
 {% block page-content %}
     <div class="content-area">
+        {% include "partials/messages.html" %}
         <div class="profile-content">
             <div class="profile-main">
                 <section class="profile-section">
                     <div class="section-title-button">
                         <h2 class="section-title">Company Information</h2>
                         <div>
-                            <a href="{% url 'update_company' company_slug=object.slug %}" class="default-btn large-btn edit"><i class="fa-regular fa-pen-to-square"></i></a>
-                            <a href="{% url 'delete_company' company_slug=object.slug %}" class="default-btn large-btn delete"><i class="fa-solid fa-trash-can"></i></a>
+                            <a href="{% url 'update_company' company_slug=object.slug %}"
+                               class="default-btn large-btn edit"><i class="fa-regular fa-pen-to-square"></i></a>
+                            <a href="{% url 'delete_company' company_slug=object.slug %}"
+                               class="default-btn large-btn delete"><i class="fa-solid fa-trash-can"></i></a>
                         </div>
                     </div>
                     <div class="section-content profile-section-container">
@@ -40,54 +44,54 @@
                         </div>
 
                         <div class="container-profile-colon">
-                        {% with address=object.address %}
-                            <h4>Address</h4>
-                            {% if not address %}
-                                <h5>Not provided</h5>
-                            {% else %}
-                                <div class="container-profile-row">
-                                    <div>
+                            {% with address=object.address %}
+                                <h4>Address</h4>
+                                {% if not address %}
+                                    <h5>Not provided</h5>
+                                {% else %}
+                                    <div class="container-profile-row">
+                                        <div>
 
-                                        <div class="profile-item-row">
-                                            <span class="profile-label">House Number:</span>
-                                            <span class="profile-value">{{ address.house_number_or_name|default:"-" }}</span>
+                                            <div class="profile-item-row">
+                                                <span class="profile-label">House Number:</span>
+                                                <span class="profile-value">{{ address.house_number_or_name|default:"-" }}</span>
+                                            </div>
+
+                                            <div class="profile-item-row">
+                                                <span class="profile-label">Lane 1:</span>
+                                                <span class="profile-value">{{ address.line1|default:"-" }}</span>
+                                            </div>
+
+                                            <div class="profile-item-row">
+                                                <span class="profile-label">Lane 2:</span>
+                                                <span class="profile-value">{{ address.line2|default:"-" }}</span>
+                                            </div>
+
+                                            <div class="profile-item-row">
+                                                <span class="profile-label">Street:</span>
+                                                <span class="profile-value">{{ address.street|default:"-" }}</span>
+                                            </div>
                                         </div>
+                                        <div>
 
-                                        <div class="profile-item-row">
-                                            <span class="profile-label">Lane 1:</span>
-                                            <span class="profile-value">{{ address.line1|default:"-" }}</span>
-                                        </div>
+                                            <div class="profile-item-row">
+                                                <span class="profile-label">City:</span>
+                                                <span class="profile-value">{{ address.city|default:"-" }}</span>
+                                            </div>
 
-                                        <div class="profile-item-row">
-                                            <span class="profile-label">Lane 2:</span>
-                                            <span class="profile-value">{{ address.line2|default:"-" }}</span>
-                                        </div>
+                                            <div class="profile-item-row">
+                                                <span class="profile-label">Postcode:</span>
+                                                <span class="profile-value">{{ address.postcode|default:"-" }}</span>
+                                            </div>
 
-                                        <div class="profile-item-row">
-                                            <span class="profile-label">Street:</span>
-                                            <span class="profile-value">{{ address.street|default:"-" }}</span>
+                                            <div class="profile-item-row">
+                                                <span class="profile-label">Country:</span>
+                                                <span class="profile-value">{{ address.country.name|default:"-" }}</span>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div>
-
-                                        <div class="profile-item-row">
-                                            <span class="profile-label">City:</span>
-                                            <span class="profile-value">{{ address.city|default:"-" }}</span>
-                                        </div>
-
-                                        <div class="profile-item-row">
-                                            <span class="profile-label">Postcode:</span>
-                                            <span class="profile-value">{{ address.postcode|default:"-" }}</span>
-                                        </div>
-
-                                        <div class="profile-item-row">
-                                            <span class="profile-label">Country:</span>
-                                            <span class="profile-value">{{ address.country.name|default:"-" }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            {% endif %}
-                        {% endwith %}
+                                {% endif %}
+                            {% endwith %}
                         </div>
 
                         <div class="container-profile-colon">
@@ -97,7 +101,9 @@
                                 <div class="profile-item-row">
                                     <span class="profile-label">Departments:</span>
                                     <span class="profile-value">{{ object.departments.count }}</span>
-                                    <span class="profile-value"><a href="{% url 'create_team' company_slug=object.slug %}" class="dep">{{ departments.count }}</a></span>
+                                    <span class="profile-value"><a
+                                            href="{% url 'create_team' company_slug=object.slug %}"
+                                            class="dep">{{ departments.count }}</a></span>
                                 </div>
                                 <div class="profile-item-row">
                                     <span class="profile-label">Teams:</span>
@@ -141,22 +147,11 @@
                         </div>
                     </div>
                 </section>
+            
             </div>
         </div>
 
     </div>
 
 
-{% endblock %}
-
-{% block script %}
-    <script>
-$(document).ready(function() {
-    $('.select2-multiple').select2({
-        width: '100%',
-        theme: 'classic',
-        allowClear: true
-    });
-});
-</script>
 {% endblock %}

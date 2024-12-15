@@ -56,22 +56,6 @@
     </div>
 {% endblock %}
 
-{#{% block script %}#}
-{#    {% if api_config %}#}
-{#        <script>#}
-{#            const apiConfig = {{ api_config|to_json|safe }};#}
-{#            document.addEventListener('DOMContentLoaded', function () {#}
-{#                try {#}
-{#                    initializeDetails(apiConfig);#}
-{#                } catch (error) {#}
-{#                    console.error('Error:', error);#}
-{#                }#}
-{#            });#}
-{#        </script>#}
-{#    {% endif %}#}
-{#    <script src="{% static 'js/team-details.js' %}"></script>#}
-{##}
-{#{% endblock %}#}
 
 {% block script %}
     {% if api_config %}

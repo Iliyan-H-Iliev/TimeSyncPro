@@ -33,7 +33,7 @@
         <h2>Log in</h2>
 
 
-        <form action="/sign_in/?next=" method="post">
+        <form method="post"  action={% url 'sign_in' %}>
 
             {% csrf_token %}
             {% if form.non_field_errors %}
@@ -51,8 +51,6 @@
                     <i class="fa-regular fa-user"></i>
                 </span>
                 {{ form.username }}
-                {#                <input type="text" name="username" autofocus="" autocapitalize="none" autocomplete="username"#}
-                {#                       maxlength="254" required="" id="id_username">#}
                 <label for="id_username">Email</label>
             </div>
 
@@ -62,7 +60,6 @@
           <i class="fa-solid fa-lock"></i>
         </span>
                 {{ form.password }}
-                {#                <input type="password" name="password" autocomplete="current-password" required="" id="id_password">#}
                 <label for="id_password">Password</label>
             </div>
 

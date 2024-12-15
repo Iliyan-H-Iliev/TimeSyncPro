@@ -1,0 +1,10 @@
+<form method="get" class="search-form">
+    {% for key, value in request.GET.items %}
+        {% if key != 'search' and key != 'page' %}
+            <input type="hidden" name="{{ key }}" value="{{ value }}">
+        {% endif %}
+    {% endfor %}
+    <input type="text" name="search" value="{{ search_value }}" class="search-input"
+           placeholder="Search">
+    <button type="submit" class="search-button">Search</button>
+</form>

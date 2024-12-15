@@ -1,0 +1,15 @@
+{% extends "layout/list-layout.html" %}
+{% load static %}
+
+{% block sort %}
+    {% include "partials/absence_type_filter.html" %}
+{% endblock %}
+
+
+{% block obj_information %}
+    {% include "partials/absence_information.html" %}
+{% endblock %}
+
+{% block script %}
+    <script src="{% static 'js/delete-absence.js' %}"></script>
+{% endblock %}

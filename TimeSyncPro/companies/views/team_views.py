@@ -6,10 +6,9 @@ from ..models import Shift, Team, Department
 from ..forms import CreateTeamForm, EditTeamForm
 from django.views import generic as views
 
-from TimeSyncPro.common.views_mixins import CompanyObjectsAccessMixin, CompanyAccessMixin
+from TimeSyncPro.common.views_mixins import CompanyObjectsAccessMixin, CompanyAccessMixin, CRUDUrlsMixin
 from ..views_mixins import ApiConfigMixin
 from ...accounts.models import Profile
-from ...accounts.view_mixins import CRUDUrlsMixin
 
 
 class TeamsView(CompanyAccessMixin, CRUDUrlsMixin, LoginRequiredMixin, PermissionRequiredMixin, views.ListView):
@@ -36,7 +35,6 @@ class TeamsView(CompanyAccessMixin, CRUDUrlsMixin, LoginRequiredMixin, Permissio
         queryset = (Team.objects.select_related(
             'shift',
             'holiday_approver',
-            'department',
         ).prefetch_related(
             Prefetch('employees', queryset=Profile.objects.select_related('user', 'department')),
         ).filter(company=self.request.user.profile.company)).order_by('name')
@@ -88,7 +86,6 @@ class EditTeamView(CompanyObjectsAccessMixin, LoginRequiredMixin, PermissionRequ
 
         queryset = (queryset.select_related(
                'company',
-               'department',
                'holiday_approver',
                'holiday_approver__user'
            ).prefetch_related(
@@ -150,7 +147,6 @@ class DetailsTeamView(ApiConfigMixin, CompanyObjectsAccessMixin, LoginRequiredMi
             'company',
             'shift',
             'holiday_approver',
-            'department',
         ).prefetch_related(
             "employees",
         ).filter(company=self.request.user.profile.company))

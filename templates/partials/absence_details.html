@@ -1,11 +1,28 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Title</title>
-</head>
-<body>
+<div class="profile-item-row">
+    <span class="profile-label">Added On:</span>
+    <span class="profile-value">{{ object.created_at|date:"d/m/Y, H:i:s"  }}</span>
+</div>
+<div class="profile-item-row">
+    <span class="profile-label">Type:</span>
+    <span class="profile-value">{{ object.get_absence_type_display }}</span>
+</div>
 
-</body>
-</html>
+<div class="profile-item-row">
+    <span class="profile-label">Added By:</span>
+    <span class="profile-value">{{ object.added_by }}</span>
+</div>
+
+<div class="profile-item-row">
+    <span class="profile-label">Reason:</span>
+    <span class="profile-value">{{ object.reason }}</span>
+</div>
+
+{#<div class="profile-item-row">#}
+{#    <span class="profile-label">Start Date:</span>#}
+{#    <span class="profile-value">{{ object.start_date|date:"d/m/Y"  }}</span>#}
+{#</div>#}
+{##}
+{#<div class="profile-item-row">#}
+{#    <span class="profile-label">End Date:</span>#}
+{#    <span class="profile-value">{{ object.end_date|date:"d/m/Y" }}</span>#}
+{#</div>#}

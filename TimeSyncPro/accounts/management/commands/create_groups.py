@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import Group, Permission
 
+from TimeSyncPro.accounts.management.commands.permissions_utils import get_admin_permissions
 from TimeSyncPro.accounts.models import Profile
 
 
@@ -8,45 +9,13 @@ class Command(BaseCommand):
     help = "Create user groups and assign permissions"
 
     def handle(self, *args, **options):
-        # Create groups
+
         company_administrator_group, created = Group.objects.get_or_create(name="Company_Admin")
         hr_group, created = Group.objects.get_or_create(name="HR")
         manager_group, created = Group.objects.get_or_create(name="Manager")
         team_leader_group, created = Group.objects.get_or_create(name="Team Leader")
         staff_group, created = Group.objects.get_or_create(name="Staff")
 
-        # staff_permissions_list = []
-        #
-        # team_leader_permissions_list = staff_permissions_list + []
-        #
-        # manager_permissions_list = team_leader_permissions_list + [
-        #     "add_manager",
-        #     "change_manager",
-        #     "delete_manager",
-        #     "view_manager",
-        #     "add_teamleader"
-        #     "change_teamleader",
-        #     "delete_teamleader",
-        #     "view_teamleader",
-        #     "add_employee",
-        #     "change_employee",
-        #     "delete_employee",
-        #     "view_employee",
-        #     "add_shift_pattern",
-        #     "change_shift_pattern",
-        #     "delete_shift_pattern",
-        #     "view_shift_pattern",
-        #     "add_team",
-        #     "change_team",
-        #     "delete_team",
-        #     "view_team",
-        # ]
-        #
-        # hr_permissions_list = manager_permissions_list + []
-        #
-        # company_admin_permissions_list = hr_permissions_list + []
-
-        # Fetch permissions
         company_admin_permissions = Permission.objects.filter(
             codename__in=[
                 "add_company",
@@ -97,8 +66,11 @@ class Command(BaseCommand):
                 "change_department",
                 "delete_department",
                 "view_department",
-                "can_view_all_holidays_requests",
-                "can_update_holiday_requests_status",
+                "view_all_holidays_requests",
+                "update_holiday_requests_status",
+                "add_absence",
+                "view_all_absences",
+                "view_all_employees",
             ]
         )
 
@@ -133,23 +105,30 @@ class Command(BaseCommand):
                 "change_team",
                 "delete_team",
                 "view_team",
-                "can_view_all_holidays_requests",
-                "can_update_holiday_requests_status",
+                "view_all_holidays_requests",
+                "update_holiday_requests_status",
+                "add_absence",
+                "view_all_absences"
+                "view_all_employees",
             ]
         )
 
         manager_permissions = Permission.objects.filter(
             codename__in=[
                 "change_employee",
-                "view_employee",
-                "can_view_all_holidays_requests",
+                "view_department_employee",
+                "view_department_holidays_requests",
+                "view_department_absences",
+                "view_department_employees",
             ]
         )
 
         team_leader_permissions = Permission.objects.filter(
             codename__in=[
-                "change_employee",
-                "view_employee",
+                "view_team_employee",
+                "view_team_holidays_requests",
+                "view_team_absences",
+                "view_team_employees",
             ]
         )
 
@@ -158,8 +137,8 @@ class Command(BaseCommand):
             ]
         )
 
-        # Assign permissions to groups
-        company_administrator_group.permissions.set(company_admin_permissions)
+        admin_permissions = list(company_admin_permissions) + list(get_admin_permissions())
+        company_administrator_group.permissions.set(admin_permissions)
         hr_group.permissions.set(hr_permissions)
         manager_group.permissions.set(manager_permissions)
         team_leader_group.permissions.set(team_leader_permissions)

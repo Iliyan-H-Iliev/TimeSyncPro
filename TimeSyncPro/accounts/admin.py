@@ -1,17 +1,73 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
-from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.admin import UserAdmin, GroupAdmin
 from django.contrib.auth.models import Permission, Group
+from django.core.exceptions import ImproperlyConfigured
 from django.db.models import Prefetch
 
 from TimeSyncPro.accounts.models import Profile
+from TimeSyncPro.common.models import Address
 from TimeSyncPro.companies.models import Company, Department, Team, Shift
 
 UserModel = get_user_model()
 
+admin.site.unregister(Group)
+
+
+@admin.register(Group)
+class CustomGroupAdmin(GroupAdmin):
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_module_permission(self, request):
+        return request.user.is_superuser
+
+
+@admin.register(Permission)
+class PermissionAdmin(admin.ModelAdmin):
+    def has_module_permission(self, request):
+        return request.user.is_superuser
+
+
+class GetQuerySetMixin:
+    filter = None
+
+    def get_queryset(self, request):
+        # Check filter attribute when method is called, not at class definition
+        if not self.filter:
+            raise ImproperlyConfigured("filter attribute must be set")
+
+        qs = super().get_queryset(request)
+
+        # Check for superuser or staff without company first
+        if request.user.is_superuser or (
+            request.user.is_staff and
+            not hasattr(request.user.profile, 'company')
+        ):
+            return qs
+
+        # Check for users with company
+        if hasattr(request.user.profile, 'company'):
+            filter_kwargs = {self.filter: request.user.profile.company}
+            return qs.filter(**filter_kwargs)
+
+        # Return empty queryset for other cases
+        return qs.none()
+
 
 @admin.register(UserModel)
-class TSPUserAdmin(UserAdmin):
+class TSPUserAdmin(GetQuerySetMixin, UserAdmin):
+    filter = 'profile__company'
+
     list_display = ('email', 'is_active', 'is_staff', 'company_name', 'role', 'is_company_admin')
     list_filter = ('is_active', 'is_staff', 'profile__role', 'profile__is_company_admin')
     search_fields = ('email', 'profile__first_name', 'profile__last_name')
@@ -31,13 +87,9 @@ class TSPUserAdmin(UserAdmin):
         }),
     )
 
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        if request.user.is_superuser:
-            return qs
-        if hasattr(request.user, 'profile'):
-            return qs.filter(profile__company=request.user.profile.company)
-        return qs.none()
+    def has_add_permission(self, request):
+        # Allow only superusers or users with specific permission
+        return request.user.is_superuser or request.user.has_perm('auth.add_user')
 
     def get_fieldsets(self, request, obj=None):
         if not obj:
@@ -49,7 +101,7 @@ class TSPUserAdmin(UserAdmin):
                 (None, {'fields': ('email', 'password')}),
                 ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
             )
-        elif hasattr(request.user, 'profile') and request.user.profile.is_company_admin:
+        elif hasattr(request.user.profile, 'company') and request.user.profile.is_company_admin:
             return (
                 (None, {'fields': ('email', 'password')}),
                 ('Permissions', {'fields': ('is_active', 'groups')}),
@@ -64,7 +116,7 @@ class TSPUserAdmin(UserAdmin):
         if request.user.is_superuser:
             return []
 
-        readonly_fields = ['email']
+        readonly_fields = ['email', "password1", "password2"]
         if not (hasattr(request.user, 'profile') and request.user.profile.is_company_admin):
             readonly_fields.extend(['is_staff', 'groups'])
         return readonly_fields
@@ -89,7 +141,7 @@ class TSPUserAdmin(UserAdmin):
         if not request.user.is_superuser:
             if db_field.name == "groups":
                 kwargs["queryset"] = Group.objects.filter(
-                    users__profile__company=request.user.company
+                    user__profile__company=request.user.company
                 ).distinct()
             elif db_field.name == "user_permissions":
                 if request.user.profile.is_company_admin:
@@ -106,6 +158,7 @@ class TSPUserAdmin(UserAdmin):
 
 
 class CompanyFilteredAdmin(admin.ModelAdmin):
+    readonly_fields = ("address",)
 
     @staticmethod
     def get_company_filtered_queryset(queryset, request):
@@ -123,22 +176,13 @@ class CompanyFilteredAdmin(admin.ModelAdmin):
                 Prefetch('employees', queryset=Profile.objects.all()),
             ).get(id=request.user.profile.company.id)
 
-            # field_querysets = {
-            #     "company": Company.objects.filter(id=request.user.profile.company.id),
-            #     "department": Department.objects.filter(company=request.user.profile.company),
-            #     "team": Team.objects.filter(department__company=request.user.profile.company),
-            #     "shift_pattern": ShiftPattern.objects.filter(company=request.user.profile.company),
-            #     "manager": Profile.objects.filter(
-            #         company=request.user.profile.company,
-            #         role='Manager'
-            #     ),
-            # }
             field_querysets = {
-                "company": company_with_related_data.company,
-                "department": company_with_related_data.departments.all(),
-                "team": company_with_related_data.teams.all(),
-                "shift": company_with_related_data.shifts.all(),
-                "employee": company_with_related_data.employees.all(),
+                "user": UserModel.objects.filter(profile__company=request.user.profile.company),
+                "company": Company.objects.filter(id=request.user.profile.company.id),
+                "department": company_with_related_data.departments.filter(company=request.user.profile.company),
+                "team": company_with_related_data.teams.filter(company=request.user.profile.company),
+                "shift": company_with_related_data.shifts.filter(company=request.user.profile.company),
+                "employee": company_with_related_data.employees.filter(company=request.user.profile.company),
             }
 
             if db_field.name in field_querysets:
@@ -148,7 +192,14 @@ class CompanyFilteredAdmin(admin.ModelAdmin):
 
 
 @admin.register(Profile)
-class ProfileAdmin(CompanyFilteredAdmin):
+class ProfileAdmin(GetQuerySetMixin, CompanyFilteredAdmin):
+    filter = 'company'
+
     list_display = ('user', 'company', 'role', 'department', 'team')
     list_filter = ('role', 'department', 'team')
     search_fields = ('user__email', 'first_name', 'last_name')
+
+    def has_add_permission(self, request):
+        # Allow only superusers or users with specific permission
+        return request.user.is_superuser or request.user.has_perm('auth.add_user')
+

@@ -1,29 +1,3 @@
-
-from django.shortcuts import redirect
-
-from django.urls import reverse
-from django.shortcuts import get_object_or_404
-from django.contrib.auth import get_user_model
-
-UserModel = get_user_model()
-
-
-class OwnerRequiredMixin:
-
-    def _handle_no_permission(self):
-        return redirect('index')  # or wherever you want to redirect
-
-    def dispatch(self, request, *args, **kwargs):
-        # Get the user instead of the profile
-        user = get_object_or_404(get_user_model(), slug=kwargs.get('slug'))
-
-        # Check if the requesting user is the owner
-        if request.user != user:
-            return self._handle_no_permission()
-
-        return super().dispatch(request, *args, **kwargs)
-
-
 class DynamicPermissionMixin:
 
     @staticmethod
@@ -70,30 +44,31 @@ class DynamicPermissionMixin:
             return False
 
 
-class CRUDUrlsMixin:
-    crud_url_names = {
-        'create': '',
-        'detail': '',
-        'update': '',
-        'delete': ''
-    }
+class EmployeeButtonPermissionMixin:
+    def is_holiday_approver(self, target_profile):
+        return self.request.user.profile == target_profile.get_holiday_approver()
 
-    button_names = {
-        'create': '',
-        'detail': '',
-        'update': '',
-        'delete': '',
-    }
+    def get_button_permissions(self):
+        """Get permissions for showing/hiding buttons"""
+        user = self.request.user
+        target_profile = self.get_target_profile()
 
-    def get_crud_urls(self):
-        model_name = self.model._meta.model_name
         return {
-            f'{action}_url': pattern.format(model=model_name)
-            for action, pattern in self.crud_url_names.items()
+            'can_view_requests': any([
+                user.has_perm('absences.view_all_holidays_requests'),
+                user.has_perm('absences.view_department_holidays_requests') and self.is_same_department(target_profile),
+                user.has_perm('absences.view_team_holidays_requests') and self.is_same_team(target_profile),
+                self.request.user.profile == target_profile.get_holiday_approver()  # Direct check
+            ]),
+            'can_view_absences': any([
+                user.has_perm('absences.view_all_absences'),
+                user.has_perm('absences.view_department_absences') and self.is_same_department(target_profile),
+                user.has_perm('absences.view_team_absences') and self.is_same_team(target_profile)
+            ]),
+            'is_holiday_approver': self.request.user.profile == target_profile.get_holiday_approver()  # Direct check
         }
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context.update(self.get_crud_urls())
-        context['button_names'] = self.button_names
+        context.update(self.get_button_permissions())
         return context

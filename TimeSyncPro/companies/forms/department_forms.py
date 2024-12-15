@@ -35,7 +35,7 @@ class DepartmentBaseForm(CheckExistingNamePerCompanyMixin, forms.ModelForm):
 
         if self.company:
             self.fields['department_members'].queryset = self.company.employees.filter(department=None)
-            self.fields['holiday_approver'].queryset = self.company.employees.filter(role__in=["HR", "MANAGER"])
+            self.fields['holiday_approver'].queryset = self.company.get_company_holiday_approvers()
         else:
             self.fields['department_members'].queryset = UserModel.objects.none()
             self.fields['holiday_approver'].queryset = UserModel.objects.none()
@@ -78,9 +78,7 @@ class EditDepartmentForm(DepartmentBaseForm):
 
             self.fields['department_members'].queryset = combined_queryset
             self.fields['department_members'].initial = self.initial_department_members
-            self.fields['holiday_approver'].queryset = self.department.company.employees.filter(
-                role__in=["HR", "MANAGER"])
-
+            self.fields['holiday_approver'].queryset = self.company.get_company_holiday_approvers()
             self.fields['department_members'].label = "Department Members"
 
     @transaction.atomic

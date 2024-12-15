@@ -6,17 +6,6 @@
 {% endblock %}
 
 {% block crud_buttons %}
-    <div class="crud-buttons">
-    {% if object.pk in requesters_pk or view_requests %}
-        <a href="{% url 'employee_requests' slug=object.slug company_slug=user.company.slug %}"
-                               class="default-btn details">Requests</a>
-    {% endif %}
-    <a href="{% url 'add_absence' slug=object.slug company_slug=user.company.slug %}"
-                               class="default-btn details">Absence</a>
-    {% if object.profile.role|title in view_permissions %}
-    {% include "partials/crud_buttons_employees.html" %}
-    {% endif %}
-    </div>
 {% endblock %}
 
 {% block add_button %}
@@ -24,8 +13,7 @@
 {% endblock %}
 
 {% block element %}
-
-
+    
     <div class="employee-pic" style="width: 90px; height: auto;">
         {% if object.profile.profile_picture %}
             <img src="{{ object.profile.profile_picture.url }}"
@@ -65,37 +53,3 @@
 
 
 {% endblock %}
-
-
-{#{% extends 'layout/company-layout.html' %}#}
-{##}
-{#{% block page-content %}#}
-{#    <h1>Company Members</h1>#}
-{#    #}
-{#{% if messages %}#}
-{#<ul class="messages">#}
-{#    {% for message in messages %}#}
-{#    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>#}
-{#    {% endfor %}#}
-{#</ul>#}
-{#{% endif %}#}
-{##}
-{#{% if company %}#}
-{#    <!-- Display company details -->#}
-{#    {% if company %}#}
-{#        <h2>Company: {{ company.name }}</h2>#}
-{#    {% endif %}#}
-{#    #}
-{#    <!-- Display Employees related to the company -->#}
-{#    {% if employees %}#}
-{#        <h3>Employees</h3>#}
-{#        <ul>#}
-{#            {% for employee in employees %}#}
-{#                <li>{{ employee.full_name }}</li>#}
-{#                <a href="{% url 'employee_profile' company_slug=company.slug slug=employee.user.slug %}">Profile</a>#}
-{#                <a href="{% url 'update_employee' company_slug=company.slug slug=employee.user.slug %}">Edit</a>#}
-{#            {% endfor %}#}
-{#        </ul>#}
-{#    {% endif %}#}
-{#{% endif %}#}
-{#{% endblock %}#}

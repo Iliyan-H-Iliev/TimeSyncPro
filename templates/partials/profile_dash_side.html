@@ -1,7 +1,7 @@
 {% load static %}
 
-    <div class="profile-sidebar">
-            {% with profile=request.user.profile %}
+<div class="profile-sidebar">
+    {% with profile=request.user.profile %}
         <div class="profile-info">
             {% if profile.profile_picture %}
                 <img src="{{ profile.profile_picture.url }}" alt="{{ profile.full_name }}" class="avatar">
@@ -10,19 +10,20 @@
             {% endif %}
             <h2 class="profile-name">{{ profile.full_name }}</h2>
             {% if profile.is_company_admin %}
-            <p class="profile-role">Company Administrator</p>
+                <p class="profile-role">Company Administrator</p>
             {% endif %}
             <p class="profile-role">{{ profile.role }}</p>
         </div>
         <ul class="profile-nav">
             <li><a href="{% url 'dashboard' slug=user.slug %}">Dashboard</a></li>
             <li><a href="{% url 'profile' slug=user.slug %}">Profile</a></li>
-            <li><a href="{% url 'my_holidays' slug=user.slug %}">My Requests</a></li>
             <li><a href="{% url 'request_holiday' slug=user.slug %}">Request Holiday</a></li>
+            <li><a href="{% url 'my_holidays' slug=user.slug %}">My Requests</a></li>
+            <li><a href="{% url 'my_absences' slug=user.slug %}">My Absences</a></li>
             <li><a class="logout-link" href="#">Logout</a></li>
         </ul>
-        {% endwith %}
-    </div>
+    {% endwith %}
+</div>
 
 
 

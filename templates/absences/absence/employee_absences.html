@@ -1,0 +1,23 @@
+{% extends "layout/list-layout.html" %}
+{% load static %}
+
+{% block search %}
+{% endblock %}
+
+{% block create %}
+    <a href="{% url 'add_absence' slug=employee.slug company_slug=user.company.slug %}" class="default-btn create" title="Add Absence"><i class="fa-solid fa-plus"></i>Absence</a>
+{% endblock %}
+
+
+
+{% block sort %}
+    {% include "partials/absence_type_filter.html" %}
+{% endblock %}
+
+{% block obj_information %}
+    {% include "partials/absence_information.html" %}
+{% endblock %}
+
+{% block script %}
+    <script src="{% static 'js/delete-absence.js' %}"></script>
+{% endblock %}

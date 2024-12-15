@@ -34,6 +34,9 @@ DEBUG_TOOLBAR_CONFIG = {
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
 
+handler403 = 'TimeSyncPro.common.views.custom_403'
+handler404 = 'TimeSyncPro.common.views.custom_404'
+
 INTERNAL_IPS = [
     '127.0.0.1',
 ]
@@ -51,7 +54,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'rest_framework.authtoken',
 
     "TimeSyncPro.accounts.apps.AccountsConfig",
     "TimeSyncPro.companies.apps.CompaniesConfig",
@@ -95,6 +97,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = os.getenv('WSGI_APPLICATION')
+ASGI_APPLICATION = os.getenv('ASGI_APPLICATION')
 
 DATABASES = {
     'default': {
@@ -106,6 +109,11 @@ DATABASES = {
         'PORT': os.getenv('DB_PORT',),
     }
 }
+
+LOGOUT_REDIRECT_URL = os.getenv('LOGOUT_REDIRECT_URL')
+LOGIN_REDIRECT_URL = os.getenv('LOGIN_REDIRECT_URL')
+LOGIN_URL = os.getenv('LOGIN_URL')
+
 
 # AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY')
 # AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_KEY')

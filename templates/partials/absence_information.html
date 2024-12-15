@@ -1,18 +1,29 @@
 <div class="container-profile-colon item-container">
     <!-- Header Row -->
     <div class="container-row">
-        <h4 class="obj-title">{{ object.requester.full_name }}: {{ object.start_date|date:"d/m/Y" }} - {{ object.end_date|date:"d/m/Y" }}</h4>
+        {% with name=object.absentee.full_name %}
+            {% if show_name %}
+                <h4 class="obj-title">{{ name }} - {{ object.start_date|date:"d/m/Y" }}
+                    - {{ object.end_date|date:"d/m/Y" }}</h4>
+            {% else %}
+                <h4 class="obj-title">{{ object.start_date|date:"d/m/Y" }} - {{ object.end_date|date:"d/m/Y" }}</h4>
+            {% endif %}
+        {% endwith %}
         <div class="crud-buttons">
-            <a href="{% url 'review_holiday' pk=object.pk company_slug=user.company.slug %}"
-               class="default-btn details"><i class="fa-solid fa-info"></i></a>
+            <button
+                    type="button"
+                    class="holiday-status-button default-btn cancel-btn"
+                    data-holiday-id="{{ object.id }}"
+                    data-action="delete">
+                Delete
+            </button>
         </div>
     </div>
 
-    <!-- Details Section -->
     <div class="container-profile-row element-container employee-container">
 
         {% block element %}
-            {% include "partials/holiday_details.html" %}
+            {% include "partials/absence_details.html" %}
         {% endblock %}
     </div>
 </div>

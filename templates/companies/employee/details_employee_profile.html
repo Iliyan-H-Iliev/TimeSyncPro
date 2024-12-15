@@ -9,16 +9,22 @@
 
 {% block page-content %}
     <div class="content-area">
+        {% include "partials/messages.html" %}
 
-        {#        {% with profile=object.profile %}#}
         <div class="profile-content">
             <div class="profile-main">
                 <section class="profile-section">
                     <div class="section-title-button">
                         <h2 class="section-title">Employee Information</h2>
                         <div>
-                            <a href="{% url 'employee_requests' slug=object.slug company_slug=user.company.slug %}"
-                               class="default-btn details">Requests</a>
+                            {% if can_view_requests or is_holiday_approver %}
+                                <a href="{% url 'employee_requests' slug=object.slug company_slug=user.company.slug %}"
+                                   class="default-btn details">Requests</a>
+                            {% endif %}
+                            {% if can_view_absences %}
+                                <a href="{% url 'employee_absences' slug=object.slug company_slug=user.company.slug %}"
+                                   class="default-btn details">Absences</a>
+                            {% endif %}
                             {% if has_detailed_change_permission %}
                                 <a href="{% url 'update_employee' slug=object.slug company_slug=user.company.slug %}"
                                    class="default-btn edit"><i class="fa-regular fa-pen-to-square"></i></a>
@@ -27,18 +33,15 @@
                                 <a href="{% url 'delete_employee' slug=object.slug company_slug=user.company.slug %}"
                                    class="default-btn delete"><i class="fa-regular fa-trash-can"></i></a>
                             {% endif %}
-                            {#                    <a href="{% url 'update_profile' slug=user.slug %}" class="edit-profile-btn">Edit Profile</a>#}
-                            {#                                <a href="{% url 'password_change' %}" class="default-btn change-password">Change#}
-                            {#                                    Password</a>#}
                         </div>
 
                     </div>
 
                     <div class="section-content profile-section-container">
-                        {#<div class="contact-grid">#}
+
 
                         <div class="container-profile-colon">
-                            {#                                <h4>About Me</h4>#}
+
                             <div class="container-profile-row">
                                 <div class="employee-pic">
                                     {% if object.profile.profile_picture %}
@@ -171,7 +174,6 @@
 
             </div>
         </div>
-        {#        {% endwith %}#}
     </div>
 
 {% endblock %}

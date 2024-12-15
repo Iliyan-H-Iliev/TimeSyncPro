@@ -10,30 +10,27 @@
 
 {% block page-content %}
     <div class="content-area">
+        {% include "partials/messages.html" %}
         <div class="section-title-button">
             <h2 class="section-title">{{ title }}</h2>
             {% block search %}
-                <form method="get" class="search-form">
-                    {% for key, value in request.GET.items %}
-                        {% if key != 'search' and key != 'page' %}
-                            <input type="hidden" name="{{ key }}" value="{{ value }}">
-                        {% endif %}
-                    {% endfor %}
-                    <input type="text" name="search" value="{{ search_value }}" class="search-input"
-                           placeholder="Search">
-                    <button type="submit" class="search-button">Search</button>
-                </form>
+                {% include "partials/search_form.html" %}
             {% endblock %}
             {% block sort %}
             {% endblock %}
-
-            {% if create_url %}
-                <a href="{% url create_url company_slug=user.company.slug %}" class="default-btn create"><i
-                        class="fa-solid fa-plus"></i>{{ button_names.create }}</a>
-            {% endif %}
+            {% block create %}
+                {% if create_url %}
+                    <a href="{% url create_url company_slug=user.company.slug %}" class="default-btn create"><i
+                            class="fa-solid fa-plus"></i>{{ button_names.create }}</a>
+                {% endif %}
+            {% endblock %}
         </div>
         {% if not objects %}
-            <h3 class="not-found">No {{ title }} Found</h3>
+            {% if not_found %}
+                <h3 class="not-found">{{ not_found }}</h3>
+            {% else %}
+                <h3 class="not-found">No {{ title }} Found</h3>
+            {% endif %}
         {% else %}
             {% if error %}
                 <div class="alert alert-danger" role="alert">
@@ -50,11 +47,15 @@
                                     <div class="container-profile-colon item-container">
                                         <div class="container-row">
                                             {% if object.name %}
-                                                <h4 class="obj-title">{{ object.name }}</h4>
+                                                <a href="{% url detail_url pk=object.pk company_slug=user.company.slug %}"
+                                                   class="link"
+                                                   title="Details"><h4>{{ object.name }}</h4></a>
                                             {% elif object.profile %}
-                                                <h4 class="obj-title">{{ object.profile.full_name }} -
+                                                <a href="{% url detail_url slug=object.slug company_slug=user.company.slug %}"
+                                                   class="link" title="Details"><h4
+                                                        class="obj-title">{{ object.profile.full_name }} -
                                                     {{ object.profile.role }}{% if object.profile.is_company_admin %} -
-                                                        Company Administrator{% endif %}</h4>
+                                                        Company Administrator{% endif %}</h4></a>
                                             {% endif %}
 
                                             {% block crud_buttons %}
@@ -79,30 +80,3 @@
     </div>
 
 {% endblock %}
-
-{#{% block script %}#}
-{#    <script>#}
-{#        function debounce(func, wait) {#}
-{#            let timeout;#}
-{#            return function executedFunction(...args) {#}
-{#                const later = () => {#}
-{#                    clearTimeout(timeout);#}
-{#                    func(...args);#}
-{#                };#}
-{#                clearTimeout(timeout);#}
-{#                timeout = setTimeout(later, wait);#}
-{#            };#}
-{#        }#}
-{##}
-{#        document.addEventListener('DOMContentLoaded', function () {#}
-{#            const searchInput = document.querySelector('.search-input');#}
-{#            const searchForm = document.querySelector('.search-form');#}
-{##}
-{#            const performSearch = debounce(() => {#}
-{#                searchForm.submit();#}
-{#            }, 500);  // 500ms delay#}
-{##}
-{#            searchInput.addEventListener('input', performSearch);#}
-{#        });#}
-{#    </script>#}
-{#{% endblock %}#}

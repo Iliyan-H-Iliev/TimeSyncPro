@@ -28,7 +28,6 @@ class TeamBaseForm(CheckExistingNamePerCompanyMixin, forms.ModelForm):
         model = Team
         fields = [
             'name',
-            "department",
             'shift',
             "holiday_approver",
             "employees_holidays_at_a_time",
@@ -43,18 +42,15 @@ class TeamBaseForm(CheckExistingNamePerCompanyMixin, forms.ModelForm):
         self.company = company
 
         if self.company:
-            self.fields['team_members'].queryset = self.company.employees.filter(team=None) or UserModel.objects.none()
-            self.fields['holiday_approver'].queryset = self.company.employees.filter(role__in=["HR", "MANAGER"]) or UserModel.objects.none()
-            self.fields['shift'].queryset = Shift.objects.filter(company=self.company) or Shift.objects.none()
-            self.fields['department'].queryset = Department.objects.filter(company=self.company) or Department.objects.none()
+            self.fields['team_members'].queryset = self.company.employees.filter(team=None)
+            self.fields['holiday_approver'].queryset = self.company.get_company_holiday_approvers()
+            self.fields['shift'].queryset = self.company.shifts.all()
         else:
             self.fields['team_members'].queryset = UserModel.objects.none()
             self.fields['holiday_approver'].queryset = UserModel.objects.none()
             self.fields['shift'].queryset = Shift.objects.none()
-            self.fields['department'].queryset = Department.objects.none()
 
         self.fields['team_members'].label = "Team Members"
-            # self.fields['team_members'].help_text = "Select team members from the list"
 
     def save(self, commit=True):
         team = super().save(commit=False)

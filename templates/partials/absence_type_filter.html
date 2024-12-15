@@ -1,0 +1,10 @@
+<form method="get" class="filter-form">
+    <label for="type-filter">Type:</label>
+    <select name="type" id="type-filter" onchange="this.form.submit()">
+        <option value="" {% if type_filter == "" %}selected{% endif %}>All</option>
+        <option value="sick" {% if type_filter == "sick" %}selected{% endif %}>Sick Leave</option>
+        <option value="personal" {% if type_filter == "personal" %}selected{% endif %}>Personal Leave</option>
+        <option value="unpaid" {% if type_filter == "unpaid" %}selected{% endif %}>Unpaid Leave</option>
+        <option value="other" {% if type_filter == "other" %}selected{% endif %}>Other</option>
+    </select>
+</form>

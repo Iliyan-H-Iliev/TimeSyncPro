@@ -23,17 +23,6 @@ class CompanyBaseForm(forms.ModelForm):
 class CreateCompanyForm(CompanyBaseForm):
     pass
 
-    # def __init__(self, *args, **kwargs):
-    #     self.user = kwargs.pop('user', None)
-    #     super().__init__(*args, **kwargs)
-
-    # def save(self, commit=True):
-    #     company = super().save(commit=False)
-    #     if commit:
-    #         company.save()
-    #     return company
-
-    # TODO only Administrator can edit company
 
 
 class EditCompanyForm(CheckCompanyExistingSlugMixin, CompanyBaseForm):
@@ -42,28 +31,15 @@ class EditCompanyForm(CheckCompanyExistingSlugMixin, CompanyBaseForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["holiday_approver"].queryset = Company.objects.get(
-            pk=self.instance.pk).employees.filter(
-            role__in=[
-                Profile.EmployeeRoles.HR,
-                Profile.EmployeeRoles.MANAGER],
-        )
+
+        if self.instance and self.instance.pk:
+            company = Company.objects.get(pk=self.instance.pk)
+            self.fields["holiday_approver"].queryset = company.get_company_holiday_approvers()
+        else:
+            self.fields["holiday_approver"].queryset = Profile.objects.none()
 
     def clean_holiday_approver(self):
         holiday_approver = self.cleaned_data.get("holiday_approver")
         if holiday_approver is None:
             raise forms.ValidationError("Leave approver is required.")
         return holiday_approver
-
-    # def save(self, commit=True):
-    #     company = super().save(commit=False)
-    #     if commit:
-    #         company.save()
-    #     return company
-
-    # def clean(self):
-    #     cleaned_data = super().clean()
-    #     if 'location' in cleaned_data and not cleaned_data.get('time_zone'):
-    #         # If a location is set but no time zone, suggest one
-    #         cleaned_data['time_zone'] = self.instance.suggest_time_zone()
-    #     return cleaned_data

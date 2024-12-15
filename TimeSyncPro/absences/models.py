@@ -96,8 +96,10 @@ class Holiday(AbsenceBase):
     class Meta:
         ordering = ["start_date"]
         permissions = [
-            ("can_view_all_holidays_requests", "Can view all holiday requests"),
-            ("can_update_holiday_requests_status", "Can update holiday status"),
+            ("view_all_holidays_requests", "Can view all holiday requests"),
+            ("view_department_holidays_requests", "Can view department holiday requests"),
+            ("view_team_holidays_requests", "Can view own holiday requests"),
+            ("update_holiday_requests_status", "Can update holiday status"),
         ]
 
     def __str__(self):
@@ -123,7 +125,7 @@ class Holiday(AbsenceBase):
         return self.requester.get_holiday_approver()
 
     def get_requested_days(self):
-        return self.requester.get_working_days_by_period(self.start_date, self.end_date)
+        return self.requester.get_count_of_working_days_by_period(self.start_date, self.end_date)
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -144,7 +146,6 @@ class Absence(HistoryMixin, AbsenceBase):
             ("view_all_absences", "Can view all absences"),
             ("view_department_absences", "Can view department absences"),
             ("view_team_absences", "Can view own absences"),
-            ("add_absences", "Can add absences"),
         ]
 
     class AbsenceTypes(models.TextChoices):

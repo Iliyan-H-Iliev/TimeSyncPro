@@ -23,7 +23,6 @@ class CompanyCheckMiddleware(MiddlewareMixin):
         ]
 
     def get_allowed_urls(self, user_slug: str):
-        """Get all allowed URLs including dynamic ones"""
         return self.base_allowed_urls + [
             reverse("create_profile_company", kwargs={'slug': user_slug}),
             reverse("profile", kwargs={'slug': user_slug}),
@@ -31,7 +30,7 @@ class CompanyCheckMiddleware(MiddlewareMixin):
         ]
 
     def cache_user(self, request) -> None:
-        """Cache user with related data if not already cached"""
+
         if not hasattr(request, '_cached_user'):
             try:
                 cached_user = (
@@ -49,7 +48,6 @@ class CompanyCheckMiddleware(MiddlewareMixin):
                     .get(id=request.user.id)
                 )
 
-                # Cache permissions if not already cached
                 if not hasattr(cached_user, '_cached_permissions'):
                     all_permissions = cached_user.get_all_permissions()
                     cached_user._cached_permissions = all_permissions
@@ -79,7 +77,7 @@ class CompanyCheckMiddleware(MiddlewareMixin):
             return None
 
         self.cache_user(request)
-        current_user = get_current_user()  # Get history user
+        current_user = get_current_user()
 
         if not self.has_registered_company(current_user):
             allowed_urls = self.get_allowed_urls(current_user.slug)
@@ -90,7 +88,6 @@ class CompanyCheckMiddleware(MiddlewareMixin):
         return None
 
     def handle_no_company(self, request) -> redirect:
-        """Handle users without a company"""
         current_user = get_current_user()
         if current_user.is_superuser or current_user.is_staff:
             return redirect("profile", slug=current_user.slug)
@@ -98,7 +95,6 @@ class CompanyCheckMiddleware(MiddlewareMixin):
 
     @staticmethod
     def has_registered_company(user) -> bool:
-        """Check if user has a registered company"""
         try:
             return bool(user.profile and user.profile.company)
         except (AttributeError, get_user_model().profile.RelatedObjectDoesNotExist):

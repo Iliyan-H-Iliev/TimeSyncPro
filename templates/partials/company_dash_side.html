@@ -18,7 +18,7 @@
             <li><a href="{% url 'all_teams' company_slug=user.company.slug %}" class="dash-button">Teams</a></li>
             <li><a href="{% url 'all_shifts' company_slug=company.slug %}" class="dash-button">Shifts</a></li>
             <li><a href="{% url 'company_holidays' company_slug=user.company.slug %}" class="dash-button">Holiday Requests</a></li>
-            <li><a href="{% url 'all_departments' company_slug=user.company.slug %}" class="dash-button">Absences</a></li>
+            <li><a href="{% url 'company_absences' company_slug=user.company.slug %}" class="dash-button">Absences</a></li>
             <li><a href="{% url 'all_departments' company_slug=user.company.slug %}" class="dash-button">Reports</a></li>
         </ul>
 

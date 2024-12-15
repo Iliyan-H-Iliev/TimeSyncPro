@@ -1,3 +1,4 @@
+import datetime
 from datetime import timedelta, date
 
 from django.apps import apps
@@ -78,6 +79,9 @@ class Profile(HistoryMixin, CreatedModifiedMixin):
             ("delete_staff", "Can delete Staff"),
             ("view_staff", "Can view Staff"),
             ("view_employee", "Can view Employees"),
+            ("view_all_employees", "Can view all Employees"),
+            ("view_department_employees", "Can view department Employees"),
+            ("view_team_employees", "Can view team Employees"),
 
 
 
@@ -178,19 +182,12 @@ class Profile(HistoryMixin, CreatedModifiedMixin):
         null=True,
     )
 
-    # For Employee, TeamLeader and Manager
     department = models.ForeignKey(
         "companies.Department",
         on_delete=models.SET_NULL,
         related_name="employees",
         blank=True,
         null=True,
-    )
-
-    manages_departments = models.ManyToManyField(
-        "companies.Department",
-        related_name="managers",
-        blank=True,
     )
 
     shift = models.ForeignKey(
@@ -295,7 +292,7 @@ class Profile(HistoryMixin, CreatedModifiedMixin):
             return self.team
         return None
 
-    def get_default_working_days(self, start_date, end_date):
+    def get_working_days(self, start_date, end_date):
         shift = self.get_shift()
         if shift:
             return shift.get_shift_working_dates_by_period(start_date, end_date)
@@ -303,21 +300,42 @@ class Profile(HistoryMixin, CreatedModifiedMixin):
         working_days = []
         current_date = start_date
         while current_date <= end_date:
-            if current_date.weekday() < 5:  # 0-4 are Monday to Friday
+            if current_date.weekday() < 5:
                 working_days.append(current_date)
-            current_date += timedelta(days=1)  # Move to the next day
+            current_date += timedelta(days=1)
         return working_days
+
+    def get_working_days_with_time(self, start_date, end_date):
+        shift = self.get_shift()
+        if shift:
+            return shift.get_shift_working_dates_with_time_by_period(start_date, end_date)
+
+        working_days = {}
+        start_time = datetime.time(9, 0)
+        end_time = datetime.time(17, 0)
+
+        current_date = start_date
+        while current_date <= end_date:
+            if current_date.weekday() < 5:
+                working_days[current_date] = {"start_time": start_time, "end_time": end_time}
+            current_date += timedelta(days=1)
+        return working_days
+
+    def get_days_off(self, start_date, end_date):
+        working_days = self.get_working_days(start_date, end_date)
+        all_days = [start_date + timedelta(days=i) for i in range((end_date - start_date).days + 1)]
+        return [day for day in all_days if day not in working_days]
 
     def get_team_employees_holidays_at_a_time(self):
         if hasattr(self, 'team') and self.team:
             return self.team.employees_holidays_at_a_time
         return None
 
-    def get_working_days_by_period(self, start_date, end_date):
+    def get_count_of_working_days_by_period(self, start_date, end_date):
         working_days = 0
         shift = self.get_shift()
         if shift:
-            return shift.get_shift_working_days_by_period(start_date, end_date)
+            return shift.get_count_of_shift_working_days_by_period(start_date, end_date)
 
         current_date = start_date
         while current_date <= end_date:

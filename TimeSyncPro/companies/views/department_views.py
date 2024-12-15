@@ -6,11 +6,10 @@ from ..models import Department, Shift, Team
 from ..forms import CreateDepartmentForm, EditDepartmentForm
 from django.views import generic as views
 
-from TimeSyncPro.common.views_mixins import CompanyObjectsAccessMixin, MultiplePermissionsRequiredMixin, \
-    ReturnToPageMixin, CompanyAccessMixin
+from TimeSyncPro.common.views_mixins import CompanyObjectsAccessMixin, \
+    ReturnToPageMixin, CompanyAccessMixin, CRUDUrlsMixin
 from ..views_mixins import ApiConfigMixin
 from ...accounts.models import Profile
-from ...accounts.view_mixins import CRUDUrlsMixin
 
 
 class CreateDepartmentView(LoginRequiredMixin, PermissionRequiredMixin, views.CreateView):
