@@ -14,9 +14,10 @@ class ShiftTeamsApiView(generics.ListAPIView):
     pagination_class = SmallPagination
 
     def get_queryset(self):
-        shift_id = self.kwargs['pk']
-        company_slug = self.kwargs['company_slug']
-        return Team.objects.filter(
-            shift__id=shift_id,
-            shift__company__slug=company_slug
-        ).select_related('company').order_by('name')
+        shift_id = self.kwargs["pk"]
+        company_slug = self.kwargs["company_slug"]
+        return (
+            Team.objects.filter(shift__id=shift_id, shift__company__slug=company_slug)
+            .select_related("company")
+            .order_by("name")
+        )

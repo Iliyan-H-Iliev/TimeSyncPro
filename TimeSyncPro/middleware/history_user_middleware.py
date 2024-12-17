@@ -2,6 +2,8 @@ from threading import local
 
 from django.utils.deprecation import MiddlewareMixin
 
+from TimeSyncPro.middleware.utils import set_current_user, clear_current_user
+
 _user = local()
 
 
@@ -35,15 +37,3 @@ class HistoryUserMiddleware(MiddlewareMixin):
         """Clear user in case of exception"""
         clear_current_user()
         return None
-
-
-def get_current_user():
-    return getattr(_user, "value", None)
-
-
-def set_current_user(user):
-    _user.value = user
-
-
-def clear_current_user():
-    _user.value = None

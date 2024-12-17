@@ -38,7 +38,7 @@ class TSPUserManager(auth_models.BaseUserManager):
         return self._create_user(email, password, **extra_fields)
 
     def with_perm(
-            self, perm, is_active=True, include_superusers=True, backend=None, obj=None
+        self, perm, is_active=True, include_superusers=True, backend=None, obj=None
     ):
         if backend is None:
             backends = auth._get_backends(return_tuples=True)
@@ -67,20 +67,20 @@ class TSPUserManager(auth_models.BaseUserManager):
 
 # class ProfileManager(models.Manager):
 #     pass
-    # def get_queryset(self):
-    #     return super().get_queryset()
+# def get_queryset(self):
+#     return super().get_queryset()
 
-    # def administrators(self):
-    #     return self.filter(role='Administrator')
+# def administrators(self):
+#     return self.filter(role='Administrator')
 
-    # def managers(self):
-    #     return self.filter(role='Manager')
-    #
-    # def hr(self):
-    #     return self.filter(role='HR')
-    #
-    # def team_leaders(self):
-    #     return self.filter(role='Team Leader')
-    #
-    # def staff(self):
-    #     return self.filter(role='Staff')
+# def managers(self):
+#     return self.filter(role='Manager')
+#
+# def hr(self):
+#     return self.filter(role='HR')
+#
+# def team_leaders(self):
+#     return self.filter(role='Team Leader')
+#
+# def staff(self):
+#     return self.filter(role='Staff')

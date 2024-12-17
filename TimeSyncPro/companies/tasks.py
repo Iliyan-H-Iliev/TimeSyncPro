@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 @shared_task
 def generate_shift_working_dates_task(shift_id, is_edit=False):
     from .models import Shift
+
     try:
         shift = Shift.objects.get(id=shift_id)
         shift.generate_shift_working_dates(is_edit=is_edit)

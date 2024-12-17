@@ -8,34 +8,60 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', '0008_profile_shift'),
-        ('companies', '0007_remove_team_shift_pattern_shift_team_shift_and_more'),
+        ("accounts", "0008_profile_shift"),
+        ("companies", "0007_remove_team_shift_pattern_shift_team_shift_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='profile',
-            name='company',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='employees', to='companies.company'),
+            model_name="profile",
+            name="company",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.DO_NOTHING,
+                related_name="employees",
+                to="companies.company",
+            ),
         ),
         migrations.AlterField(
-            model_name='profile',
-            name='first_name',
-            field=models.CharField(blank=True, max_length=30, null=True, validators=[django.core.validators.MinLengthValidator(2)]),
+            model_name="profile",
+            name="first_name",
+            field=models.CharField(
+                blank=True,
+                max_length=30,
+                null=True,
+                validators=[django.core.validators.MinLengthValidator(2)],
+            ),
         ),
         migrations.AlterField(
-            model_name='profile',
-            name='last_name',
-            field=models.CharField(blank=True, max_length=30, null=True, validators=[django.core.validators.MinLengthValidator(2)]),
+            model_name="profile",
+            name="last_name",
+            field=models.CharField(
+                blank=True,
+                max_length=30,
+                null=True,
+                validators=[django.core.validators.MinLengthValidator(2)],
+            ),
         ),
         migrations.AlterField(
-            model_name='profile',
-            name='remaining_leave_days',
+            model_name="profile",
+            name="remaining_leave_days",
             field=models.PositiveSmallIntegerField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='profile',
-            name='role',
-            field=models.CharField(blank=True, choices=[('Staff', 'Staff'), ('Team Leader', 'Team Leader'), ('Manager', 'Manager'), ('HR', 'HR')], max_length=11, null=True),
+            model_name="profile",
+            name="role",
+            field=models.CharField(
+                blank=True,
+                choices=[
+                    ("Staff", "Staff"),
+                    ("Team Leader", "Team Leader"),
+                    ("Manager", "Manager"),
+                    ("HR", "HR"),
+                ],
+                max_length=11,
+                null=True,
+            ),
         ),
     ]

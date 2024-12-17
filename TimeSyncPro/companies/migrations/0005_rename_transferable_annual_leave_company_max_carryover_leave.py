@@ -6,13 +6,16 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('companies', '0004_rename_holiday_days_per_year_company_annual_leave_and_more'),
+        (
+            "companies",
+            "0004_rename_holiday_days_per_year_company_annual_leave_and_more",
+        ),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='company',
-            old_name='transferable_annual_leave',
-            new_name='max_carryover_leave',
+            model_name="company",
+            old_name="transferable_annual_leave",
+            new_name="max_carryover_leave",
         ),
     ]

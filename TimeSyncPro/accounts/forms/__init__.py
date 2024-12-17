@@ -5,4 +5,3 @@ from .edit_tsp_user_forms import BasicEditTSPUserForm, DetailedEditTSPUserForm
 from .edit_profile_forms import BasicEditProfileForm, DetailedEditProfileForm
 from .delete_user_forms import DeleteUserForm
 from .custom_set_password_forms import CustomSetPasswordForm
-

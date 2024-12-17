@@ -14,32 +14,32 @@ class IndexView(AuthenticatedUserMixin, views.TemplateView):
 
 
 def about(request):
-    return render(request, 'common/about.html')
+    return render(request, "common/about.html")
 
 
 def terms_and_conditions(request):
-    return render(request, 'common/terms_and_conditions.html')
+    return render(request, "common/terms_and_conditions.html")
 
 
 def terms_of_use(request):
-    return render(request, 'common/terms_of_use.html')
+    return render(request, "common/terms_of_use.html")
 
 
 def privacy_policy(request):
-    return render(request, 'common/privacy_policy.html')
+    return render(request, "common/privacy_policy.html")
 
 
 def contact(request):
-    return render(request, 'common/contact.html')
+    return render(request, "common/contact.html")
 
 
 def features(request):
-    return render(request, 'common/features.html')
+    return render(request, "common/features.html")
 
 
 def custom_403(request, exception):
-    return render(request, '403.html', status=403)
+    return render(request, "403.html", status=403)
 
 
 def custom_404(request, exception):
-    return render(request, '404.html', status=404)
+    return render(request, "404.html", status=404)

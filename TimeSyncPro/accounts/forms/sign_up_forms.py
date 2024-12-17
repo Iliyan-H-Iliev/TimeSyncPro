@@ -6,7 +6,7 @@ from django.db import transaction, IntegrityError
 from django.db.models import Prefetch
 from django.urls import reverse
 
-from ..form_mixins import CleanEmailMixin, RequiredFieldsFormMixin
+from TimeSyncPro.common.form_mixins import CleanEmailMixin, RequiredFieldsFormMixin
 from TimeSyncPro.accounts.tasks import send_activation_email
 from ..models import Profile
 from ...companies.models import Team, Shift, Department, Company
@@ -31,7 +31,9 @@ class SignupCompanyAdministratorForm(UserCreationForm):
             return user
 
         except Exception as e:
-            logger.exception(f"Unexpected error occurred while creating administrator account: {str(e)}")
+            logger.exception(
+                f"Unexpected error occurred while creating administrator account: {str(e)}"
+            )
             self.add_error(None, f"An unexpected error. Please try again.")
             return None
 
@@ -80,19 +82,27 @@ class SignupEmployeeForm(RequiredFieldsFormMixin, CleanEmailMixin, UserCreationF
         user = self.request.user
 
         company = user.company
-        company_with_departments = Company.objects.prefetch_related('departments').get(id=company.id)
+        company_with_departments = Company.objects.prefetch_related("departments").get(
+            id=company.id
+        )
 
         company_departments = company_with_departments.departments.all()
         role = cleaned_data.get("role")
 
         if company_departments.exists() and (role == "Staff" or role == "Team Leader"):
             if not cleaned_data.get("department"):
-                self.add_error("department", "Please select a department for the Employee role")
+                self.add_error(
+                    "department", "Please select a department for the Employee role"
+                )
 
         if role == "Manager" and company_departments.exists():
-            if not cleaned_data.get("manages_departments") and not cleaned_data.get("department"):
-                self.add_error("department",
-                               "Please select a 'department' or 'manages departments' for the Manager role")
+            if not cleaned_data.get("manages_departments") and not cleaned_data.get(
+                "department"
+            ):
+                self.add_error(
+                    "department",
+                    "Please select a 'department' or 'manages departments' for the Manager role",
+                )
 
         return cleaned_data
 
@@ -110,12 +120,14 @@ class SignupEmployeeForm(RequiredFieldsFormMixin, CleanEmailMixin, UserCreationF
         random_password = UserModel.objects.make_random_password()
 
         if not company:
-            raise forms.ValidationError("You must be associated with a company to register employees")
+            raise forms.ValidationError(
+                "You must be associated with a company to register employees"
+            )
 
         company_with_related_data = Company.objects.prefetch_related(
-            Prefetch('teams', queryset=Team.objects.all()),
-            Prefetch('shifts', queryset=Shift.objects.all()),
-            Prefetch('departments', queryset=Department.objects.all()),
+            Prefetch("teams", queryset=Team.objects.all()),
+            Prefetch("shifts", queryset=Shift.objects.all()),
+            Prefetch("departments", queryset=Department.objects.all()),
         ).get(id=company.id)
 
         teams = company_with_related_data.teams.all()
@@ -148,22 +160,26 @@ class SignupEmployeeForm(RequiredFieldsFormMixin, CleanEmailMixin, UserCreationF
         self.fields["password2"].initial = random_password
         self._random_password = random_password
 
-        self.fields['role'].choices = self._adjust_role_choices(user)
+        self.fields["role"].choices = self._adjust_role_choices(user)
 
         if not user.has_perm("accounts.add_company_admin"):
             self.fields["is_company_admin"].widget = forms.HiddenInput()
             self.fields["is_company_admin"].initial = False  # Add this
 
-        self.fields["remaining_leave_days"].help_text = "Number of days off left for the year"
-        self.fields["shift"].help_text = ("Select shift if employee is not assigned to a team with shift"
-                                          " or if is different shift than the team.")
-        self.fields["team"].help_text = "Select the team the employee is assigned to."
-        self.fields["date_of_hire"].widget = forms.DateInput(
-            attrs={'type': 'date'}
+        self.fields["remaining_leave_days"].help_text = (
+            "Number of days off left for the year"
         )
+        self.fields["shift"].help_text = (
+            "Select shift if employee is not assigned to a team with shift"
+            " or if is different shift than the team."
+        )
+        self.fields["team"].help_text = "Select the team the employee is assigned to."
+        self.fields["date_of_hire"].widget = forms.DateInput(attrs={"type": "date"})
 
     def _add_profile_fields(self):
-        profile_fields = forms.models.fields_for_model(Profile, fields=self.profile_fields)
+        profile_fields = forms.models.fields_for_model(
+            Profile, fields=self.profile_fields
+        )
         self.fields.update(profile_fields)
 
     @staticmethod
@@ -218,12 +234,13 @@ class SignupEmployeeForm(RequiredFieldsFormMixin, CleanEmailMixin, UserCreationF
             try:
                 email = user.email
                 site_domain = self.request.get_host()
-                protocol = 'https' if self.request.is_secure() else 'http'
-                relative_url = reverse('activate_and_set_password', args=[activation_token])
+                protocol = "https" if self.request.is_secure() else "http"
+                relative_url = reverse(
+                    "activate_and_set_password", args=[activation_token]
+                )
 
                 task = send_activation_email.apply_async(
-                    args=[email, site_domain, protocol, relative_url],
-                    countdown=1
+                    args=[email, site_domain, protocol, relative_url], countdown=1
                 )
 
             except Exception as e:
@@ -234,10 +251,14 @@ class SignupEmployeeForm(RequiredFieldsFormMixin, CleanEmailMixin, UserCreationF
 
         except IntegrityError as e:
 
-            self.add_error(None, "An integrity error occurred. Please check your data and try again.")
+            self.add_error(
+                None,
+                "An integrity error occurred. Please check your data and try again.",
+            )
             raise
 
         except Exception as e:
-            self.add_error(None, f"An unexpected error occurred: {str(e)}. Please try again.")
+            self.add_error(
+                None, f"An unexpected error occurred: {str(e)}. Please try again."
+            )
             raise
-

@@ -7,39 +7,80 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Absence',
+            name="Absence",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('modified_at', models.DateTimeField(auto_now=True)),
-                ('start_date', models.DateField()),
-                ('end_date', models.DateField()),
-                ('reason', models.TextField(blank=True, max_length=500, null=True)),
-                ('absence_type', models.CharField(choices=[('sick', 'Sick Leave'), ('personal', 'Personal Leave'), ('unpaid', 'Unpaid Leave'), ('other', 'Other')], max_length=8)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("modified_at", models.DateTimeField(auto_now=True)),
+                ("start_date", models.DateField()),
+                ("end_date", models.DateField()),
+                ("reason", models.TextField(blank=True, max_length=500, null=True)),
+                (
+                    "absence_type",
+                    models.CharField(
+                        choices=[
+                            ("sick", "Sick Leave"),
+                            ("personal", "Personal Leave"),
+                            ("unpaid", "Unpaid Leave"),
+                            ("other", "Other"),
+                        ],
+                        max_length=8,
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='Holiday',
+            name="Holiday",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('modified_at', models.DateTimeField(auto_now=True)),
-                ('start_date', models.DateField()),
-                ('end_date', models.DateField()),
-                ('reason', models.TextField(blank=True, max_length=500, null=True)),
-                ('status', models.CharField(choices=[('pending', 'Pending'), ('approved', 'Approved'), ('denied', 'Denied'), ('cancelled', 'Cancelled')], default='pending', max_length=9)),
-                ('review_reason', models.TextField(blank=True, max_length=500, null=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("modified_at", models.DateTimeField(auto_now=True)),
+                ("start_date", models.DateField()),
+                ("end_date", models.DateField()),
+                ("reason", models.TextField(blank=True, max_length=500, null=True)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("pending", "Pending"),
+                            ("approved", "Approved"),
+                            ("denied", "Denied"),
+                            ("cancelled", "Cancelled"),
+                        ],
+                        default="pending",
+                        max_length=9,
+                    ),
+                ),
+                (
+                    "review_reason",
+                    models.TextField(blank=True, max_length=500, null=True),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
     ]

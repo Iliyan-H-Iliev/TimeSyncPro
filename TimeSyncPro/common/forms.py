@@ -6,7 +6,15 @@ from TimeSyncPro.common.models import Address
 class AddressForm(forms.ModelForm):
     class Meta:
         model = Address
-        fields = ["house_number_or_name", "line1", "line2", "street", "city", "postcode", "country"]
+        fields = [
+            "house_number_or_name",
+            "line1",
+            "line2",
+            "street",
+            "city",
+            "postcode",
+            "country",
+        ]
         labels = {
             "house_number_or_name": "House number or name",
             "line1": "Line 1",
@@ -20,5 +28,3 @@ class AddressForm(forms.ModelForm):
     def has_data(self):
         data = self.cleaned_data
         return any(data.values())
-
-

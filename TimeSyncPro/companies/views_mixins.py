@@ -16,7 +16,7 @@ class CheckOwnCompanyMixin:
 
     def get_company(self, request):
         try:
-            return Company.objects.get(slug=self.kwargs['company_slug'])
+            return Company.objects.get(slug=self.kwargs["company_slug"])
         except Company.DoesNotExist:
             raise Http404("Company does not exist.")
 
@@ -31,7 +31,7 @@ class CheckOwnCompanyMixin:
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['company'] = self.company
+        context["company"] = self.company
         return context
 
 
@@ -48,31 +48,30 @@ class ApiConfigMixin:
         model_plural = f"{model_name}s"  # Simple pluralization
 
         return {
-            'employees': f'/{{company_slug}}/{model_plural}/{{pk}}/employees',
-            'history': f'/{{company_slug}}/{model_plural}/{{pk}}/history',
-            "teams": f'/{{company_slug}}/{model_plural}/{{pk}}/teams',
-            "employee_history": f'/{{company_slug}}/company-members/{{pk}}/history',
+            "employees": f"/{{company_slug}}/{model_plural}/{{pk}}/employees",
+            "history": f"/{{company_slug}}/{model_plural}/{{pk}}/history",
+            "teams": f"/{{company_slug}}/{model_plural}/{{pk}}/teams",
+            "employee_history": f"/{{company_slug}}/company-members/{{pk}}/history",
         }
 
     def get_api_urls(self):
         try:
-            kwargs = {
-                'pk': self.object.pk,
-                'company_slug': self.object.company.slug
-            }
+            kwargs = {"pk": self.object.pk, "company_slug": self.object.company.slug}
 
             patterns = self.get_url_patterns()
             urls = {}
             if self.employee_api_url_name:
-                urls['employees'] = patterns['employees'].format(**kwargs)
+                urls["employees"] = patterns["employees"].format(**kwargs)
             if self.history_api_url_name:
-                urls['history'] = patterns['history'].format(**kwargs)
+                urls["history"] = patterns["history"].format(**kwargs)
             if self.team_api_url_name:
-                urls['teams'] = patterns['teams'].format(**kwargs)
+                urls["teams"] = patterns["teams"].format(**kwargs)
             if self.employee_history_api_url_name:
-                urls['history'] = patterns['employee_history'].format(**kwargs)
+                urls["history"] = patterns["employee_history"].format(**kwargs)
 
-            urls['updateProfile'] = reverse('update_profile', kwargs={'slug': 'PLACEHOLDER'})
+            urls["updateProfile"] = reverse(
+                "update_profile", kwargs={"slug": "PLACEHOLDER"}
+            )
             return urls
 
         except Exception as e:
@@ -82,11 +81,11 @@ class ApiConfigMixin:
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         try:
-            if hasattr(self, 'object') and self.object:
-                context['api_config'] = {
-                    'urls': self.get_api_urls(),
-                    'obj_id': self.object.pk,
-                    'company_slug': self.object.company.slug
+            if hasattr(self, "object") and self.object:
+                context["api_config"] = {
+                    "urls": self.get_api_urls(),
+                    "obj_id": self.object.pk,
+                    "company_slug": self.object.company.slug,
                 }
         except Exception as e:
             logger.error(f"Error in API config: {e}")
@@ -100,7 +99,7 @@ class AddPermissionMixin:
     def get_context_data(self, **kwargs):
         b = self.request.user.has_perm(self.add_permission)
         context = super().get_context_data(**kwargs)
-        context['add_permission'] = self.request.user.has_perm(self.add_permission)
+        context["add_permission"] = self.request.user.has_perm(self.add_permission)
         return context
 
 

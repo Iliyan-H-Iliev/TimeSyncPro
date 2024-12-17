@@ -1,12 +1,11 @@
 import logging
-
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from typing import Dict, Any, List, Optional
-
 from TimeSyncPro.history.models import History
-from TimeSyncPro.middleware.history_user_middleware import get_current_user
+from TimeSyncPro.middleware.utils import get_current_user
+
 
 logger = logging.getLogger(__name__)
 
@@ -18,13 +17,11 @@ class HistoryMixin(models.Model):
     tracked_fields: List[str] = []
 
     def _get_tracked_fields(self) -> List[str]:
-        """Get list of tracked fields from Meta class or instance"""
-        if hasattr(self._meta, 'tracked_fields'):
+        if hasattr(self._meta, "tracked_fields"):
             return self._meta.tracked_fields
         return self.tracked_fields
 
     def _format_field_value(self, field: models.Field, value: Any) -> Optional[Any]:
-        """Format field value for storage based on field type"""
         try:
             if value is None:
                 return None
@@ -33,7 +30,7 @@ class HistoryMixin(models.Model):
                 return value.pk if value else None
 
             elif isinstance(field, models.ManyToManyField):
-                return sorted(list(value.values_list('id', flat=True))) if value else []
+                return sorted(list(value.values_list("id", flat=True))) if value else []
 
             elif isinstance(field, (models.DateTimeField, models.DateField)):
                 return value.isoformat() if value else None
@@ -41,7 +38,7 @@ class HistoryMixin(models.Model):
             elif isinstance(field, models.JSONField):
                 return value
 
-            elif hasattr(value, 'code'):
+            elif hasattr(value, "code"):
                 return value.code
 
             elif isinstance(value, (list, tuple)):
@@ -75,7 +72,6 @@ class HistoryMixin(models.Model):
         return state
 
     def _get_original_state(self) -> Dict[str, Any]:
-        """Get original state from database with optimized querying"""
         if not self.pk:
             return {}
 
@@ -108,14 +104,15 @@ class HistoryMixin(models.Model):
             return {}
 
     def _create_history(self, action: str, changes: Dict[str, Any]) -> None:
-        """Creates history record with error handling and validation"""
         try:
             if not changes:  # Skip if no changes
                 return
 
             history_user = get_current_user()
-            if not history_user and action == 'register':
-                history_user = self if isinstance(self, settings.AUTH_USER_MODEL) else None
+            if not history_user and action == "register":
+                history_user = (
+                    self if isinstance(self, settings.AUTH_USER_MODEL) else None
+                )
 
             if not self.pk:
                 logger.warning("Cannot create history for unsaved instance")
@@ -126,7 +123,7 @@ class HistoryMixin(models.Model):
                 object_id=self.pk,
                 action=action,
                 changed_by=history_user,
-                changes=changes
+                changes=changes,
             )
 
         except Exception as e:
@@ -135,9 +132,8 @@ class HistoryMixin(models.Model):
             )
 
     def save(self, *args, **kwargs) -> None:
-        """Save instance with better history tracking control"""
         is_new = not self.pk
-        skip_history = kwargs.pop('skip_history', False)
+        skip_history = kwargs.pop("skip_history", False)
         original_state = {} if is_new else self._get_original_state()
 
         try:
@@ -152,24 +148,18 @@ class HistoryMixin(models.Model):
 
             if is_new:
                 changes = {
-                    field: {
-                        'old': None,
-                        'new': value
-                    }
+                    field: {"old": None, "new": value}
                     for field, value in current_state.items()
                 }
-                self._create_history('create', changes)
+                self._create_history("create", changes)
             else:
                 changes = {
-                    field: {
-                        'old': original_state.get(field),
-                        'new': new_value
-                    }
+                    field: {"old": original_state.get(field), "new": new_value}
                     for field, new_value in current_state.items()
                     if original_state.get(field) != new_value
                 }
                 if changes:
-                    self._create_history('update', changes)
+                    self._create_history("update", changes)
 
         except Exception as e:
             logger.error(f"Error in save history tracking: {str(e)}", exc_info=True)
@@ -177,21 +167,15 @@ class HistoryMixin(models.Model):
                 super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs) -> tuple:
-        """Delete instance and track deletion"""
         try:
             state = self._get_state()
             changes = {
-                field: {
-                    'old': value,
-                    'new': None
-                }
-                for field, value in state.items()
+                field: {"old": value, "new": None} for field, value in state.items()
             }
-            self._create_history('delete', changes=changes)
+            self._create_history("delete", changes=changes)
 
         except Exception as e:
             logger.error(f"Error in delete history tracking: {str(e)}")
 
         finally:
             return super().delete(*args, **kwargs)
-

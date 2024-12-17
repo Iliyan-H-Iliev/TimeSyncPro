@@ -10,26 +10,73 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('contenttypes', '0002_remove_content_type_name'),
+        ("contenttypes", "0002_remove_content_type_name"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='History',
+            name="History",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('timestamp', models.DateTimeField(auto_now_add=True)),
-                ('action', models.CharField(choices=[('create', 'Created'), ('update', 'Updated'), ('delete', 'Deleted'), ('register', 'Registered')], max_length=20)),
-                ('changes', models.JSONField(help_text="{'field': {'old': old_value, 'new': new_value}}", null=True)),
-                ('changed_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='history_changes', to=settings.AUTH_USER_MODEL)),
-                ('content_type', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='contenttypes.contenttype')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("timestamp", models.DateTimeField(auto_now_add=True)),
+                (
+                    "action",
+                    models.CharField(
+                        choices=[
+                            ("create", "Created"),
+                            ("update", "Updated"),
+                            ("delete", "Deleted"),
+                            ("register", "Registered"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "changes",
+                    models.JSONField(
+                        help_text="{'field': {'old': old_value, 'new': new_value}}",
+                        null=True,
+                    ),
+                ),
+                (
+                    "changed_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="history_changes",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "content_type",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="contenttypes.contenttype",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'History Record',
-                'verbose_name_plural': 'History Records',
-                'ordering': ['-timestamp'],
-                'indexes': [models.Index(fields=['content_type'], name='history_his_content_ebde94_idx'), models.Index(fields=['timestamp'], name='history_his_timesta_1d8a61_idx')],
+                "verbose_name": "History Record",
+                "verbose_name_plural": "History Records",
+                "ordering": ["-timestamp"],
+                "indexes": [
+                    models.Index(
+                        fields=["content_type"], name="history_his_content_ebde94_idx"
+                    ),
+                    models.Index(
+                        fields=["timestamp"], name="history_his_timesta_1d8a61_idx"
+                    ),
+                ],
             },
         ),
     ]

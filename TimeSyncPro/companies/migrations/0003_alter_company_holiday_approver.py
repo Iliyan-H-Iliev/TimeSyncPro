@@ -7,14 +7,20 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', '0003_remove_profile_days_off_left_and_more'),
-        ('companies', '0002_remove_company_location_and_more'),
+        ("accounts", "0003_remove_profile_days_off_left_and_more"),
+        ("companies", "0002_remove_company_location_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='company',
-            name='holiday_approver',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='companies', to='accounts.profile'),
+            model_name="company",
+            name="holiday_approver",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.DO_NOTHING,
+                related_name="companies",
+                to="accounts.profile",
+            ),
         ),
     ]

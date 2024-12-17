@@ -10,51 +10,83 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('accounts', '0001_initial'),
-        ('companies', '0001_initial'),
+        ("accounts", "0001_initial"),
+        ("companies", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='profile',
-            name='company',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='employees', to='companies.company'),
+            model_name="profile",
+            name="company",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.DO_NOTHING,
+                related_name="employees",
+                to="companies.company",
+            ),
         ),
         migrations.AddField(
-            model_name='profile',
-            name='department',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='employees', to='companies.department'),
+            model_name="profile",
+            name="department",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="employees",
+                to="companies.department",
+            ),
         ),
         migrations.AddField(
-            model_name='profile',
-            name='manage_department',
-            field=models.ManyToManyField(blank=True, related_name='managers', to='companies.department'),
+            model_name="profile",
+            name="manage_department",
+            field=models.ManyToManyField(
+                blank=True, related_name="managers", to="companies.department"
+            ),
         ),
         migrations.AddField(
-            model_name='profile',
-            name='shift_pattern',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='employees', to='companies.shiftpattern'),
+            model_name="profile",
+            name="shift_pattern",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="employees",
+                to="companies.shiftpattern",
+            ),
         ),
         migrations.AddField(
-            model_name='profile',
-            name='team',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='employees', to='companies.team'),
+            model_name="profile",
+            name="team",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="employees",
+                to="companies.team",
+            ),
         ),
         migrations.AddField(
-            model_name='profile',
-            name='user',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='profile', to=settings.AUTH_USER_MODEL),
+            model_name="profile",
+            name="user",
+            field=models.OneToOneField(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="profile",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddIndex(
-            model_name='tspuser',
-            index=models.Index(fields=['email'], name='accounts_ts_email_2e69d1_idx'),
+            model_name="tspuser",
+            index=models.Index(fields=["email"], name="accounts_ts_email_2e69d1_idx"),
         ),
         migrations.AddIndex(
-            model_name='tspuser',
-            index=models.Index(fields=['slug'], name='accounts_ts_slug_d172c0_idx'),
+            model_name="tspuser",
+            index=models.Index(fields=["slug"], name="accounts_ts_slug_d172c0_idx"),
         ),
         migrations.AddConstraint(
-            model_name='profile',
-            constraint=models.UniqueConstraint(fields=('employee_id', 'company'), name='unique_employee_id_per_company'),
+            model_name="profile",
+            constraint=models.UniqueConstraint(
+                fields=("employee_id", "company"), name="unique_employee_id_per_company"
+            ),
         ),
     ]

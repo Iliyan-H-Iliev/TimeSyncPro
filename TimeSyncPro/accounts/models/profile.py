@@ -6,6 +6,7 @@ from django.core.validators import MinLengthValidator
 from django.db import models
 
 from . import TSPUser
+
 # from .proxy_models import ManagerProxy, HRProxy, TeamLeaderProxy, StaffProxy
 
 from ..validators import IsDigitsValidator, DateRangeValidator, DateOfBirthValidator
@@ -30,9 +31,6 @@ class Profile(HistoryMixin, CreatedModifiedMixin):
         TEAM_LEADER = "Team Leader", "Team Leader"
         MANAGER = "Manager", "Manager"
         HR = "HR", "HR"
-        # ADMINISTRATOR = "Administrator", "Administrator"
-
-    # objects = EmployeeManager()
 
     tracked_fields = [
         "first_name",
@@ -53,9 +51,9 @@ class Profile(HistoryMixin, CreatedModifiedMixin):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["employee_id", "company"],
-                name="unique_employee_id_per_company"
-            )]
+                fields=["employee_id", "company"], name="unique_employee_id_per_company"
+            )
+        ]
 
         permissions = [
             ("add_company_admin", "Can add Company Administrator"),
@@ -83,9 +81,6 @@ class Profile(HistoryMixin, CreatedModifiedMixin):
             ("view_all_employees", "Can view all Employees"),
             ("view_department_employees", "Can view department Employees"),
             ("view_team_employees", "Can view team Employees"),
-
-
-
         ]
 
     user = models.OneToOneField(
@@ -159,7 +154,8 @@ class Profile(HistoryMixin, CreatedModifiedMixin):
             IsDigitsValidator("Phone number must contain only digits"),
         ],
         blank=True,
-        null=True)
+        null=True,
+    )
 
     address = models.OneToOneField(
         "common.Address",
@@ -212,24 +208,6 @@ class Profile(HistoryMixin, CreatedModifiedMixin):
         employee_role = [role.value for role in cls.EmployeeRoles]
         return employee_role
 
-    # def get_role_specific_instance(self):
-    #     if self.is_company_admin:
-    #         AdministratorProxy = apps.get_model("accounts", "AdministratorProxy")
-    #         return AdministratorProxy.objects.get(id=self.id)
-    #     if self.role == "Manager":
-    #         ManagerProxy = apps.get_model("accounts", "ManagerProxy")
-    #         return ManagerProxy.objects.get(id=self.id)
-    #     elif self.role == "HR":
-    #         HRProxy = apps.get_model("accounts", "HRProxy")
-    #         return HRProxy.objects.get(id=self.id)
-    #     elif self.role == "Team Leader":
-    #         TeamLeaderProxy = apps.get_model("accounts", "TeamLeaderProxy")
-    #         return TeamLeaderProxy.objects.get(id=self.id)
-    #     elif self.role == "Staff":
-    #         StaffProxy = apps.get_model("accounts", "StaffProxy")
-    #         return StaffProxy.objects.get(id=self.id)
-    #     return self
-
     @property
     def group_name(self):
         if self.is_company_admin:
@@ -257,7 +235,6 @@ class Profile(HistoryMixin, CreatedModifiedMixin):
 
         if is_new and not self.user_id:
             super().save(*args, **kwargs, skip_history=True)
-            # Then create history if we have a user
             # if self.user_id:
             #     self._create_history("create", {
             #         "user": {"old": None, "new": self.user_id}
@@ -309,7 +286,9 @@ class Profile(HistoryMixin, CreatedModifiedMixin):
     def get_working_days_with_time(self, start_date, end_date):
         shift = self.get_shift()
         if shift:
-            return shift.get_shift_working_dates_with_time_by_period(start_date, end_date)
+            return shift.get_shift_working_dates_with_time_by_period(
+                start_date, end_date
+            )
 
         working_days = {}
         start_time = datetime.time(9, 0)
@@ -318,17 +297,23 @@ class Profile(HistoryMixin, CreatedModifiedMixin):
         current_date = start_date
         while current_date <= end_date:
             if current_date.weekday() < 5:
-                working_days[current_date] = {"start_time": start_time, "end_time": end_time}
+                working_days[current_date] = {
+                    "start_time": start_time,
+                    "end_time": end_time,
+                }
             current_date += timedelta(days=1)
         return working_days
 
     def get_days_off(self, start_date, end_date):
         working_days = self.get_working_days(start_date, end_date)
-        all_days = [start_date + timedelta(days=i) for i in range((end_date - start_date).days + 1)]
+        all_days = [
+            start_date + timedelta(days=i)
+            for i in range((end_date - start_date).days + 1)
+        ]
         return [day for day in all_days if day not in working_days]
 
     def get_team_employees_holidays_at_a_time(self):
-        if hasattr(self, 'team') and self.team:
+        if hasattr(self, "team") and self.team:
             return self.team.employees_holidays_at_a_time
         return None
 
@@ -346,10 +331,3 @@ class Profile(HistoryMixin, CreatedModifiedMixin):
             current_date += timedelta(days=1)
 
         return working_days
-
-
-
-
-
-
-

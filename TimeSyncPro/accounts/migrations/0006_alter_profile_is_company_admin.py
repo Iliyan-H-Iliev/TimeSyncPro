@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', '0005_rename_remaining_holiday_days_profile_remaining_leave_days'),
+        ("accounts", "0005_rename_remaining_holiday_days_profile_remaining_leave_days"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='profile',
-            name='is_company_admin',
+            model_name="profile",
+            name="is_company_admin",
             field=models.BooleanField(blank=True, default=False),
         ),
     ]

@@ -1,4 +1,5 @@
 from django.test import TestCase
+
 #
 # # Create your tests here.
 # import smtplib
@@ -22,23 +23,24 @@ from django.test import TestCase
 from django.core.mail import EmailMessage
 from django.core.mail.backends.smtp import EmailBackend
 
+
 class EmailTests(TestCase):
     def test_email_sending(self):
         connection = EmailBackend(
-            host='127.0.0.1',
+            host="127.0.0.1",
             port=1025,
             username=None,
             password=None,
             use_tls=False,
             use_ssl=False,
-            fail_silently=False
+            fail_silently=False,
         )
 
         email = EmailMessage(
-            subject='Test Subject',
-            body='Test Message',
-            from_email='from@example.com',
-            to=['to@example.com'],
+            subject="Test Subject",
+            body="Test Message",
+            from_email="from@example.com",
+            to=["to@example.com"],
             connection=connection,
         )
 

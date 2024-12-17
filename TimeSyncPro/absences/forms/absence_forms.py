@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth import get_user_model
 
 from TimeSyncPro.absences.models import Absence
-from TimeSyncPro.accounts.form_mixins import RequiredFieldsFormMixin
+from TimeSyncPro.common.form_mixins import RequiredFieldsFormMixin
 
 UserModel = get_user_model()
 
@@ -32,7 +32,7 @@ class CreateAbsenceForm(RequiredFieldsFormMixin, forms.ModelForm):
         overlapping_absence = Absence.objects.filter(
             absentee=absentee.profile,
             start_date__lte=end_date,
-            end_date__gte=start_date
+            end_date__gte=start_date,
         )
 
         if overlapping_absence.exists():
@@ -45,10 +45,14 @@ class CreateAbsenceForm(RequiredFieldsFormMixin, forms.ModelForm):
             self.add_error("absence_type", "Please select an absence type.")
 
         if start_date not in working_days:
-            self.add_error("start_date", "Cannot create an absence for a non-working day.")
+            self.add_error(
+                "start_date", "Cannot create an absence for a non-working day."
+            )
 
         if end_date not in working_days:
-            self.add_error("end_date", "Cannot create an absence for a non-working day.")
+            self.add_error(
+                "end_date", "Cannot create an absence for a non-working day."
+            )
 
         return cleaned_data
 
@@ -61,7 +65,9 @@ class CreateAbsenceForm(RequiredFieldsFormMixin, forms.ModelForm):
     def save(self, commit=True):
 
         absence = super().save(commit=False)
-        working_days = self.absentee.profile.get_count_of_working_days_by_period(absence.start_date, absence.end_date)
+        working_days = self.absentee.profile.get_count_of_working_days_by_period(
+            absence.start_date, absence.end_date
+        )
         absence.added_by = self.request.user.profile
         absence.absentee = self.absentee.profile
         absence.days_of_absence = working_days

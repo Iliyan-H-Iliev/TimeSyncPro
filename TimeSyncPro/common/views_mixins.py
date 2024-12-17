@@ -17,18 +17,14 @@ from TimeSyncPro.companies.models import Company
 UserModel = get_user_model()
 
 
-# from TimeSyncPro.accounts.utils import get_obj_company, get_user_by_slug
-# TODO move to accounts
-
-
 class OwnerRequiredMixin:
 
     def _handle_no_permission(self):
-        return redirect('index')  # or wherever you want to redirect
+        return redirect("index")  # or wherever you want to redirect
 
     def dispatch(self, request, *args, **kwargs):
         # Get the user instead of the profile
-        user = get_object_or_404(get_user_model(), slug=kwargs.get('slug'))
+        user = get_object_or_404(get_user_model(), slug=kwargs.get("slug"))
 
         # Check if the requesting user is the owner
         if request.user != user:
@@ -45,7 +41,7 @@ class CompanyAccessMixin:
         if not user_company:
             raise PermissionDenied("You must be associated with a company")
 
-        target_company = get_object_or_404(Company, slug=kwargs.get('company_slug'))
+        target_company = get_object_or_404(Company, slug=kwargs.get("company_slug"))
 
         if user_company != target_company:
             raise PermissionDenied("You can only access your own company's data")
@@ -59,20 +55,24 @@ class CompanyObjectsAccessMixin:
 
         company_field = None
 
-        if hasattr(self.model, 'profile'):
-            company_field = 'profile__company'
-        elif hasattr(self.model, 'company'):
-            company_field = 'company'
+        if hasattr(self.model, "profile"):
+            company_field = "profile__company"
+        elif hasattr(self.model, "company"):
+            company_field = "company"
 
         return company_field
 
     def get_queryset(self):
-        base_queryset = super().get_queryset() if hasattr(super(), 'get_queryset') else self.model.objects.all()
+        base_queryset = (
+            super().get_queryset()
+            if hasattr(super(), "get_queryset")
+            else self.model.objects.all()
+        )
 
         if self.request.user.is_superuser:
             return base_queryset
 
-        company_slug = self.kwargs.get('company_slug')
+        company_slug = self.kwargs.get("company_slug")
 
         if not company_slug:
             return base_queryset.none()
@@ -91,10 +91,10 @@ class CompanyObjectsAccessMixin:
         if not user_company:
             return False
 
-        if hasattr(obj, 'company'):
+        if hasattr(obj, "company"):
             obj_company = obj.company
-        elif hasattr(obj, 'profile'):
-            obj_company = getattr(obj.profile, 'company', None)
+        elif hasattr(obj, "profile"):
+            obj_company = getattr(obj.profile, "company", None)
         else:
             return False
 
@@ -120,6 +120,7 @@ class CompanyObjectsAccessMixin:
                 f"An error occurred while checking permissions: {str(e)}"
             )
 
+
 class MultiplePermissionsRequiredMixin(AccessMixin):
     permissions_required = []
 
@@ -139,14 +140,14 @@ class MultiplePermissionsRequiredMixin(AccessMixin):
 class UserDataMixin:
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['user_data'] = {
-            'profile': self.request.user.profile,
-            'company': self.request.user.profile.company,
-            'department': self.request.user.profile.department,
-            'team': self.request.user.profile.team,
-            'shift': self.request.user.profile.shift,
-            'address': self.request.user.profile.address,
-            'holiday_approver': self.request.user.profile.get_holiday_approver,
+        context["user_data"] = {
+            "profile": self.request.user.profile,
+            "company": self.request.user.profile.company,
+            "department": self.request.user.profile.department,
+            "team": self.request.user.profile.team,
+            "shift": self.request.user.profile.shift,
+            "address": self.request.user.profile.address,
+            "holiday_approver": self.request.user.profile.get_holiday_approver,
         }
         return context
 
@@ -162,17 +163,21 @@ class AuthenticatedUserMixin(UserPassesTestMixin):
     def get_success_url(self):
         user = self.request.user
 
-        if not hasattr(user, 'profile'):
-            return reverse("create_profile_company", kwargs={'slug': user.slug})
+        if not hasattr(user, "profile"):
+            return reverse("create_profile_company", kwargs={"slug": user.slug})
 
-        if hasattr(user, 'profile') and hasattr(user, 'slug'):
-            return reverse(self.success_url_name, kwargs={'slug': user.slug})
+        if hasattr(user, "profile") and hasattr(user, "slug"):
+            return reverse(self.success_url_name, kwargs={"slug": user.slug})
 
-        if hasattr(user, 'profile') and hasattr(user, 'slug') and hasattr(user.profile, 'company'):
+        if (
+            hasattr(user, "profile")
+            and hasattr(user, "slug")
+            and hasattr(user.profile, "company")
+        ):
             if user.profile is not None and user.profile.company is not None:
-                return reverse("dashboard", kwargs={'slug': user.slug})
+                return reverse("dashboard", kwargs={"slug": user.slug})
 
-        return reverse('index')
+        return reverse("index")
 
     def handle_no_permission(self):
         if self.request.user.is_authenticated:
@@ -209,21 +214,21 @@ class BasePermissionMixin(UserPassesTestMixin):
     def test_func(self):
         target_profile = self.get_target_profile()
 
-        if self.request.user.has_perm(self.permission_required['all']):
+        if self.request.user.has_perm(self.permission_required["all"]):
             return True
 
-        if self.request.user.has_perm(self.permission_required['department']):
+        if self.request.user.has_perm(self.permission_required["department"]):
             if self.is_same_department(target_profile):
                 return True
 
-        if self.request.user.has_perm(self.permission_required['team']):
+        if self.request.user.has_perm(self.permission_required["team"]):
             if self.is_same_team(target_profile):
                 return True
 
         return False
 
     def handle_no_permission(self):
-        raise PermissionDenied('You do not have permission to access this resource.')
+        raise PermissionDenied("You do not have permission to access this resource.")
 
 
 class EmployeePermissionMixin(BasePermissionMixin):
@@ -240,59 +245,62 @@ class EmployeePermissionMixin(BasePermissionMixin):
 
 class SmallPagination(PageNumberPagination):
     page_size = 4
-    page_size_query_param = 'page_size'
+    page_size_query_param = "page_size"
     max_page_size = 100
 
     def get_paginated_response(self, data):
-        return Response({
-            'count': self.page.paginator.count,
-            'page_size': self.page_size,
-            'current_page': self.page.number,
-            'total_pages': self.page.paginator.num_pages,
-            'next': self.get_next_link(),
-            'previous': self.get_previous_link(),
-            'results': data
-        })
+        return Response(
+            {
+                "count": self.page.paginator.count,
+                "page_size": self.page_size,
+                "current_page": self.page.number,
+                "total_pages": self.page.paginator.num_pages,
+                "next": self.get_next_link(),
+                "previous": self.get_previous_link(),
+                "results": data,
+            }
+        )
 
 
 class ReturnToPageMixin:
     default_return_url = None
-    fallback_url = 'dashboard'
+    fallback_url = "dashboard"
 
     def get_success_url(self):
         return (
-                self._get_next_url() or
-                self._get_session_url() or
-                self._get_referer_url() or
-                self._get_default_url() or
-                self._get_fallback_url()
+            self._get_next_url()
+            or self._get_session_url()
+            or self._get_referer_url()
+            or self._get_default_url()
+            or self._get_fallback_url()
         )
 
     def _is_safe_url(self, url):
         return url and url_has_allowed_host_and_scheme(
             url=url,
             allowed_hosts={self.request.get_host()},
-            require_https=self.request.is_secure()
+            require_https=self.request.is_secure(),
         )
 
     def _get_next_url(self):
-        next_url = self.request.GET.get('next')
+        next_url = self.request.GET.get("next")
         return next_url if self._is_safe_url(next_url) else None
 
     def _get_session_url(self):
-        session_url = self.request.session.get('previous_page')
+        session_url = self.request.session.get("previous_page")
         return session_url if self._is_safe_url(session_url) else None
 
     def _get_referer_url(self):
-        referer = self.request.META.get('HTTP_REFERER')
+        referer = self.request.META.get("HTTP_REFERER")
         return referer if self._is_safe_url(referer) else None
 
     def _get_default_url(self):
         if self.default_return_url:
             try:
-                return reverse(self.default_return_url, kwargs={
-                    'company_slug': self.request.user.profile.company.slug
-                })
+                return reverse(
+                    self.default_return_url,
+                    kwargs={"company_slug": self.request.user.profile.company.slug},
+                )
             except:
                 return None
         return None
@@ -302,41 +310,36 @@ class ReturnToPageMixin:
             return super().get_success_url()
         except:
             try:
-                return reverse(self.fallback_url, kwargs={
-                    'slug': self.request.user.slug
-                })
+                return reverse(
+                    self.fallback_url, kwargs={"slug": self.request.user.slug}
+                )
             except:
-                return reverse('index')
+                return reverse("index")
 
     def get(self, request, *args, **kwargs):
-        request.session['previous_page'] = request.META.get('HTTP_REFERER')
+        request.session["previous_page"] = request.META.get("HTTP_REFERER")
         return super().get(request, *args, **kwargs)
 
 
 class CRUDUrlsMixin:
-    crud_url_names = {
-        'create': '',
-        'detail': '',
-        'update': '',
-        'delete': ''
-    }
+    crud_url_names = {"create": "", "detail": "", "update": "", "delete": ""}
 
     button_names = {
-        'create': '',
-        'detail': '',
-        'update': '',
-        'delete': '',
+        "create": "",
+        "detail": "",
+        "update": "",
+        "delete": "",
     }
 
     def get_crud_urls(self):
         model_name = self.model._meta.model_name
         return {
-            f'{action}_url': pattern.format(model=model_name)
+            f"{action}_url": pattern.format(model=model_name)
             for action, pattern in self.crud_url_names.items()
         }
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context.update(self.get_crud_urls())
-        context['button_names'] = self.button_names
+        context["button_names"] = self.button_names
         return context

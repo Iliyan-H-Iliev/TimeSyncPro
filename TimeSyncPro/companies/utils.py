@@ -11,7 +11,7 @@ from .tasks import generate_shift_working_dates_task
 def has_consistent_block_type(form, formset):
     blocks_set = set()
     for block in formset:
-        week_days = block.cleaned_data.get('week_days')
+        week_days = block.cleaned_data.get("week_days")
         if week_days:
             blocks_set.add("selected_days")
         else:
@@ -54,15 +54,15 @@ def validate_shift_start_date(form, formset):
     has_selected_days = True
 
     for block in formset:
-        selected_days = block.cleaned_data.get('week_days')
+        selected_days = block.cleaned_data.get("week_days")
         if not selected_days:
             has_selected_days = False
             break
 
     if has_selected_days:
-        start_date = form.cleaned_data.get('start_date')
+        start_date = form.cleaned_data.get("start_date")
         if start_date.weekday() != 0:
-            form.add_error('start_date', 'Start date must be a Monday.')
+            form.add_error("start_date", "Start date must be a Monday.")
             return False
         return True
     return True
@@ -76,7 +76,9 @@ def delete_shift_blocks(shift, is_existing):
 def clear_deleted_blocks(formset):
     new_forms = []
     for i, form in enumerate(formset):
-        if hasattr(formset, 'cleaned_data') and formset.cleaned_data[i].get('DELETE', False):
+        if hasattr(formset, "cleaned_data") and formset.cleaned_data[i].get(
+            "DELETE", False
+        ):
             continue  # Skip forms marked for deletion
         new_forms.append(form)
     return new_forms
@@ -97,7 +99,7 @@ def save_shift_blocks(formset, shift):
         blocks_to_create = []
 
         for index, form in enumerate(formset, start=1):
-            if form.is_valid() and not form.cleaned_data.get('DELETE'):
+            if form.is_valid() and not form.cleaned_data.get("DELETE"):
                 block = form.save(commit=False)
                 block.pattern = shift
                 block.order = index
@@ -107,10 +109,12 @@ def save_shift_blocks(formset, shift):
 
 
 def save_shift_members(shift, form, is_existing=False):
-    final_shift_members = set(form.cleaned_data.get('shift_members', []))
+    final_shift_members = set(form.cleaned_data.get("shift_members", []))
 
     if not is_existing:
-        Profile.objects.filter(id__in=[m.id for m in final_shift_members]).update(shift=shift)
+        Profile.objects.filter(id__in=[m.id for m in final_shift_members]).update(
+            shift=shift
+        )
 
         return
 
@@ -122,10 +126,12 @@ def save_shift_members(shift, form, is_existing=False):
 
 
 def save_shift_teams(shift, form, is_existing=False):
-    final_shift_teams = set(form.cleaned_data.get('shift_teams', []))
+    final_shift_teams = set(form.cleaned_data.get("shift_teams", []))
 
     if not is_existing:
-        Team.objects.filter(id__in=[t.id for t in final_shift_teams]).update(shift=shift)
+        Team.objects.filter(id__in=[t.id for t in final_shift_teams]).update(
+            shift=shift
+        )
         return
 
     teams_to_remove = form.initial_shift_teams - final_shift_teams
@@ -135,20 +141,31 @@ def save_shift_teams(shift, form, is_existing=False):
     Team.objects.filter(id__in=[t.id for t in teams_to_add]).update(shift=shift)
 
 
-def handle_shift_post(request, form, formset, pk, company, template_name, redirect_url, is_edit=False, *args,  **kwargs):
+def handle_shift_post(
+    request,
+    form,
+    formset,
+    pk,
+    company,
+    template_name,
+    redirect_url,
+    is_edit=False,
+    *args,
+    **kwargs,
+):
 
     context = {
-        'form': form,
-        'formset': formset,
-        'company_slug': company.slug,
-        'pk': pk,
-        "company": company
+        "form": form,
+        "formset": formset,
+        "company_slug": company.slug,
+        "pk": pk,
+        "company": company,
     }
 
-    obj = kwargs.get('obj', None)
+    obj = kwargs.get("obj", None)
 
     if obj:
-        context['object'] = obj
+        context["object"] = obj
 
     with transaction.atomic():
         try:
@@ -181,4 +198,3 @@ def handle_shift_post(request, form, formset, pk, company, template_name, redire
             if settings.DEBUG:
                 form.add_error(None, f"{str(e)}")
             return render(request, template_name, context)
-

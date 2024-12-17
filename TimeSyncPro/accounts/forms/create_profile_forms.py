@@ -1,7 +1,7 @@
 import logging
 from django import forms
 from django.contrib.auth import get_user_model
-from ..form_mixins import RequiredFieldsFormMixin
+from TimeSyncPro.common.form_mixins import RequiredFieldsFormMixin
 from ..models import Profile
 
 
@@ -47,11 +47,9 @@ class CreateCompanyAdministratorProfileForm(CrateProfileBaseForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['role'] = forms.ChoiceField(
+        self.fields["role"] = forms.ChoiceField(
             choices=[
-                (Profile.EmployeeRoles.HR, 'HR'),
-                (Profile.EmployeeRoles.MANAGER, 'Manager'),
+                (Profile.EmployeeRoles.HR, "HR"),
+                (Profile.EmployeeRoles.MANAGER, "Manager"),
             ]
         )
-
-

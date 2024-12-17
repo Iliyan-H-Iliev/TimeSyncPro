@@ -2,18 +2,18 @@ class DynamicPermissionMixin:
 
     @staticmethod
     def get_object_class_name(obj):
-        if obj.__class__.__name__ == 'TSPUser':
+        if obj.__class__.__name__ == "TSPUser":
             if obj.profile.is_company_admin:
-                return 'company_admin'
+                return "company_admin"
 
             if obj.profile.role:
-                return obj.profile.role.lower().replace(' ', '_')
+                return obj.profile.role.lower().replace(" ", "_")
 
             if obj.is_superuser:
-                return 'superuser'
+                return "superuser"
 
             if obj.is_staff:
-                return 'staff'
+                return "staff"
 
         return obj.__class__.__name__.lower()
 
@@ -28,15 +28,17 @@ class DynamicPermissionMixin:
 
     def has_needed_permission(self, user, obj, action):
         try:
-            needed_permission_codename = self.get_action_permission_codename(obj, action)
+            needed_permission_codename = self.get_action_permission_codename(
+                obj, action
+            )
             # Use cached permissions
-            if hasattr(user, 'user_permissions_codenames'):
+            if hasattr(user, "user_permissions_codenames"):
                 return needed_permission_codename in user.user_permissions_codenames
 
             # Fallback if not cached
             all_permissions = user.get_all_permissions()
             user.user_permissions_codenames = {
-                perm.split('.')[-1] for perm in all_permissions
+                perm.split(".")[-1] for perm in all_permissions
             }
             return needed_permission_codename in user.user_permissions_codenames
 
@@ -54,18 +56,28 @@ class EmployeeButtonPermissionMixin:
         target_profile = self.get_target_profile()
 
         return {
-            'can_view_requests': any([
-                user.has_perm('absences.view_all_holidays_requests'),
-                user.has_perm('absences.view_department_holidays_requests') and self.is_same_department(target_profile),
-                user.has_perm('absences.view_team_holidays_requests') and self.is_same_team(target_profile),
-                self.request.user.profile == target_profile.get_holiday_approver()  # Direct check
-            ]),
-            'can_view_absences': any([
-                user.has_perm('absences.view_all_absences'),
-                user.has_perm('absences.view_department_absences') and self.is_same_department(target_profile),
-                user.has_perm('absences.view_team_absences') and self.is_same_team(target_profile)
-            ]),
-            'is_holiday_approver': self.request.user.profile == target_profile.get_holiday_approver()  # Direct check
+            "can_view_requests": any(
+                [
+                    user.has_perm("absences.view_all_holidays_requests"),
+                    user.has_perm("absences.view_department_holidays_requests")
+                    and self.is_same_department(target_profile),
+                    user.has_perm("absences.view_team_holidays_requests")
+                    and self.is_same_team(target_profile),
+                    self.request.user.profile
+                    == target_profile.get_holiday_approver(),  # Direct check
+                ]
+            ),
+            "can_view_absences": any(
+                [
+                    user.has_perm("absences.view_all_absences"),
+                    user.has_perm("absences.view_department_absences")
+                    and self.is_same_department(target_profile),
+                    user.has_perm("absences.view_team_absences")
+                    and self.is_same_team(target_profile),
+                ]
+            ),
+            "is_holiday_approver": self.request.user.profile
+            == target_profile.get_holiday_approver(),  # Direct check
         }
 
     def get_context_data(self, **kwargs):

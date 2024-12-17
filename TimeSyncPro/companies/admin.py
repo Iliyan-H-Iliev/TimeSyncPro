@@ -7,13 +7,16 @@ from TimeSyncPro.companies.models import Company, Department, Team
 
 # Register your models here.
 
+
 class SetCompanyAndApproverMixin:
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if not request.user.is_superuser:
 
             field_querysets = {
                 "company": Company.objects.filter(id=request.user.profile.company.id),
-                "holiday_approver": Profile.objects.filter(company=request.user.profile.company),
+                "holiday_approver": Profile.objects.filter(
+                    company=request.user.profile.company
+                ),
             }
 
             if db_field.name in field_querysets:
@@ -24,8 +27,8 @@ class SetCompanyAndApproverMixin:
     def get_fields(self, request, obj=None):
         fields = super().get_fields(request, obj)
         if not request.user.is_superuser:
-            if 'company' in fields:
-                fields.remove('company')
+            if "company" in fields:
+                fields.remove("company")
         return fields
 
     def save_model(self, request, obj, form, change):
@@ -74,7 +77,6 @@ class DepartmentAdmin(SetCompanyAndApproverMixin, admin.ModelAdmin):
         "name",
         "holiday_approver",
         "company",
-
     )
 
     search_fields = (
@@ -100,7 +102,6 @@ class TeamAdmin(SetCompanyAndApproverMixin, admin.ModelAdmin):
         "name",
         "holiday_approver",
         "company",
-
     )
 
     search_fields = (

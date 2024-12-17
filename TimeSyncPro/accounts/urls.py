@@ -1,20 +1,15 @@
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
-
 from TimeSyncPro.accounts import views
-from TimeSyncPro.accounts.views import get_working_days, CalendarEventsView
 
 urlpatterns = [
-    path("api/events/", CalendarEventsView.as_view(), name="api_events"),
-    path("api/get-working-days/", get_working_days, name="get_working_days"),
-    # path('signup-login/', SignupAndLoginView.as_view(), name='signup_login'),
-    # path('api/signup/', SignUpView.as_view(), name='api_signup'),
-    # path('api/login/', LoginView.as_view(), name='api_login'),
+    path("api/events/", views.CalendarEventsView.as_view(), name="api_events"),
+    path("api/get-working-days/", views.get_working_days, name="get_working_days"),
     path("login/", views.SignInUserView.as_view(), name="sign_in"),
     path("sign-out/", views.LogoutAPIView.as_view(), name="sign_out"),
     path(
         "register/",
-        views.SignupCompanyAdministratorUser.as_view(),
+        views.SignupCompanyAdministratorView.as_view(),
         name="sign_up_administrator",
     ),
     path("password-reset/", views.PasswordResetView.as_view(), name="password_reset"),

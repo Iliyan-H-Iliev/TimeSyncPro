@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('companies', '0009_alter_company_max_carryover_leave_and_more'),
+        ("companies", "0009_alter_company_max_carryover_leave_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='shift',
-            name='last_generated_date',
+            model_name="shift",
+            name="last_generated_date",
             field=models.DateField(blank=True, null=True),
         ),
     ]

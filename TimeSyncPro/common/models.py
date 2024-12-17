@@ -50,11 +50,10 @@ class Address(models.Model):
     )
 
     country = CountryField(
-        blank_label='(select country)',
+        blank_label="(select country)",
         blank=True,
         null=True,
     )
 
     def __str__(self):
-        return f'{self.house_number_or_name}, {self.street}, {self.city}, {self.postcode}, {self.country}'
-
+        return f"{self.house_number_or_name}, {self.street}, {self.city}, {self.postcode}, {self.country}"

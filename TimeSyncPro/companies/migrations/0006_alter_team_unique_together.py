@@ -6,12 +6,15 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('companies', '0005_rename_transferable_annual_leave_company_max_carryover_leave'),
+        (
+            "companies",
+            "0005_rename_transferable_annual_leave_company_max_carryover_leave",
+        ),
     ]
 
     operations = [
         migrations.AlterUniqueTogether(
-            name='team',
-            unique_together={('company', 'name')},
+            name="team",
+            unique_together={("company", "name")},
         ),
     ]

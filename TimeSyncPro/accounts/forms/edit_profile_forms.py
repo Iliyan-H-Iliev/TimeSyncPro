@@ -1,7 +1,10 @@
 from django import forms
 from django.contrib.auth import get_user_model
 
-from ..form_mixins import ReadonlyFieldsFormMixin, RequiredFieldsFormMixin
+from TimeSyncPro.common.form_mixins import (
+    ReadonlyFieldsFormMixin,
+    RequiredFieldsFormMixin,
+)
 
 from ..models import Profile
 from ...companies.models import Team, Shift, Department
@@ -10,11 +13,7 @@ UserModel = get_user_model()
 
 
 class EditProfileBaseForm(forms.ModelForm):
-    RELATED_FIELDS = {
-        'department': Department,
-        'team': Team,
-        'shift': Shift
-    }
+    RELATED_FIELDS = {"department": Department, "team": Team, "shift": Shift}
 
     class Meta:
         model = Profile
@@ -31,7 +30,7 @@ class EditProfileBaseForm(forms.ModelForm):
             "remaining_leave_days",
             "phone_number",
             "date_of_birth",
-            "profile_picture"
+            "profile_picture",
         ]
 
         widgets = {
@@ -43,11 +42,11 @@ class EditProfileBaseForm(forms.ModelForm):
         self.request = request
         super().__init__(*args, **kwargs)
 
-        if self.request and hasattr(self.request, 'user'):
+        if self.request and hasattr(self.request, "user"):
             if not self.request.user.is_company_admin:
                 self.fields.pop("is_company_admin")
 
-        if hasattr(self.instance, 'company'):
+        if hasattr(self.instance, "company"):
             for field_name, model in self.RELATED_FIELDS.items():
                 if field_name in self.fields:
                     queryset = model.objects.filter(company=self.instance.company)
@@ -68,7 +67,7 @@ class BasicEditProfileForm(ReadonlyFieldsFormMixin, EditProfileBaseForm):
         "team",
         "shift",
         "date_of_hire",
-        "remaining_leave_days"
+        "remaining_leave_days",
     ]
 
     class Meta(EditProfileBaseForm.Meta):
@@ -92,10 +91,12 @@ class DetailedEditOwnProfileForm(RequiredFieldsFormMixin, EditProfileBaseForm):
 
     def clean_is_company_admin(self):
         is_company_admin = self.cleaned_data.get("is_company_admin")
-        if self.request.user.is_company_admin and self.instance == self.request.user.profile:
+        if (
+            self.request.user.is_company_admin
+            and self.instance == self.request.user.profile
+        ):
             count_company_admins = Profile.objects.filter(
-                company=self.instance.company,
-                is_company_admin=True
+                company=self.instance.company, is_company_admin=True
             ).count()
 
             if not is_company_admin and count_company_admins == 1:
@@ -106,7 +107,10 @@ class DetailedEditOwnProfileForm(RequiredFieldsFormMixin, EditProfileBaseForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        if self.request.user.is_superuser or (not hasattr(self.request.user.profile, 'company') or self.request.user.company is None):
+        if self.request.user.is_superuser or (
+            not hasattr(self.request.user.profile, "company")
+            or self.request.user.company is None
+        ):
             self.required_fields = (
                 "first_name",
                 "last_name",
@@ -129,5 +133,5 @@ class AdminEditProfileForm(DetailedEditOwnProfileForm):
             "last_name",
             "phone_number",
             "date_of_birth",
-            "profile_picture"
+            "profile_picture",
         ]

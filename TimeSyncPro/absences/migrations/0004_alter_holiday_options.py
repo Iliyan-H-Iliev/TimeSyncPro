@@ -6,12 +6,18 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('absences', '0003_holiday_days_requested'),
+        ("absences", "0003_holiday_days_requested"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='holiday',
-            options={'ordering': ['start_date'], 'permissions': [('can_view_all_holidays', 'Can view all holiday requests'), ('can_update_holiday_status', 'Can update holiday status')]},
+            name="holiday",
+            options={
+                "ordering": ["start_date"],
+                "permissions": [
+                    ("can_view_all_holidays", "Can view all holiday requests"),
+                    ("can_update_holiday_status", "Can update holiday status"),
+                ],
+            },
         ),
     ]

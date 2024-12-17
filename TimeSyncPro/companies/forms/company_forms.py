@@ -1,6 +1,5 @@
 from django import forms
 from ..models import Company
-
 from TimeSyncPro.common.form_mixins import CheckCompanyExistingSlugMixin
 from ...accounts.models import Profile
 
@@ -24,7 +23,6 @@ class CreateCompanyForm(CompanyBaseForm):
     pass
 
 
-
 class EditCompanyForm(CheckCompanyExistingSlugMixin, CompanyBaseForm):
     class Meta(CompanyBaseForm.Meta):
         fields = CompanyBaseForm.Meta.fields + ["holiday_approver"]
@@ -34,7 +32,9 @@ class EditCompanyForm(CheckCompanyExistingSlugMixin, CompanyBaseForm):
 
         if self.instance and self.instance.pk:
             company = Company.objects.get(pk=self.instance.pk)
-            self.fields["holiday_approver"].queryset = company.get_company_holiday_approvers()
+            self.fields["holiday_approver"].queryset = (
+                company.get_company_holiday_approvers()
+            )
         else:
             self.fields["holiday_approver"].queryset = Profile.objects.none()
 

@@ -6,28 +6,28 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('companies', '0003_alter_company_holiday_approver'),
+        ("companies", "0003_alter_company_holiday_approver"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='company',
-            old_name='holiday_days_per_year',
-            new_name='annual_leave',
+            model_name="company",
+            old_name="holiday_days_per_year",
+            new_name="annual_leave",
         ),
         migrations.RenameField(
-            model_name='company',
-            old_name='maximum_holiday_days_per_request',
-            new_name='maximum_leave_days_per_request',
+            model_name="company",
+            old_name="maximum_holiday_days_per_request",
+            new_name="maximum_leave_days_per_request",
         ),
         migrations.RenameField(
-            model_name='company',
-            old_name='minimum_holiday_notice',
-            new_name='minimum_leave_notice',
+            model_name="company",
+            old_name="minimum_holiday_notice",
+            new_name="minimum_leave_notice",
         ),
         migrations.RenameField(
-            model_name='company',
-            old_name='transferable_holiday_days',
-            new_name='transferable_annual_leave',
+            model_name="company",
+            old_name="transferable_holiday_days",
+            new_name="transferable_annual_leave",
         ),
     ]

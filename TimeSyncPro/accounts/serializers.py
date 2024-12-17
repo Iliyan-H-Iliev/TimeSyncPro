@@ -13,17 +13,17 @@ class SignupCompanySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['company_name', 'email', 'password1', 'password2']
+        fields = ["company_name", "email", "password1", "password2"]
 
     def validate(self, data):
-        if data['password1'] != data['password2']:
+        if data["password1"] != data["password2"]:
             raise serializers.ValidationError("Passwords do not match.")
         return data
 
     def create(self, validated_data):
-        email = validated_data['email']
-        password = validated_data['password1']
-        company_name = validated_data['company_name']
+        email = validated_data["email"]
+        password = validated_data["password1"]
+        company_name = validated_data["company_name"]
 
         # Create the user
         user = User.objects.create_user(
@@ -58,15 +58,15 @@ class LoginSerializer(serializers.Serializer):
 
 
 class EmployeeSerializer(serializers.ModelSerializer):
-    user_slug = serializers.CharField(source='user.slug', read_only=True)
+    user_slug = serializers.CharField(source="user.slug", read_only=True)
 
     class Meta:
         model = Profile
         fields = [
-            'id',
-            'first_name',
-            'last_name',
-            'role',
-            'employee_id',
-            'user_slug',
+            "id",
+            "first_name",
+            "last_name",
+            "role",
+            "employee_id",
+            "user_slug",
         ]

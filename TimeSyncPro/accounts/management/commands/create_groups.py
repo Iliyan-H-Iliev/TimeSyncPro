@@ -1,7 +1,9 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import Group, Permission
 
-from TimeSyncPro.accounts.management.commands.permissions_utils import get_admin_permissions
+from TimeSyncPro.accounts.management.commands.permissions_utils import (
+    get_admin_permissions,
+)
 from TimeSyncPro.accounts.models import Profile
 
 
@@ -10,7 +12,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
-        company_administrator_group, created = Group.objects.get_or_create(name="Company_Admin")
+        company_administrator_group, created = Group.objects.get_or_create(
+            name="Company_Admin"
+        )
         hr_group, created = Group.objects.get_or_create(name="HR")
         manager_group, created = Group.objects.get_or_create(name="Manager")
         team_leader_group, created = Group.objects.get_or_create(name="Team Leader")
@@ -179,12 +183,11 @@ class Command(BaseCommand):
             ]
         )
 
-        staff_permissions = Permission.objects.filter(
-            codename__in=[
-            ]
-        )
+        staff_permissions = Permission.objects.filter(codename__in=[])
 
-        admin_permissions = list(company_admin_permissions) + list(get_admin_permissions())
+        admin_permissions = list(company_admin_permissions) + list(
+            get_admin_permissions()
+        )
         company_administrator_group.permissions.set(admin_permissions)
         hr_group.permissions.set(hr_permissions)
         manager_group.permissions.set(manager_permissions)
@@ -203,4 +206,6 @@ class Command(BaseCommand):
             elif employee.role == Profile.EmployeeRoles.STAFF:
                 employee.user.groups.add(staff_group)
 
-        self.stdout.write(self.style.SUCCESS("Successfully created groups and assigned permissions"))
+        self.stdout.write(
+            self.style.SUCCESS("Successfully created groups and assigned permissions")
+        )

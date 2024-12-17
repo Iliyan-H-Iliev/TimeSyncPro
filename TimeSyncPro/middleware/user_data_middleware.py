@@ -8,11 +8,8 @@ class UserDataMiddleware:
     def __call__(self, request):
         if request.user.is_authenticated:
             request.user = (
-                get_user_model().objects
-                .select_related(
-                    'profile',
-                    'profile__company'
-                )
+                get_user_model()
+                .objects.select_related("profile", "profile__company")
                 .get(id=request.user.id)
             )
 

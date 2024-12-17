@@ -16,15 +16,15 @@ from ...history.model_mixins import HistoryMixin
 class TSPUser(HistoryMixin, auth_models.AbstractBaseUser, auth_models.PermissionsMixin):
     MAX_SLUG_LENGTH = 100
 
-    tracked_fields = ['email']
+    tracked_fields = ["email"]
 
     groups = models.ManyToManyField(
         Group,
-        verbose_name=_('groups'),
+        verbose_name=_("groups"),
         blank=True,
         help_text=_(
-            'The groups this user belongs to. A user will get all permissions '
-            'granted to each of their groups.'
+            "The groups this user belongs to. A user will get all permissions "
+            "granted to each of their groups."
         ),
         related_name="users",
         related_query_name="user",
@@ -32,9 +32,9 @@ class TSPUser(HistoryMixin, auth_models.AbstractBaseUser, auth_models.Permission
 
     user_permissions = models.ManyToManyField(
         Permission,
-        verbose_name=_('user permissions'),
+        verbose_name=_("user permissions"),
         blank=True,
-        help_text=_('Specific permissions for this user.'),
+        help_text=_("Specific permissions for this user."),
         related_name="users",
         related_query_name="user",
     )
@@ -49,10 +49,7 @@ class TSPUser(HistoryMixin, auth_models.AbstractBaseUser, auth_models.Permission
         null=False,
     )
 
-    date_joined = models.DateTimeField(
-        _("date joined"),
-        default=timezone.now
-    )
+    date_joined = models.DateTimeField(_("date joined"), default=timezone.now)
 
     is_staff = models.BooleanField(
         default=False,
@@ -70,18 +67,14 @@ class TSPUser(HistoryMixin, auth_models.AbstractBaseUser, auth_models.Permission
         editable=True,
     )
 
-    activation_token = models.CharField(
-        max_length=64,
-        blank=True,
-        null=True
-    )
+    activation_token = models.CharField(max_length=64, blank=True, null=True)
 
     class Meta:
-        verbose_name = _('user')
-        verbose_name_plural = _('users')
+        verbose_name = _("user")
+        verbose_name_plural = _("users")
         indexes = [
-            models.Index(fields=['email']),
-            models.Index(fields=['slug']),
+            models.Index(fields=["email"]),
+            models.Index(fields=["slug"]),
         ]
 
         permissions = [
@@ -99,25 +92,32 @@ class TSPUser(HistoryMixin, auth_models.AbstractBaseUser, auth_models.Permission
         while TSPUser.objects.filter(slug=slug).exclude(id=self.id).exists():
             attempts += 1
             if attempts >= max_attempts:
-                raise ValueError("Unable to generate unique slug after multiple attempts")
+                raise ValueError(
+                    "Unable to generate unique slug after multiple attempts"
+                )
             slug = f"{base_slug}-{attempts}"
 
         return slug
 
     def _have_fields_changed(self, first_name, last_name, employee_id):
-        if not hasattr(self, 'profile'):
+        if not hasattr(self, "profile"):
             return True
 
-        Profile = apps.get_model('accounts', 'Profile')
-        current_profile = Profile.objects.filter(id=self.profile.id).values(
-            'first_name', 'last_name', 'employee_id'
-        ).first()
+        Profile = apps.get_model("accounts", "Profile")
+        current_profile = (
+            Profile.objects.filter(id=self.profile.id)
+            .values("first_name", "last_name", "employee_id")
+            .first()
+        )
 
-        return any([
-            first_name is not None and first_name != current_profile['first_name'],
-            last_name is not None and last_name != current_profile['last_name'],
-            employee_id is not None and employee_id != current_profile['employee_id']
-        ])
+        return any(
+            [
+                first_name is not None and first_name != current_profile["first_name"],
+                last_name is not None and last_name != current_profile["last_name"],
+                employee_id is not None
+                and employee_id != current_profile["employee_id"],
+            ]
+        )
 
     def save(self, *args, first_name=None, last_name=None, employee_id=None, **kwargs):
 
@@ -137,7 +137,9 @@ class TSPUser(HistoryMixin, auth_models.AbstractBaseUser, auth_models.Permission
     def __str__(self):
         return f"{self.__class__.__name__} - {self.email}"
 
-    def _generate_slug(self, first_name=None, last_name=None, employee_id=None, is_existing=False):
+    def _generate_slug(
+        self, first_name=None, last_name=None, employee_id=None, is_existing=False
+    ):
 
         slug_components = []
 
@@ -147,7 +149,7 @@ class TSPUser(HistoryMixin, auth_models.AbstractBaseUser, auth_models.Permission
             if param is not None:
                 slug_components.append(str(param))
 
-        slug = slugify(" ".join(slug_components))[:self.MAX_SLUG_LENGTH]
+        slug = slugify(" ".join(slug_components))[: self.MAX_SLUG_LENGTH]
 
         return slug
 
@@ -164,11 +166,11 @@ class TSPUser(HistoryMixin, auth_models.AbstractBaseUser, auth_models.Permission
 
     @property
     def company(self):
-        return self.profile.company if hasattr(self, 'profile') else None
+        return self.profile.company if hasattr(self, "profile") else None
 
     @property
     def is_company_admin(self):
-        return hasattr(self, 'profile') and self.profile.is_company_admin
+        return hasattr(self, "profile") and self.profile.is_company_admin
 
     def __str__(self):
         return f"{self.email}"

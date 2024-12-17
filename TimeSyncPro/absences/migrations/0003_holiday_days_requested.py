@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('absences', '0002_initial'),
+        ("absences", "0002_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='holiday',
-            name='days_requested',
+            model_name="holiday",
+            name="days_requested",
             field=models.PositiveSmallIntegerField(blank=True, null=True),
         ),
     ]

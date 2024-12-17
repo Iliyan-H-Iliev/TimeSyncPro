@@ -12,31 +12,33 @@ logger = logging.getLogger(__name__)
     bind=True,
     autoretry_for=(Exception,),
     retry_backoff=True,
-    retry_kwargs={'max_retries': 5},
-    queue='emails'
+    retry_kwargs={"max_retries": 5},
+    queue="emails",
 )
 def send_email_to_reviewer(
-        self,
-        start_date,
-        end_date,
-        requester_name,
-        reviewer_email,
-        reviewer_name,
-        days_requested
+    self,
+    start_date,
+    end_date,
+    requester_name,
+    reviewer_email,
+    reviewer_name,
+    days_requested,
 ):
     try:
-        start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
-        end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+        start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+        end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
 
         context = {
-            'requester_name': requester_name,
-            'reviewer_name': reviewer_name,
-            'start_date': start_date.strftime('%B %d, %Y'),
-            'end_date': end_date.strftime('%B %d, %Y'),
-            'days_requested': days_requested
+            "requester_name": requester_name,
+            "reviewer_name": reviewer_name,
+            "start_date": start_date.strftime("%B %d, %Y"),
+            "end_date": end_date.strftime("%B %d, %Y"),
+            "days_requested": days_requested,
         }
 
-        html_content = render_to_string('email_templates/new_request_for_review.html', context)
+        html_content = render_to_string(
+            "email_templates/new_request_for_review.html", context
+        )
         text_content = strip_tags(html_content)
 
         subject = f"New Holiday Request for Review - {start_date.strftime('%B %d')} to {end_date.strftime('%B %d')}"
@@ -44,7 +46,7 @@ def send_email_to_reviewer(
         email = EmailMultiAlternatives(
             subject=subject,
             body=text_content,
-            from_email='timesyncpro@donotreply.com',
+            from_email="timesyncpro@donotreply.com",
             to=[reviewer_email],
         )
 
@@ -64,29 +66,26 @@ def send_email_to_reviewer(
     bind=True,
     autoretry_for=(Exception,),
     retry_backoff=True,
-    retry_kwargs={'max_retries': 5},
-    queue='emails'
+    retry_kwargs={"max_retries": 5},
+    queue="emails",
 )
 def send_new_holiday_request_email(
-        self,
-        start_date,
-        end_date,
-        requester_email,
-        requester_name,
-        days_requested
+    self, start_date, end_date, requester_email, requester_name, days_requested
 ):
     try:
-        start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
-        end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+        start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+        end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
 
         context = {
-            'requester_name': requester_name,
-            'start_date': start_date.strftime('%B %d, %Y'),
-            'end_date': end_date.strftime('%B %d, %Y'),
-            'days_requested': days_requested
+            "requester_name": requester_name,
+            "start_date": start_date.strftime("%B %d, %Y"),
+            "end_date": end_date.strftime("%B %d, %Y"),
+            "days_requested": days_requested,
         }
 
-        html_content = render_to_string('email_templates/new_holiday_request.html', context)
+        html_content = render_to_string(
+            "email_templates/new_holiday_request.html", context
+        )
         text_content = strip_tags(html_content)
 
         subject = f"New Holiday Request - {start_date.strftime('%B %d')} to {end_date.strftime('%B %d')}"
@@ -94,7 +93,7 @@ def send_new_holiday_request_email(
         email = EmailMultiAlternatives(
             subject=subject,
             body=text_content,
-            from_email='timesyncpro@donotreply.com',
+            from_email="timesyncpro@donotreply.com",
             to=[requester_email],
         )
 
@@ -114,36 +113,38 @@ def send_new_holiday_request_email(
     bind=True,
     autoretry_for=(Exception,),
     retry_backoff=True,
-    retry_kwargs={'max_retries': 5},
-    queue='emails'
+    retry_kwargs={"max_retries": 5},
+    queue="emails",
 )
 def send_holiday_status_email(
-        self,
-        start_date,
-        end_date,
-        status,
-        review_reason,
-        recipient_email,
-        requester_name,
-        reviewer_name,
-        days_requested
+    self,
+    start_date,
+    end_date,
+    status,
+    review_reason,
+    recipient_email,
+    requester_name,
+    reviewer_name,
+    days_requested,
 ):
     try:
-        start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
-        end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+        start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+        end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
 
         context = {
-            'requester_name': requester_name,
-            'reviewer_name': reviewer_name,
-            'start_date': start_date.strftime('%B %d, %Y'),
-            'end_date': end_date.strftime('%B %d, %Y'),
-            'days_requested': days_requested,
-            'status': status.title(),
-            'review_reason': review_reason,
-            'is_approved': status == 'approved'
+            "requester_name": requester_name,
+            "reviewer_name": reviewer_name,
+            "start_date": start_date.strftime("%B %d, %Y"),
+            "end_date": end_date.strftime("%B %d, %Y"),
+            "days_requested": days_requested,
+            "status": status.title(),
+            "review_reason": review_reason,
+            "is_approved": status == "approved",
         }
 
-        html_content = render_to_string('email_templates/holiday_status_update.html', context)
+        html_content = render_to_string(
+            "email_templates/holiday_status_update.html", context
+        )
         text_content = strip_tags(html_content)
 
         subject = f"Holiday Request {status.title()} - {start_date.strftime('%B %d')} to {end_date.strftime('%B %d')}"
@@ -151,7 +152,7 @@ def send_holiday_status_email(
         email = EmailMultiAlternatives(
             subject=subject,
             body=text_content,
-            from_email='timesyncpro@donotreply.com',
+            from_email="timesyncpro@donotreply.com",
             to=[recipient_email],
         )
 

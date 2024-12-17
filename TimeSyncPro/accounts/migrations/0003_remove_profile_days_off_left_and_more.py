@@ -8,29 +8,42 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', '0002_initial'),
-        ('companies', '0001_initial'),
+        ("accounts", "0002_initial"),
+        ("companies", "0001_initial"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='profile',
-            name='days_off_left',
+            model_name="profile",
+            name="days_off_left",
         ),
         migrations.AddField(
-            model_name='profile',
-            name='remaining_holiday_days',
+            model_name="profile",
+            name="remaining_holiday_days",
             field=models.PositiveSmallIntegerField(default=5),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='profile',
-            name='company',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, related_name='employees', to='companies.company'),
+            model_name="profile",
+            name="company",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.DO_NOTHING,
+                related_name="employees",
+                to="companies.company",
+            ),
         ),
         migrations.AlterField(
-            model_name='profile',
-            name='role',
-            field=models.CharField(choices=[('Staff', 'Staff'), ('Team Leader', 'Team Leader'), ('Manager', 'Manager'), ('HR', 'HR')], default='Staff', max_length=11),
+            model_name="profile",
+            name="role",
+            field=models.CharField(
+                choices=[
+                    ("Staff", "Staff"),
+                    ("Team Leader", "Team Leader"),
+                    ("Manager", "Manager"),
+                    ("HR", "HR"),
+                ],
+                default="Staff",
+                max_length=11,
+            ),
         ),
     ]

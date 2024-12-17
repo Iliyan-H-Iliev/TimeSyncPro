@@ -7,7 +7,7 @@ UserModel = get_user_model()
 class EditTSPUserBaseForm(forms.ModelForm):
     class Meta:
         model = UserModel
-        fields = ['email']
+        fields = ["email"]
 
 
 class BasicEditTSPUserForm(EditTSPUserBaseForm):
@@ -16,7 +16,3 @@ class BasicEditTSPUserForm(EditTSPUserBaseForm):
 
 class DetailedEditTSPUserForm(EditTSPUserBaseForm):
     pass
-
-
-
-

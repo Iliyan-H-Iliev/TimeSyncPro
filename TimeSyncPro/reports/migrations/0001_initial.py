@@ -7,19 +7,30 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Report',
+            name="Report",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
             ],
             options={
-                'permissions': (('generate_all_reports', 'Can generate all reports'), ('generate_department_reports', 'Can generate department reports'), ('generate_team_reports', 'Can generate team reports')),
-                'managed': False,
-                'default_permissions': (),
+                "permissions": (
+                    ("generate_all_reports", "Can generate all reports"),
+                    ("generate_department_reports", "Can generate department reports"),
+                    ("generate_team_reports", "Can generate team reports"),
+                ),
+                "managed": False,
+                "default_permissions": (),
             },
         ),
     ]
