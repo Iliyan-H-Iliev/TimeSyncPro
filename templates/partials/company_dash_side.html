@@ -12,15 +12,31 @@
             <h2 class="profile-name">{{ company.name }}</h2>
         </div>
         <ul class="profile-nav">
+        {% if perms.companies.view_company %}
             <li><a href="{% url 'company_profile' company_slug=user.company.slug %}" class="dash-button">Company Details</a></li>
+        {% endif %}
+        {% if perms.companies.view_department %}
             <li><a href="{% url 'all_departments' company_slug=user.company.slug %}" class="dash-button">Departments</a></li>
+        {% endif %}
+        {% if perms.accounts.view_employee %}
             <li><a href="{% url 'company_members' company_slug=user.company.slug %}" class="dash-button">Employees</a></li>
+        {% endif %}
+        {% if perms.companies.view_team %}
             <li><a href="{% url 'all_teams' company_slug=user.company.slug %}" class="dash-button">Teams</a></li>
+        {% endif %}
+        {% if perms.companies.view_shift %}
             <li><a href="{% url 'all_shifts' company_slug=company.slug %}" class="dash-button">Shifts</a></li>
+        {% endif %}
+        {% if perms.absences.view_holiday %}
             <li><a href="{% url 'company_holidays' company_slug=user.company.slug %}" class="dash-button">Holiday Requests</a></li>
+        {% endif %}
+        {% if perms.absences.view_absence %}
             <li><a href="{% url 'company_absences' company_slug=user.company.slug %}" class="dash-button">Absences</a></li>
+        {% endif %}
+        {% if perms.reports.generate_reports %}
             <li><a href="{% url 'generate_report' company_slug=user.company.slug %}" class="dash-button">Reports</a></li>
             <li><a href="{% url 'bradford_factor_report' company_slug=user.company.slug %}" class="dash-button">Bradford Factor</a></li>
+        {% endif %}
         </ul>
 
     {% endwith %}

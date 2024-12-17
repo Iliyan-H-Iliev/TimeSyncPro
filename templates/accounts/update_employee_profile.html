@@ -27,8 +27,6 @@
                                 {% render_field field wrapper_class="form-row" class="form-control" label_class="form-label" %}
                             {% endif %}
                         {% endfor %}
-
-
                         {% for field in profile_form %}
                             {% if not field.is_hidden %}
                                 {% render_field field wrapper_class="form-row" class="form-control" label_class="form-label" %}

@@ -120,23 +120,6 @@ class CompanyObjectsAccessMixin:
                 f"An error occurred while checking permissions: {str(e)}"
             )
 
-
-# class CompanyCheckMixin:
-#
-#     def get_queryset(self):
-#         base_queryset = super().get_queryset() if hasattr(super(), 'get_queryset') else self.model.objects.all()
-#         base_queryset = base_queryset.select_related('company')
-#         return base_queryset.filter(company=self.request.user.profile.company)
-#
-#     def dispatch(self, request, *args, **kwargs):
-#         try:
-#             # Uses Query 1 result
-#             self.object = self.get_object()
-#             return super().dispatch(request, *args, **kwargs)
-#         except Http404:
-#             raise PermissionDenied(f"You can only view {self.model.__name__.lower()} within your own company.")
-
-
 class MultiplePermissionsRequiredMixin(AccessMixin):
     permissions_required = []
 
@@ -262,10 +245,10 @@ class SmallPagination(PageNumberPagination):
 
     def get_paginated_response(self, data):
         return Response({
-            'count': self.page.paginator.count,  # Total number of items
-            'page_size': self.page_size,  # Items per page
-            'current_page': self.page.number,  # Current page number
-            'total_pages': self.page.paginator.num_pages,  # Total number of pages
+            'count': self.page.paginator.count,
+            'page_size': self.page_size,
+            'current_page': self.page.number,
+            'total_pages': self.page.paginator.num_pages,
             'next': self.get_next_link(),
             'previous': self.get_previous_link(),
             'results': data

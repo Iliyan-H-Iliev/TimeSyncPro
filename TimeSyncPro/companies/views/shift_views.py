@@ -13,16 +13,18 @@ from django.views import generic as views
 from ..utils import handle_shift_post
 from TimeSyncPro.common.views_mixins import CompanyObjectsAccessMixin, MultiplePermissionsRequiredMixin, \
     CompanyAccessMixin, CRUDUrlsMixin
-from ..views_mixins import ApiConfigMixin
+from ..views_mixins import ApiConfigMixin, AddPermissionMixin
 from ...accounts.models import Profile
 
 
-class ShiftsView(CompanyAccessMixin, CRUDUrlsMixin, LoginRequiredMixin, PermissionRequiredMixin, views.ListView):
+class ShiftsView(AddPermissionMixin, CompanyAccessMixin, CRUDUrlsMixin, LoginRequiredMixin, PermissionRequiredMixin, views.ListView):
     model = Shift
     template_name = 'companies/shift/all_shifts.html'
     context_object_name = 'objects'
     permission_required = 'companies.view_shift'
     paginate_by = 4
+
+    add_permission = 'companies.add_shift'
 
     crud_url_names = {
         'create': 'create_shift',
@@ -203,6 +205,7 @@ class EditShiftView(CompanyObjectsAccessMixin, PermissionRequiredMixin, LoginReq
             company=company,
             template_name=self.template_name,
             redirect_url=self.redirect_url,
+            is_edit=True,
             obj=obj
         )
 

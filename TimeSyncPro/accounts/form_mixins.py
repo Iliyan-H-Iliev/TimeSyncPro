@@ -20,9 +20,7 @@ class ReadonlyFieldsFormMixin(forms.ModelForm):
 
             field = self.fields[field_name]
 
-            # Convert field to widget if it's not already one
             if isinstance(field, forms.Field):
-                # Get the default widget for this field type
                 if isinstance(field, forms.DateField):
                     field.widget = forms.DateInput()
                 elif isinstance(field, forms.EmailField):
@@ -32,7 +30,7 @@ class ReadonlyFieldsFormMixin(forms.ModelForm):
                 else:
                     field.widget = forms.TextInput()
 
-            # Initialize attrs if not present
+
             if not hasattr(field.widget, 'attrs'):
                 field.widget.attrs = {}
 

@@ -24,7 +24,7 @@ function logout(csrftoken) {
         credentials: 'include'
     }).then(response => {
         if (response.ok) {
-            window.location.href = '/sign-in/';
+            window.location.href = '/login/';
         }
     }).catch(error => {
         console.error('Logout error:', error);

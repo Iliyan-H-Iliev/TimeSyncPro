@@ -7,17 +7,19 @@ from ..forms import CreateTeamForm, EditTeamForm
 from django.views import generic as views
 
 from TimeSyncPro.common.views_mixins import CompanyObjectsAccessMixin, CompanyAccessMixin, CRUDUrlsMixin
-from ..views_mixins import ApiConfigMixin
+from ..views_mixins import ApiConfigMixin, AddPermissionMixin
 from ...accounts.models import Profile
 
 
-class TeamsView(CompanyAccessMixin, CRUDUrlsMixin, LoginRequiredMixin, PermissionRequiredMixin, views.ListView):
+class TeamsView(AddPermissionMixin, CompanyAccessMixin, CRUDUrlsMixin, LoginRequiredMixin, PermissionRequiredMixin, views.ListView):
     model = Team
     template_name = 'companies/team/all_teams.html'
     permission_required = 'companies.view_team'
     context_object_name = 'objects'
     paginate_by = 4
     ordering = 'name'
+
+    add_permission = 'companies.add_team'
 
     crud_url_names = {
         "create": "create_team",

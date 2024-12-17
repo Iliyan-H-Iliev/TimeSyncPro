@@ -242,6 +242,12 @@ i {
     border-bottom: none;
     text-align: center;
     font-weight: 600;
+
+}
+
+a {
+    text-decoration: none;
+
 }
 
 .section-title-button {

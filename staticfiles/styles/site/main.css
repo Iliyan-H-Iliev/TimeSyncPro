@@ -140,52 +140,10 @@
     }
 }
 
+a h4 {
+    text-decoration: none;
+}
+
 
 /* 403 - 404 */
 
-/*.error-container {*/
-/*    min-height: 80vh;*/
-/*    display: flex;*/
-/*    align-items: center;*/
-/*    justify-content: center;*/
-/*    padding: 2rem;*/
-/*}*/
-
-/*.error-content {*/
-/*    text-align: center;*/
-/*    max-width: 600px;*/
-/*}*/
-
-/*.error-code {*/
-/*    font-size: 8rem;*/
-/*    font-weight: bold;*/
-/*    color: #e53e3e;*/
-/*    line-height: 1;*/
-/*    margin-bottom: 1rem;*/
-/*}*/
-
-/*.error-content h1 {*/
-/*    font-size: 2.5rem;*/
-/*    color: #2d3748;*/
-/*    margin-bottom: 1rem;*/
-/*}*/
-
-/*.error-message {*/
-/*    color: #718096;*/
-/*    font-size: 1.2rem;*/
-/*    margin-bottom: 2rem;*/
-/*}*/
-
-/*.error-actions {*/
-/*    display: flex;*/
-/*    gap: 1rem;*/
-/*    justify-content: center;*/
-/*}*/
-
-/*.error-actions .btn {*/
-/*    padding: 0.75rem 1.5rem;*/
-/*    font-size: 1rem;*/
-/*    display: inline-flex;*/
-/*    align-items: center;*/
-/*    gap: 0.5rem;*/
-/*}*/

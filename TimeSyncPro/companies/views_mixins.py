@@ -34,98 +34,6 @@ class CheckOwnCompanyMixin:
         context['company'] = self.company
         return context
 
-# class ApiConfigMixin:
-#     model = None
-#     employee_api_url = f"{model.__name__.lower()}-employees-api"
-#     history_api_url = f"{model.__name__.lower()}-history-api"
-#
-#     def _api_config(self, api_url, **kwargs):
-#         return {
-#             'urls': {
-#                 'employees': reverse(self.employee_api_url, kwargs=kwargs),
-#                 'history': reverse(self.history_api_url, kwargs=kwargs),
-#             },
-#             'obj_id': kwargs['obj_pk'],
-#             'company_slug': kwargs['company_slug']
-#         }
-#
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         obj_pk = self.object.pk
-#         company_slug = self.object.company.slug
-#
-#         context['api_config'] = self._api_config(obj_pk, company_slug)
-#
-#         return context
-
-
-# class CRUDAndApiConfigMixin:
-#     model = None
-#     crud_url_names = {
-#         'create': 'create_{model}',
-#         'detail': 'update_{model}',
-#         'update': 'update_{model}',
-#         'delete': 'delete_{model}'
-#     }
-#     button_names = {
-#         'create': '',
-#         'detail': '',
-#         'update': '',
-#         'delete': '',
-#     }
-#     employee_api_url_name = None
-#     history_api_url_name = None
-#
-#     def get_crud_urls(self):
-#         try:
-#             model_name = self.model._meta.model_name
-#             return {
-#                 f'{action}_url': pattern.format(model=model_name)
-#                 for action, pattern in self.crud_url_names.items()
-#             }
-#         except Exception as e:
-#             logger.error(f"Error generating CRUD URLs: {e}")
-#             return {}
-#
-#     def get_api_urls(self):
-#         try:
-#             kwargs = {
-#                 'pk': self.object.pk,
-#                 'company_slug': self.object.company.slug
-#             }
-#
-#             urls = {}
-#             if self.employee_api_url_name:
-#                 urls['employees'] = reverse(self.employee_api_url_name, kwargs=kwargs)
-#             if self.history_api_url_name:
-#                 urls['history'] = reverse(self.history_api_url_name, kwargs=kwargs)
-#
-#             urls['updateProfile'] = reverse('update_profile', kwargs={'slug': 'PLACEHOLDER'})
-#             return urls
-#
-#         except Exception as e:
-#             logger.error(f"Error generating API URLs: {e}")
-#             return {}
-#
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         try:
-#             # Add CRUD URLs and button names
-#             context.update(self.get_crud_urls())
-#             context['button_names'] = self.button_names
-#
-#             # Add API configuration
-#             if hasattr(self, 'object') and self.object:
-#                 context['api_config'] = {
-#                     'urls': self.get_api_urls(),
-#                     'obj_id': self.object.pk,
-#                     'company_slug': self.object.company.slug
-#                 }
-#         except Exception as e:
-#             logger.error(f"Error in get_context_data: {e}")
-#
-#         return context
-
 
 class ApiConfigMixin:
     model = None
@@ -184,3 +92,30 @@ class ApiConfigMixin:
             logger.error(f"Error in API config: {e}")
 
         return context
+
+
+class AddPermissionMixin:
+    add_permission = None
+
+    def get_context_data(self, **kwargs):
+        b = self.request.user.has_perm(self.add_permission)
+        context = super().get_context_data(**kwargs)
+        context['add_permission'] = self.request.user.has_perm(self.add_permission)
+        return context
+
+
+# class AddTeamPermissionMixin(AddPermissionBaseMixin):
+#     add_permission = 'companies.add_team'
+#
+#
+# class AddDepartmentPermissionMixin(AddPermissionBaseMixin):
+#     add_permission = 'companies.add_department'
+#
+#
+# class AddShiftPermissionMixin(AddPermissionBaseMixin):
+#     add_permission = 'companies.add_shift'
+#
+#
+# class AddEmployeePermissionMixin(AddPermissionBaseMixin):
+#     add_permission = 'companies.add_employee'
+#

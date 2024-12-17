@@ -56,12 +56,13 @@
                             <div id="employees-list"></div>
                             <div id="employees-pagination"></div>
                         </div>
-
+{% if perm.history.view_history %}
                         <div class="history-section">
                             <h3>History</h3>
                             <div id="history-list"></div>
                             <div id="history-pagination"></div>
                         </div>
+{% endif %}
                     </div>
                 </div>
             </div>

@@ -79,6 +79,7 @@ class Profile(HistoryMixin, CreatedModifiedMixin):
             ("delete_staff", "Can delete Staff"),
             ("view_staff", "Can view Staff"),
             ("view_employee", "Can view Employees"),
+            ("add_employee", "Can add Employees"),
             ("view_all_employees", "Can view all Employees"),
             ("view_department_employees", "Can view department Employees"),
             ("view_team_employees", "Can view team Employees"),

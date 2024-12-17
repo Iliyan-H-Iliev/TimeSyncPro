@@ -8,7 +8,7 @@ from django.views import generic as views
 
 from TimeSyncPro.common.views_mixins import CompanyObjectsAccessMixin, \
     ReturnToPageMixin, CompanyAccessMixin, CRUDUrlsMixin
-from ..views_mixins import ApiConfigMixin
+from ..views_mixins import ApiConfigMixin, AddPermissionMixin
 from ...accounts.models import Profile
 
 
@@ -36,6 +36,7 @@ class CreateDepartmentView(LoginRequiredMixin, PermissionRequiredMixin, views.Cr
 
 
 class DepartmentsView(
+    AddPermissionMixin,
     CompanyAccessMixin,
     CRUDUrlsMixin,
     LoginRequiredMixin,
@@ -48,6 +49,8 @@ class DepartmentsView(
     context_object_name = 'objects'
     paginate_by = 4
     ordering = 'name'
+
+    add_permission = 'companies.add_department'
 
     crud_url_names = {
         "create": "create_department",

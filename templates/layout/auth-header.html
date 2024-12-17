@@ -3,16 +3,23 @@
         <li>
             <a href="{% url 'dashboard' slug=user.slug %}" class="nav-button">Dashboard</a>
         </li>
+        {% if perms.companies.view_company %}
         <li>
             <a href="{% url 'company_profile' company_slug=user.company.slug %}" class="nav-button">Company</a>
         </li>
+        {% endif %}
 
+        {% if perms.accounts.view_employee %}
         <li>
             <a href="{% url 'company_members' company_slug=user.company.slug %}" class="nav-button">Employees</a>
         </li>
+        {% endif %}
+        {% if perms.reports.generate_reports %}
         <li>
             <a href="{% url 'generate_report' company_slug=user.company.slug %}" class="nav-button">Reports</a>
         </li>
+        {% endif %}
+
     </ul>
     
 </nav>

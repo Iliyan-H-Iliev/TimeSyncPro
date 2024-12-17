@@ -2,9 +2,6 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.core.exceptions import PermissionDenied
 from django.http import Http404
-from django.shortcuts import get_object_or_404
-
-from TimeSyncPro.accounts.models import Profile
 from TimeSyncPro.common.views_mixins import BasePermissionMixin
 
 UserModel = get_user_model()
@@ -16,12 +13,17 @@ class HolidayReviewAccessMixin(UserPassesTestMixin):
 
         current_employee_holiday_approver = self.object.requester.get_holiday_approver()
 
-        return (self.object.reviewer == self.request.user.profile or
-                current_employee_holiday_approver == self.request.user.profile or
-                self.request.user.has_perm('absences.can_update_holiday_requests_status'))
+        return (
+            self.object.reviewer == self.request.user.profile
+            or current_employee_holiday_approver == self.request.user.profile
+            or self.request.user.has_perm("absences.can_update_holiday_requests_status")
+        )
 
     def handle_no_permission(self):
-        raise PermissionDenied('You do not have permission to review this holiday request.')
+        raise PermissionDenied(
+            "You do not have permission to review this holiday request."
+        )
+
 
 #
 # class EmployeeHolidayRequestsAccessMixin(UserPassesTestMixin):
@@ -45,16 +47,6 @@ class HolidayReviewAccessMixin(UserPassesTestMixin):
 #
 #     def handle_no_permission(self):
 #         raise PermissionDenied('You do not have permission to view this employee\'s holiday requests.')
-#
-#
-#
-# class AllHolidayRequestsAccessMixin(UserPassesTestMixin):
-#
-#     def test_func(self):
-#         return self.request.user.has_perm('absences.view_all_holidays_requests')
-#
-#     def handle_no_permission(self):
-#         raise PermissionDenied('You do not have permission to view all holiday requests.')
 
 
 class HolidayPermissionMixin(BasePermissionMixin):
@@ -95,17 +87,20 @@ class HasAnyOfPermissionMixin(UserPassesTestMixin):
     required_permissions = []
 
     def test_func(self):
-        return any(self.request.user.has_perm(perm) for perm in self.required_permissions)
+        return any(
+            self.request.user.has_perm(perm) for perm in self.required_permissions
+        )
 
     def handle_no_permission(self):
-        raise PermissionDenied('You do not have permission to view this page.')
+        raise PermissionDenied("You do not have permission to view this page.")
 
 
 class GetEmployeeMixin:
 
     def get_object(self):
-        obj = (UserModel.objects.select_related("profile", "profile__department", "profile__team")
-               .get(slug=self.kwargs.get('slug')))
+        obj = UserModel.objects.select_related(
+            "profile", "profile__department", "profile__team"
+        ).get(slug=self.kwargs.get("slug"))
 
         if not obj:
             raise Http404("Employee not found")

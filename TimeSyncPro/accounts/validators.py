@@ -35,7 +35,7 @@ class IsDigitsValidator(BaseValidator):
 
     def __call__(self, value):
         if not value.isdigit():
-            raise ValidationError(self.message, code='invalid_digits')
+            raise ValidationError(self.message, code="invalid_digits")
 
 
 @deconstructible
@@ -45,7 +45,9 @@ class DateRangeValidator(BaseValidator):
 
     def __init__(self, start_date=None, end_date=None, message=None):
         super().__init__(message)
-        self.start_date = start_date or (timezone.now().date() - relativedelta(years=self.YEARS_AGO))
+        self.start_date = start_date or (
+            timezone.now().date() - relativedelta(years=self.YEARS_AGO)
+        )
         self.end_date = end_date or timezone.now().date()
 
         if self.start_date > self.end_date:
@@ -53,20 +55,22 @@ class DateRangeValidator(BaseValidator):
 
     @property
     def default_message(self):
-        return _("Not a valid date. Must be between {start_date} and {end_date}.").format(
-            start_date=self.start_date.strftime('%m/%d/%Y'),
-            end_date=self.end_date.strftime('%m/%d/%Y'),
+        return _(
+            "Not a valid date. Must be between {start_date} and {end_date}."
+        ).format(
+            start_date=self.start_date.strftime("%m/%d/%Y"),
+            end_date=self.end_date.strftime("%m/%d/%Y"),
         )
 
     def __call__(self, value: date):
         if value < self.start_date or value > self.end_date:
-            raise ValidationError(self.message, code='date_out_of_range')
+            raise ValidationError(self.message, code="date_out_of_range")
 
     def __eq__(self, other):
         return (
-            super().__eq__(other) and
-            self.start_date == other.start_date and
-            self.end_date == other.end_date
+            super().__eq__(other)
+            and self.start_date == other.start_date
+            and self.end_date == other.end_date
         )
 
     def __repr__(self):
@@ -84,7 +88,7 @@ class DateOfBirthValidator(BaseValidator):
     MIN_AGE = 18
     MAX_AGE = 80
 
-    def __init__(self,min_age=None,max_age=None,message=None):
+    def __init__(self, min_age=None, max_age=None, message=None):
         super().__init__(message)
         self.min_age = min_age or self.MIN_AGE
         self.max_age = max_age or self.MAX_AGE
@@ -99,20 +103,20 @@ class DateOfBirthValidator(BaseValidator):
     def default_message(self):
         min_valid_date, max_valid_date = self._get_valid_date_range()
         return _("Not a valid date. Must be between {min_date} and {max_date}.").format(
-            min_date=min_valid_date.strftime('%m/%d/%Y'),
-            max_date=max_valid_date.strftime('%m/%d/%Y'),
+            min_date=min_valid_date.strftime("%m/%d/%Y"),
+            max_date=max_valid_date.strftime("%m/%d/%Y"),
         )
 
     def __call__(self, value):
         min_valid_date, max_valid_date = self._get_valid_date_range()
         if value < min_valid_date or value > max_valid_date:
-            raise ValidationError(self.message, code='invalid_dob')
+            raise ValidationError(self.message, code="invalid_dob")
 
     def __eq__(self, other):
         return (
-            super().__eq__(other) and
-            self.min_age == other.min_age and
-            self.max_age == other.max_age
+            super().__eq__(other)
+            and self.min_age == other.min_age
+            and self.max_age == other.max_age
         )
 
     def __repr__(self):

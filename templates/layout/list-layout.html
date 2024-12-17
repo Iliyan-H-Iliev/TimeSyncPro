@@ -19,7 +19,7 @@
             {% block sort %}
             {% endblock %}
             {% block create %}
-                {% if create_url %}
+                {% if create_url and add_permission%}
                     <a href="{% url create_url company_slug=user.company.slug %}" class="default-btn create"><i
                             class="fa-solid fa-plus"></i>{{ button_names.create }}</a>
                 {% endif %}

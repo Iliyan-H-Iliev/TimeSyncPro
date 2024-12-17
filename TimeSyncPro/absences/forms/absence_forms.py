@@ -1,10 +1,8 @@
 from django import forms
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
-from django.shortcuts import get_object_or_404
 
 from TimeSyncPro.absences.models import Absence
-from TimeSyncPro.accounts.form_mixins import ReadonlyFieldsFormMixin, RequiredFieldsFormMixin
+from TimeSyncPro.accounts.form_mixins import RequiredFieldsFormMixin
 
 UserModel = get_user_model()
 
@@ -61,10 +59,12 @@ class CreateAbsenceForm(RequiredFieldsFormMixin, forms.ModelForm):
         self._apply_required_on_fields()
 
     def save(self, commit=True):
+
         absence = super().save(commit=False)
+        working_days = self.absentee.profile.get_count_of_working_days_by_period(absence.start_date, absence.end_date)
         absence.added_by = self.request.user.profile
         absence.absentee = self.absentee.profile
-        absence.days_requested = self.working_days
+        absence.days_of_absence = working_days
         if commit:
             absence.save()
         return absence

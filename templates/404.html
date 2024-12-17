@@ -1,4 +1,9 @@
 {% extends "layout/layout.html" %}
+{% load static %}
+
+{% block style %}
+   <link rel="stylesheet" href="{% static 'styles/pages/403-404.css' %}"> 
+{% endblock %}
 
 {% block content %}
     <div class="page-content">

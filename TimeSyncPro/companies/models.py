@@ -3,14 +3,14 @@ from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.core.validators import MinValueValidator, MinLengthValidator, MaxValueValidator
-from django.db.models import Count
+from django.db.models import Count, Prefetch, Q
 from django.utils import timezone
 from django.utils.text import slugify
 import pytz
 
 from TimeSyncPro.absences.models import Holiday
 from TimeSyncPro.accounts.models import Profile
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from TimeSyncPro.common.model_mixins import CreatedModifiedMixin, EmailFormatingMixin
 from TimeSyncPro.history.model_mixins import HistoryMixin
@@ -138,22 +138,6 @@ class Company(HistoryMixin, EmailFormatingMixin, CreatedModifiedMixin):
 
         super().save(*args, **kwargs)
 
-    # # TODO FIX IT
-    # def get_all_company_members(self):
-    #     return Employee.objects.filter(company=self)
-    #
-    # def get_all_company_departments(self):
-    #     return apps.get_model("management", "Department").objects.filter(company=self)
-    #
-    # def get_all_company_teams(self):
-    #     return apps.get_model("management", "Team").objects.filter(company=self)
-    #
-    # def get_all_company_shift_patterns(self):
-    #     return apps.get_model("management", "ShiftPattern").objects.filter(company=self)
-
-    # def get_group_name(self):
-    #     return "Company"
-
     def __str__(self):
         return f"{self.__class__.__name__} - {self.name}"
 
@@ -168,7 +152,18 @@ class Company(HistoryMixin, EmailFormatingMixin, CreatedModifiedMixin):
         return getattr(settings, 'DEFAULT_COUNTRY_CODE', 'GB')
 
     def get_company_holiday_approvers(self):
-        return Profile.objects.filter(company=self, permissions__codename="update_holiday_requests_status")
+        return Profile.objects.filter(
+            company=self
+        ).select_related(
+            'user'
+        ).prefetch_related(
+            'user__user_permissions',
+            'user__groups',
+            'user__groups__permissions'
+        ).filter(
+            Q(user__user_permissions__codename="update_holiday_requests_status") |
+            Q(user__groups__permissions__codename="update_holiday_requests_status")
+        ).distinct()
 
 
 class Department(HistoryMixin, models.Model):
@@ -254,35 +249,42 @@ class Shift(HistoryMixin, models.Model):
         null=False,
     )
 
-    def generate_shift_working_dates(self):
-        current_date = self.start_date
-        end_date = current_date + timedelta(days=300)
+    last_generated_date = models.DateField(
+        blank=True,
+        null=True,
+    )
+
+    def generate_shift_working_dates(self, is_edit=False):
+        today = timezone.now().date()
+        current_date = (self.last_generated_date + timedelta(days=1) if self.last_generated_date
+                        else self.start_date)
+        end_date = datetime(today.year + 2, 12, 31).date()
         work_on_local_holidays = self.company.working_on_local_holidays
 
         self.refresh_from_db()
         blocks = self.blocks.all().order_by("order")
 
-        for block in blocks:
-            block.working_dates.clear()
+        if is_edit:
+            current_date = self.start_date
+            for block in blocks:
+                block.working_dates.clear()
 
         try:
-            count = 0
             while current_date <= end_date:
-                count += 1
-                if count > 1000:
-                    raise ValueError("Too many iterations")
-
                 for block in blocks:
+                    for day in block.on_off_days:
+                        # if current_date > end_date:
+                        #     break
 
-                    day_index = (current_date - self.start_date).days % len(block.on_off_days)
+                        if day == 1:
+                            date_obj, created = Date.objects.get_or_create(date=current_date)
+                            if work_on_local_holidays or not date_obj.is_holiday(self.company):
+                                block.working_dates.add(date_obj)
 
-                    if block.on_off_days[day_index] == 1:
-                        date_obj, created = Date.objects.get_or_create(date=current_date)
-                        if work_on_local_holidays or not date_obj.is_holiday(self.company):
-                            block.working_dates.add(date_obj)
+                        current_date += timedelta(days=1)
 
-                # Move to next day after processing all blocks
-                current_date += timedelta(days=1)
+            self.last_generated_date = current_date
+            self.save()
 
         except ValueError as e:
             print(f"Error generating working dates: {e}")
@@ -324,6 +326,7 @@ class Shift(HistoryMixin, models.Model):
 
     def get_shift_working_dates_with_time_by_period(self, start_date=None, end_date=None):
         dates_queryset = self.get_queryset_of_shift_working_dates_by_period(start_date, end_date)
+
         dates_dict = {}
         for d in dates_queryset:
             shift_block = d.shift_blocks.get(pattern=self)
@@ -551,14 +554,3 @@ class Date(models.Model):
 
     def is_working_day(self, shift):
         return self.shift_blocks.filter(pattern=shift).exists()
-
-# class ShiftAssignment(models.Model):
-#     date = models.DateField()
-#     shift_block = models.ForeignKey(ShiftBlock, on_delete=models.CASCADE, related_name="assignments")
-#
-#     class Meta:
-#         # TODO make it unique for many companies
-#         unique_together = ("date", "shift_block",)
-#
-#     def __str__(self):
-#         return f"{self.shift_block.pattern.name} - {self.date}"

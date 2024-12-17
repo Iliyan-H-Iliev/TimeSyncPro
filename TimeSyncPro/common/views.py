@@ -4,7 +4,7 @@ from django.views import generic as views
 from TimeSyncPro.common.views_mixins import AuthenticatedUserMixin
 
 
-class Index(AuthenticatedUserMixin, views.TemplateView):
+class IndexView(AuthenticatedUserMixin, views.TemplateView):
     template_name = "common/index.html"
     success_url_name = "profile"
 

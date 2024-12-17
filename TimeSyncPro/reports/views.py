@@ -1,5 +1,6 @@
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import PermissionDenied
 from django.db.models import Prefetch
 from django.http import Http404
 from django.shortcuts import render
@@ -11,6 +12,7 @@ from django.views.generic.edit import FormMixin
 
 from TimeSyncPro.absences.models import Absence, Holiday
 from TimeSyncPro.accounts.models import Profile
+from TimeSyncPro.common.views_mixins import CompanyAccessMixin
 from TimeSyncPro.companies.models import Department, Team
 from TimeSyncPro.reports.forms import GenerateReportForm
 
@@ -28,7 +30,7 @@ def generate_report(request, company_slug):
     user = request.user
     company = request.user.profile.company
     if company.slug != company_slug:
-        raise Http404("Company not found")
+        raise PermissionDenied("You can only view your own company.")
 
     # Get parameters from request.GET
     start_date = request.GET.get('start_date')
@@ -148,7 +150,7 @@ def generate_report(request, company_slug):
     return render(request, 'reports/generate_report.html', context)
 
 
-class BradfordFactorReport(LoginRequiredMixin, views.ListView):
+class BradfordFactorReport(CompanyAccessMixin, LoginRequiredMixin, views.ListView):
     template_name = 'reports/bradford_factor.html'
 
     def get_date_range(self):

@@ -1,15 +1,20 @@
 import os
 from pathlib import Path
+
+from celery.schedules import crontab
 from dotenv import load_dotenv
 
-load_dotenv()
+environment = os.getenv('ENV', 'development')  # Default to 'development'
 
+# Load the corresponding .env file
+if environment == 'production':
+    load_dotenv(dotenv_path='.env.production')
+else:
+    load_dotenv(dotenv_path='.env.development')
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 SECRET_KEY = os.getenv('SECRET_KEY')
-
 
 DEBUG = os.getenv('DEBUG') == 'True'
 
@@ -54,6 +59,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    "django_celery_beat",
+
+    "storages",
+    "debug_toolbar",
 
     "TimeSyncPro.absences.apps.AbsencesConfig",
     "TimeSyncPro.accounts.apps.AccountsConfig",
@@ -61,10 +70,6 @@ INSTALLED_APPS = [
     "TimeSyncPro.companies.apps.CompaniesConfig",
     "TimeSyncPro.history.apps.HistoryConfig",
     "TimeSyncPro.reports.apps.ReportsConfig",
-    
-    "storages",
-    "debug_toolbar",
-
 ]
 
 MIDDLEWARE = [
@@ -219,22 +224,21 @@ DEFAULT_AUTO_FIELD = os.getenv('DEFAULT_AUTO_FIELD')
 # Custom user model
 AUTH_USER_MODEL = os.getenv('AUTH_USER_MODEL')
 
-# Logging
-# LOGGING = {
-#     'version': 1,
-#     'disable_existing_loggers': False,
-#     'handlers': {
-#         'console': {
-#             'class': 'logging.StreamHandler',
-#         },
-#     },
-#     'loggers': {
-#         'django.db.backends': {
-#             'handlers': ['console'],
-#             'level': 'ERROR',
-#         },
-#     },
-# }
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django.db.backends': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+        },
+    },
+}
 
 # CACHES = {
 #     'default': {
@@ -243,12 +247,21 @@ AUTH_USER_MODEL = os.getenv('AUTH_USER_MODEL')
 #     }
 # }
 
-
-
 CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL')
 CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND')
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
+
+CELERY_BEAT_SCHEDULE = {
+    'generate-shift-dates': {
+        'task': 'TimeSyncPro.companies.tasks.generate_shift_dates_for_next_year',
+        'schedule': crontab(month_of_year="1", day_of_month="1", hour="0", minute="5"),
+    },
+    # "print-some-text": {
+    #     "task": "TimeSyncPro.companies.tasks.print_some_text",
+    #     "schedule": crontab(minute="*/1"),
+    # },
+}
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = os.getenv('EMAIL_HOST')

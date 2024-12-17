@@ -79,11 +79,13 @@ class Command(BaseCommand):
                 "generate_all_reports",
                 "generate_reports",
                 "generate_all_reports",
+                "view_history",
             ]
         )
 
         hr_permissions = Permission.objects.filter(
             codename__in=[
+                "view_company",
                 "view_employee",
                 "add_user",
                 "change_user",
@@ -128,11 +130,18 @@ class Command(BaseCommand):
                 "generate_all_reports",
                 "generate_reports",
                 "generate_all_reports",
+                "view_history",
             ]
         )
 
         manager_permissions = Permission.objects.filter(
             codename__in=[
+                "add_staff",
+                "change_staff",
+                "delete_staff",
+                "view_staff",
+                "view_company",
+                "view_departments",
                 "view_shift",
                 "view_team",
                 "view_employee",
@@ -142,6 +151,7 @@ class Command(BaseCommand):
                 "view_holidays_requests",
                 "view_department_absences",
                 "view_absences",
+                "view_all_employees",
                 "view_department_employees",
                 "generate_department_reports",
                 "generate_reports",
@@ -151,7 +161,12 @@ class Command(BaseCommand):
 
         team_leader_permissions = Permission.objects.filter(
             codename__in=[
+                "view_staff",
+                "view_company",
                 "view_employee",
+                "view_shift",
+                "view_team",
+                "view_all_employees",
                 "view_team_employee",
                 "view_team_holidays_requests",
                 "view_holidays_requests",

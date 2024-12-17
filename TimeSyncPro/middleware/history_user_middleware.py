@@ -20,7 +20,7 @@ class HistoryUserMiddleware(MiddlewareMixin):
                 request.user.user_permissions_codenames = {
                     perm.split(".")[-1] for perm in all_permissions
                 }
-            a = request.user
+
             set_current_user(request.user)
         else:
             set_current_user(None)

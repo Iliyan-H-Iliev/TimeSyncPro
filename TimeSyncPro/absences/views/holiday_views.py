@@ -10,7 +10,12 @@ from rest_framework.generics import UpdateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from .views_mixins import HolidayReviewAccessMixin, HolidayPermissionMixin, HasAnyOfPermissionMixin, GetEmployeeMixin
+from .views_mixins import (
+    HolidayReviewAccessMixin,
+    HolidayPermissionMixin,
+    HasAnyOfPermissionMixin,
+    GetEmployeeMixin,
+)
 from ..forms import RequestHolidayForm, ReviewHolidayForm
 from ..models import Holiday
 from ..serializers import HolidayStatusUpdateSerializer
@@ -30,25 +35,27 @@ class HolidaysBaseView(LoginRequiredMixin, views.ListView):
         query = self.request.GET.get("search", "")
         status_filter = self.request.GET.get("status", None)
 
-        queryset = (Holiday.objects.select_related(
-            "requester",
-            "reviewer",
-            "reviewed_by",
-            "requester__team",
-        ).filter(requester__company=self.request.user.profile.company)).order_by("start_date")
+        queryset = (
+            Holiday.objects.select_related(
+                "requester",
+                "reviewer",
+                "reviewed_by",
+                "requester__team",
+            ).filter(requester__company=self.request.user.profile.company)
+        ).order_by("start_date")
 
         if status_filter:
             queryset = queryset.filter(status=status_filter)
 
         if query:
             queryset = queryset.filter(
-                Q(requester__first_name__icontains=query) |
-                Q(requester__last_name__icontains=query) |
-                Q(requester__user__email__icontains=query) |
-                Q(reviewer__first_name__icontains=query) |
-                Q(reviewer__last_name__icontains=query) |
-                Q(reviewer__user__email__icontains=query) |
-                Q(start_date__icontains=query)
+                Q(requester__first_name__icontains=query)
+                | Q(requester__last_name__icontains=query)
+                | Q(requester__user__email__icontains=query)
+                | Q(reviewer__first_name__icontains=query)
+                | Q(reviewer__last_name__icontains=query)
+                | Q(reviewer__user__email__icontains=query)
+                | Q(start_date__icontains=query)
             )
         return queryset
 
@@ -73,14 +80,18 @@ class RequestsView(HasAnyOfPermissionMixin, CompanyAccessMixin, HolidaysBaseView
         user = self.request.user
 
         if not user.has_perm("absences.view_all_holidays_requests"):
-            if user.has_perm("absences.view_department_holidays_requests") and user.profile.department:
+            if (
+                user.has_perm("absences.view_department_holidays_requests")
+                and user.profile.department
+            ):
                 queryset = queryset.filter(
                     requester__team__department=user.profile.department
                 )
-            elif user.has_perm("absences.view_team_holidays_requests") and user.profile.team:
-                queryset = queryset.filter(
-                    requester__team=user.profile.team
-                )
+            elif (
+                user.has_perm("absences.view_team_holidays_requests")
+                and user.profile.team
+            ):
+                queryset = queryset.filter(requester__team=user.profile.team)
             else:
                 queryset = queryset.none()
 
@@ -140,8 +151,10 @@ class CreateHolidayRequestView(LoginRequiredMixin, views.CreateView):
         return super().form_valid(form)
 
     def form_invalid(self, form):
-        messages.error(self.request,
-                       "There was an error with your holiday request. Please review the form and try again.")
+        messages.error(
+            self.request,
+            "There was an error with your holiday request. Please review the form and try again.",
+        )
         return super().form_invalid(form)
 
 
@@ -152,9 +165,7 @@ class ReviewHolidayView(HolidayReviewAccessMixin, LoginRequiredMixin, views.Deta
 
     def get_queryset(self):
         return Holiday.objects.select_related(
-            "requester",
-            "requester__team",
-            "reviewer"
+            "requester", "requester__team", "reviewer"
         )
 
     def get_context_data(self, **kwargs):
@@ -162,19 +173,19 @@ class ReviewHolidayView(HolidayReviewAccessMixin, LoginRequiredMixin, views.Deta
         holiday = self.object
         requester_team = holiday.requester.get_team()
         if requester_team:
-            team_members_in_holiday = (
-                requester_team.get_team_members_at_holiday(
-                    holiday.start_date,
-                    holiday.end_date
-                ))
+            team_members_in_holiday = requester_team.get_team_members_at_holiday(
+                holiday.start_date, holiday.end_date
+            )
 
-            context.update({
-                "requester_team": requester_team,
-                "team_members_in_holiday": team_members_in_holiday,
-                "team_members_in_holiday_count": requester_team.get_numbers_of_team_members_holiday_days_by_queryset(
-                    team_members_in_holiday
-                )
-            })
+            context.update(
+                {
+                    "requester_team": requester_team,
+                    "team_members_in_holiday": team_members_in_holiday,
+                    "team_members_in_holiday_count": requester_team.get_numbers_of_team_members_holiday_days_by_queryset(
+                        team_members_in_holiday
+                    ),
+                }
+            )
 
         context["form"] = self.form_class()
         return context
@@ -191,12 +202,17 @@ class HolidayRequestStatusUpdateView(UpdateAPIView):
         if self.request.user.profile != holiday.requester:
             if self.request.data.get("status") == holiday.StatusChoices.CANCELLED:
                 raise PermissionDenied("You can only cancel your own holiday requests.")
-        elif (self.request.user.profile == holiday.reviewer or
-                self.request.user.profile == holiday.requester.get_holiday_approver() or
-              self.request.user.has_perm("absences.can_update_holiday_requests_status")):
+        elif (
+            self.request.user.profile == holiday.reviewer
+            or self.request.user.profile == holiday.requester.get_holiday_approver()
+            or self.request.user.has_perm("absences.can_update_holiday_requests_status")
+            or self.request.user.profile == holiday.requester
+        ):
             pass
         else:
-            raise PermissionDenied("You do not have permission to update this holiday request.")
+            raise PermissionDenied(
+                "You do not have permission to update this holiday request."
+            )
 
         return holiday
 
@@ -206,13 +222,20 @@ class HolidayRequestStatusUpdateView(UpdateAPIView):
             serializer = self.get_serializer(holiday, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
             new_status = serializer.validated_data["status"]
-            if new_status in [Holiday.StatusChoices.CANCELLED, Holiday.StatusChoices.DENIED]:
-                holiday.requester.remaining_leave_days = F("remaining_leave_days") + holiday.days_requested
+            if new_status in [
+                Holiday.StatusChoices.CANCELLED,
+                Holiday.StatusChoices.DENIED,
+            ]:
+                holiday.requester.remaining_leave_days = (
+                    F("remaining_leave_days") + holiday.days_requested
+                )
                 holiday.requester.save(update_fields=["remaining_leave_days"])
             serializer.save()
-            return Response({"message": f"Holiday request {new_status} successfully."}, status=status.HTTP_200_OK)
+            return Response(
+                {"message": f"Holiday request {new_status} successfully."},
+                status=status.HTTP_200_OK,
+            )
         except Exception as e:
             return Response(
-                {"error": str(e)},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )

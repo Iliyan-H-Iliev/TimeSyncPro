@@ -48,14 +48,12 @@ class GetQuerySetMixin:
 
         qs = super().get_queryset(request)
 
-        # Check for superuser or staff without company first
         if request.user.is_superuser or (
             request.user.is_staff and
-            not hasattr(request.user.profile, 'company')
+            getattr(request.user.profile, 'company', None) is None
         ):
             return qs
 
-        # Check for users with company
         if hasattr(request.user.profile, 'company'):
             filter_kwargs = {self.filter: request.user.profile.company}
             return qs.filter(**filter_kwargs)

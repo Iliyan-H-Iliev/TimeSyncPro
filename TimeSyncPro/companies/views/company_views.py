@@ -13,7 +13,7 @@ from ..forms import EditCompanyForm, CreateCompanyForm
 from django.views import generic as views
 
 from TimeSyncPro.common.views_mixins import CompanyObjectsAccessMixin, CRUDUrlsMixin
-from ..views_mixins import CheckOwnCompanyMixin
+from ..views_mixins import CheckOwnCompanyMixin, AddPermissionMixin
 from ...absences.models import Holiday
 from ...accounts.models import Profile
 from ...common.forms import AddressForm
@@ -148,6 +148,7 @@ class CompanyMembersView(
     CheckOwnCompanyMixin,
     PermissionRequiredMixin,
     LoginRequiredMixin,
+    AddPermissionMixin,
     views.ListView
 ):
     # model = Company
@@ -157,6 +158,8 @@ class CompanyMembersView(
     paginate_by = 10
     ordering = ['first_name', 'last_name']
     permission_required = "accounts.view_employee"
+
+    add_permission = 'accounts.add_employee'
 
     view_permission = (
         "accounts.view_hr",

@@ -105,7 +105,6 @@ class TSPUser(HistoryMixin, auth_models.AbstractBaseUser, auth_models.Permission
         return slug
 
     def _have_fields_changed(self, first_name, last_name, employee_id):
-        """Check if any of the slug-related fields have changed."""
         if not hasattr(self, 'profile'):
             return True
 
@@ -121,7 +120,6 @@ class TSPUser(HistoryMixin, auth_models.AbstractBaseUser, auth_models.Permission
         ])
 
     def save(self, *args, first_name=None, last_name=None, employee_id=None, **kwargs):
-        """Save method with intelligent slug generation."""
 
         if self._have_fields_changed(first_name, last_name, employee_id):
             base_slug = self._generate_slug(first_name, last_name, employee_id)

@@ -5,6 +5,7 @@ from django.db.models import Max
 
 from .. import settings
 from ..accounts.models import Profile
+from .tasks import generate_shift_working_dates_task
 
 
 def has_consistent_block_type(form, formset):
@@ -134,7 +135,7 @@ def save_shift_teams(shift, form, is_existing=False):
     Team.objects.filter(id__in=[t.id for t in teams_to_add]).update(shift=shift)
 
 
-def handle_shift_post(request, form, formset, pk, company, template_name, redirect_url, *args, **kwargs):
+def handle_shift_post(request, form, formset, pk, company, template_name, redirect_url, is_edit=False, *args,  **kwargs):
 
     context = {
         'form': form,
@@ -167,16 +168,16 @@ def handle_shift_post(request, form, formset, pk, company, template_name, redire
                     shift.save()
 
                 except Exception as e:
-                    # form.add_error(None, f"An unexpected error please try again:")
+                    form.add_error(None, f"An unexpected error please try again:")
                     if settings.DEBUG:
                         form.add_error(None, f"{str(e)}")
                     return render(request, template_name, context)
 
-            shift.generate_shift_working_dates()
+            # shift.generate_shift_working_dates(is_edit=is_edit)
+            generate_shift_working_dates_task.delay(shift.id, is_edit=is_edit)
 
             return redirect(redirect_url, company_slug=company.slug)
         except Exception as e:
-            # form.add_error(None, f"An unexpected error please try again:")
             if settings.DEBUG:
                 form.add_error(None, f"{str(e)}")
             return render(request, template_name, context)

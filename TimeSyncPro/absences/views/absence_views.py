@@ -1,7 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.db.models import Q
-from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.views import generic as views
 from rest_framework import status
@@ -12,13 +11,19 @@ from rest_framework.response import Response
 
 from TimeSyncPro.absences.forms import CreateAbsenceForm
 from TimeSyncPro.absences.models import Absence
-from .views_mixins import AbsencePermissionMixin, HasAnyOfPermissionMixin, GetEmployeeMixin
-from TimeSyncPro.common.views_mixins import ReturnToPageMixin, OwnerRequiredMixin, CRUDUrlsMixin
+from .views_mixins import (
+    AbsencePermissionMixin,
+    HasAnyOfPermissionMixin,
+    GetEmployeeMixin,
+)
+from TimeSyncPro.common.views_mixins import ReturnToPageMixin, OwnerRequiredMixin
 
 UserModel = get_user_model()
 
 
-class CreateAbsenceView(ReturnToPageMixin, PermissionRequiredMixin, LoginRequiredMixin, views.CreateView):
+class CreateAbsenceView(
+    ReturnToPageMixin, PermissionRequiredMixin, LoginRequiredMixin, views.CreateView
+):
     model = Absence
     template_name = "absences/absence/create_absence.html"
     form_class = CreateAbsenceForm
@@ -52,24 +57,26 @@ class AbsencesBaseView(LoginRequiredMixin, views.ListView):
         query = self.request.GET.get("search", "")
         type_filter = self.request.GET.get("type", None)
 
-        queryset = (Absence.objects.select_related(
-            "absentee",
-            "absentee__user",
-            "added_by",
-            "added_by__user",
-        ).filter(added_by__company=self.request.user.profile.company)).order_by("-start_date")
+        queryset = (
+            Absence.objects.select_related(
+                "absentee",
+                "absentee__user",
+                "added_by",
+                "added_by__user",
+            ).filter(added_by__company=self.request.user.profile.company)
+        ).order_by("-start_date")
 
         if type_filter:
             queryset = queryset.filter(absence_type=type_filter)
 
         if query:
             queryset = queryset.filter(
-                Q(absentee__first_name__icontains=query) |
-                Q(absentee__last_name__icontains=query) |
-                Q(absentee__user__email__icontains=query) |
-                Q(added_by__first_name__icontains=query) |
-                Q(added_by__last_name__icontains=query) |
-                Q(added_by__user__email__icontains=query)
+                Q(absentee__first_name__icontains=query)
+                | Q(absentee__last_name__icontains=query)
+                | Q(absentee__user__email__icontains=query)
+                | Q(added_by__first_name__icontains=query)
+                | Q(added_by__last_name__icontains=query)
+                | Q(added_by__user__email__icontains=query)
             )
         return queryset
 
@@ -129,7 +136,6 @@ class EmployeeAbsencesView(GetEmployeeMixin, AbsencePermissionMixin, AbsencesBas
         self.object = self.get_object()
         return super().dispatch(request, *args, **kwargs)
 
-
     def get_queryset(self):
         queryset = super().get_queryset()
         return queryset.filter(absentee=self.object.profile).order_by("start_date")
@@ -147,7 +153,9 @@ class DeleteAbsenceAPIView(DestroyAPIView):
     permission_required = [IsAuthenticated]
 
     def get_queryset(self):
-        return Absence.objects.filter(added_by__company=self.request.user.profile.company)
+        return Absence.objects.filter(
+            added_by__company=self.request.user.profile.company
+        )
 
     def get_object(self):
         obj = super().get_object()
@@ -166,9 +174,6 @@ class DeleteAbsenceAPIView(DestroyAPIView):
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         self.perform_destroy(instance)
-        return Response({"message": "Absence deleted successfully"}, status=status.HTTP_200_OK)
-
-
-
-
-
+        return Response(
+            {"message": "Absence deleted successfully"}, status=status.HTTP_200_OK
+        )

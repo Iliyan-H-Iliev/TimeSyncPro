@@ -41,7 +41,11 @@ def notify_holiday_status_change(sender, instance, created, **kwargs):
         try:
             from .tasks import send_holiday_status_email
 
-            reviewer_name = instance.reviewed_by.full_name if instance.status != Holiday.StatusChoices.CANCELLED else instance.requester.full_name
+            reviewer_name = (
+                instance.reviewed_by.full_name
+                if instance.status != Holiday.StatusChoices.CANCELLED
+                else instance.requester.full_name
+            )
 
             send_holiday_status_email.delay(
                 str(instance.start_date),

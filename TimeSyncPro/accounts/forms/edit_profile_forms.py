@@ -61,7 +61,6 @@ class EditProfileBaseForm(forms.ModelForm):
 class BasicEditProfileForm(ReadonlyFieldsFormMixin, EditProfileBaseForm):
     readonly_fields = [
         "department",
-        "manages_departments",
         "first_name",
         "last_name",
         "employee_id",
@@ -74,6 +73,7 @@ class BasicEditProfileForm(ReadonlyFieldsFormMixin, EditProfileBaseForm):
 
     class Meta(EditProfileBaseForm.Meta):
         model = Profile
+        exclude = ["department", "team", "shift", "role", "employee_id", "date_of_hire"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

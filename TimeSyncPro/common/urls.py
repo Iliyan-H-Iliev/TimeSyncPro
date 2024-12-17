@@ -1,10 +1,10 @@
 from django.urls import path
 from django.views.generic import TemplateView
 
-from TimeSyncPro.common.views import Index, features, about, terms_and_conditions, terms_of_use, privacy_policy, contact
+from TimeSyncPro.common.views import IndexView, features, about, terms_and_conditions, terms_of_use, privacy_policy, contact
 
 urlpatterns = [
-    path("", Index.as_view(), name="index"),
+    path("", IndexView.as_view(), name="index"),
     path("features/", features, name="features"),
     path("about/", about, name="about"),
     path("terms-and-conditions/", terms_and_conditions, name="terms_and_conditions"),

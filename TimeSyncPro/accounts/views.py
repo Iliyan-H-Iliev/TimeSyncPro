@@ -196,16 +196,16 @@ class SignInUserView(auth_views.LoginView):
 
     def get_success_url(self):
         user = self.request.user
+        profile = getattr(user, 'profile', None)
+        company = getattr(profile, 'company', None)
+        is_super = user.is_superuser
+        is_sta = user.is_staff
 
-        if (user.is_superuser or user.is_staff) and not hasattr(user.profile, 'company'):
+        if ((user.is_superuser or user.is_staff) and company is None) or company is None:
             return reverse("profile", kwargs={'slug': user.slug})
 
-
-        if not hasattr(user, 'profile'):
-            return reverse("create_profile_and_company", kwargs={'slug': user.slug})
-
-        if not hasattr(user.profile, 'company'):
-            return reverse("profile", kwargs={'slug': user.slug})
+        if profile is None:
+            return reverse("create_profile_company", kwargs={'slug': user.slug})
 
         return reverse("dashboard", kwargs={'slug': user.slug})
 
@@ -390,32 +390,17 @@ class DetailsEmployeesProfileView(
     CompanyObjectsAccessMixin,
     EmployeePermissionMixin,
     EmployeeButtonPermissionMixin,
-    # PermissionRequiredMixin,
     DetailsProfileBaseView,
 ):
     employee_history_api_url_name = 'employee_history_api'
-
-    # permissions_required = [
-    #     'accounts.view_all_employees',
-    #     'accounts.view_department_employees',
-    #     'accounts.view_team_employees',
-    # ]
-    #
-    # def has_permission(self):
-    #     permision =  any(
-    #         self.request.user.has_perm(perm)
-    #         for perm in self.permissions_required
-    #     )
-    #     return permision
-
-    # def get_permission_required(self):
-    #     user_to_view = self.get_object()
-    #     return [self.get_action_permission(user_to_view, "view")]
 
 
 class EditProfileDispatcherView(OwnerRequiredMixin, DynamicPermissionMixin, views.View):
 
     def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect('sign_in')
+
         user = request.user
         permission = self.get_action_permission(user, "change")
 

@@ -41,7 +41,7 @@ class Holiday(AbsenceBase):
         "status",
         "reviewer",
         "reviewed_by",
-        "review_reason"
+        "review_reason",
     ]
 
     class StatusChoices(models.TextChoices):
@@ -97,7 +97,10 @@ class Holiday(AbsenceBase):
         ordering = ["start_date"]
         permissions = [
             ("view_all_holidays_requests", "Can view all holiday requests"),
-            ("view_department_holidays_requests", "Can view department holiday requests"),
+            (
+                "view_department_holidays_requests",
+                "Can view department holiday requests",
+            ),
             ("view_team_holidays_requests", "Can view own holiday requests"),
             ("update_holiday_requests_status", "Can update holiday status"),
             ("view_holidays_requests", "Can view holiday requests"),
@@ -126,7 +129,9 @@ class Holiday(AbsenceBase):
         return self.requester.get_holiday_approver()
 
     def get_requested_days(self):
-        return self.requester.get_count_of_working_days_by_period(self.start_date, self.end_date)
+        return self.requester.get_count_of_working_days_by_period(
+            self.start_date, self.end_date
+        )
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -185,15 +190,15 @@ class Absence(HistoryMixin, AbsenceBase):
     )
 
     def get_days_of_absence(self):
-        return self.absentee.get_count_of_working_days_by_period(self.start_date, self.end_date)
+        return self.absentee.get_count_of_working_days_by_period(
+            self.start_date, self.end_date
+        )
 
     def save(self, *args, **kwargs):
         self.full_clean()
         if not self.days_of_absence:
             self.days_of_absence = self.get_days_of_absence()
         super().save(*args, **kwargs)
-
-    # TODO - Add duration field
 
     def __str__(self):
         return f"{self.absentee.full_name()} - {self.absence_type} ({self.start_date} to {self.end_date})"
