@@ -1,12 +1,12 @@
 from django.contrib import messages
 from django.db import transaction
-from django.db.models import Q, Prefetch, Max
+from django.db.models import Q, Prefetch
 from django.http import HttpResponseRedirect
-from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse_lazy, reverse
+from django.shortcuts import render, get_object_or_404
+from django.urls import reverse
 from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin
 
-from ..models import Shift, Company, Department, Team, ShiftBlock
+from ..models import Shift, Company, Department, Team
 from ..forms import (
     CreateShiftForm,
     CreateShiftBlockFormSet,
@@ -70,11 +70,6 @@ class ShiftsView(
                 Q(name__icontains=query) | Q(description__icontains=query)
             )
         return queryset
-
-    # def get_object(self, queryset=None):
-    #     if not queryset:
-    #         queryset = self.get_queryset()
-    #     return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

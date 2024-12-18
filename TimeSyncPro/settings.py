@@ -4,9 +4,8 @@ from pathlib import Path
 from celery.schedules import crontab
 from dotenv import load_dotenv
 
-environment = os.getenv("ENV", "development")  # Default to 'development'
+environment = os.getenv("ENV", "development")
 
-# Load the corresponding .env file
 if environment == "production":
     load_dotenv(dotenv_path=".env.production")
 else:
@@ -58,10 +57,12 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+
     "rest_framework",
     "django_celery_beat",
     "storages",
     "debug_toolbar",
+
     "TimeSyncPro.absences.apps.AbsencesConfig",
     "TimeSyncPro.accounts.apps.AccountsConfig",
     "TimeSyncPro.common.apps.CommonConfig",
