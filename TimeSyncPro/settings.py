@@ -177,7 +177,7 @@ if DEBUG:
 
 # Internationalization
 DEFAULT_COUNTRY_CODE = os.getenv("DEFAULT_COUNTRY_CODE")
-LANGUAGE_CODE = os.getenv("LANGUAGE_CODE")
+LANGUAGE_CODE = os.getenv("LANGUAGE_CODE", 'en-us')
 TIME_ZONE = os.getenv("TIME_ZONE")
 USE_I18N = os.getenv("USE_I18N") == "True"
 USE_L10N = os.getenv("USE_L10N") == "True"
