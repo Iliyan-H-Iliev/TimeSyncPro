@@ -35,7 +35,7 @@ class ShiftsView(
     views.ListView,
 ):
     model = Shift
-    template_name = "companies/shift/all_shifts.html"
+    template_name = "companies/../../templates/shift/all_shifts.html"
     context_object_name = "objects"
     permission_required = "shifts.view_shift"
     paginate_by = 4
@@ -82,7 +82,7 @@ class DetailsShiftView(
     ApiConfigMixin, LoginRequiredMixin, PermissionRequiredMixin, views.DetailView
 ):
     model = Shift
-    template_name = "companies/shift/details_shift.html"
+    template_name = "companies/../../templates/shift/details_shift.html"
     context_object_name = "shift"
     permission_required = "shifts.view_shift"
     employee_api_url_name = "shift-employees-api"
@@ -110,7 +110,7 @@ class DetailsShiftView(
 
 class CreateShiftView(LoginRequiredMixin, PermissionRequiredMixin, views.CreateView):
     model = Shift
-    template_name = "companies/shift/create_shift.html"
+    template_name = "companies/../../templates/shift/create_shift.html"
     form_class = CreateShiftForm
     formset_class = CreateShiftBlockFormSet
     permission_required = "shifts.add_shift"
@@ -176,7 +176,7 @@ class EditShiftView(
     views.UpdateView,
 ):
     model = Shift
-    template_name = "companies/shift/update_shift.html"
+    template_name = "companies/../../templates/shift/update_shift.html"
     form_class = UpdateShiftForm
     formset_class = UpdateShiftBlockFormSet
     permission_required = "shifts.change_shift"
@@ -276,7 +276,7 @@ class DeleteShiftView(
     views.DeleteView,
 ):
     model = Shift
-    template_name = "companies/shift/delete_shift.html"
+    template_name = "companies/../../templates/shift/delete_shift.html"
     permission_required = "shifts.delete_shift"
 
     def get_success_url(self):

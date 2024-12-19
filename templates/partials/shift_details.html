@@ -15,3 +15,12 @@
     <span class="profile-label">Start Date:</span>
     <span class="profile-value">{{ object.start_date|date:"d/m/Y" }}</span>
 </div>
+
+{% for b in object.blocks.all %}
+<div class="profile-item-row">
+    <span class="profile-label">Week {{ b.order }}:</span>
+    <span class="profile-value">{{ b.start_time }} - {{ b.end_time }}</span>
+    <span class="profile-label">Duration:</span>
+    <span class="profile-value">{{ b.duration }}</span>
+</div>
+{% endfor %}

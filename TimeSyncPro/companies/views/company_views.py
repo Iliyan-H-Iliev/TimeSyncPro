@@ -282,18 +282,24 @@ class DeleteCompanyView(
 
     def get_object(self, queryset=None):
         company_slug = self.request.user.company.slug
-        obj = self.model.objects.prefetch_related(
-            "employees",
-            "employees__user"
-        ).get(slug=company_slug)
+        obj = self.model.objects.prefetch_related("employees", "employees__user").get(
+            slug=company_slug
+        )
         return obj
 
     def post(self, request, *args, **kwargs):
         with transaction.atomic():
             company = self.get_object()
             users = UserModel.objects.filter(profile__company=company)
-            logout(request)
+            for user in users:
+                user.groups.clear()
+                user.user_permissions.clear()
+                user.history_changes.clear()
+            company.skip_history = True
             company.delete()
             users.delete()
+        user = request.user
+        logout(request)
+        user.delete()
 
         return redirect(self.success_url)

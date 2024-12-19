@@ -60,7 +60,6 @@ class History(models.Model):
 
     @classmethod
     def get_content_type(cls, model_class):
-        """Cache ContentType lookups"""
         cache_key = f"content_type_{model_class._meta.model_name}"
         content_type = cache.get(cache_key)
 
@@ -72,7 +71,6 @@ class History(models.Model):
 
     @property
     def change_summary(self):
-        """Returns human-readable summary of changes"""
         if not self.changes:
             return "No changes recorded"
 

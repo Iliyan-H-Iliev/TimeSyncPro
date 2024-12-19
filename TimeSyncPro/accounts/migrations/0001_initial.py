@@ -13,57 +13,239 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('auth', '0012_alter_user_first_name_max_length'),
-        ('common', '0002_alter_address_country'),
+        ("auth", "0012_alter_user_first_name_max_length"),
+        ("common", "0002_alter_address_country"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='TSPUser',
+            name="TSPUser",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('password', models.CharField(max_length=128, verbose_name='password')),
-                ('last_login', models.DateTimeField(blank=True, null=True, verbose_name='last login')),
-                ('is_superuser', models.BooleanField(default=False, help_text='Designates that this user has all permissions without explicitly assigning them.', verbose_name='superuser status')),
-                ('email', models.EmailField(error_messages={'unique': 'A user with that email already exists.'}, max_length=254, unique=True, verbose_name='email address')),
-                ('date_joined', models.DateTimeField(default=django.utils.timezone.now, verbose_name='date joined')),
-                ('is_staff', models.BooleanField(default=False)),
-                ('is_active', models.BooleanField(default=True)),
-                ('slug', models.SlugField(blank=True, max_length=100, unique=True)),
-                ('activation_token', models.CharField(blank=True, max_length=64, null=True)),
-                ('groups', models.ManyToManyField(blank=True, help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.', related_name='users', related_query_name='user', to='auth.group', verbose_name='groups')),
-                ('user_permissions', models.ManyToManyField(blank=True, help_text='Specific permissions for this user.', related_name='users', related_query_name='user', to='auth.permission', verbose_name='user permissions')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("password", models.CharField(max_length=128, verbose_name="password")),
+                (
+                    "last_login",
+                    models.DateTimeField(
+                        blank=True, null=True, verbose_name="last login"
+                    ),
+                ),
+                (
+                    "is_superuser",
+                    models.BooleanField(
+                        default=False,
+                        help_text="Designates that this user has all permissions without explicitly assigning them.",
+                        verbose_name="superuser status",
+                    ),
+                ),
+                (
+                    "email",
+                    models.EmailField(
+                        error_messages={
+                            "unique": "A user with that email already exists."
+                        },
+                        max_length=254,
+                        unique=True,
+                        verbose_name="email address",
+                    ),
+                ),
+                (
+                    "date_joined",
+                    models.DateTimeField(
+                        default=django.utils.timezone.now, verbose_name="date joined"
+                    ),
+                ),
+                ("is_staff", models.BooleanField(default=False)),
+                ("is_active", models.BooleanField(default=True)),
+                ("slug", models.SlugField(blank=True, max_length=100, unique=True)),
+                (
+                    "activation_token",
+                    models.CharField(blank=True, max_length=64, null=True),
+                ),
+                (
+                    "groups",
+                    models.ManyToManyField(
+                        blank=True,
+                        help_text="The groups this user belongs to. A user will get all permissions granted to each of their groups.",
+                        related_name="users",
+                        related_query_name="user",
+                        to="auth.group",
+                        verbose_name="groups",
+                    ),
+                ),
+                (
+                    "user_permissions",
+                    models.ManyToManyField(
+                        blank=True,
+                        help_text="Specific permissions for this user.",
+                        related_name="users",
+                        related_query_name="user",
+                        to="auth.permission",
+                        verbose_name="user permissions",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'user',
-                'verbose_name_plural': 'users',
-                'permissions': [('activate_user', 'Can activate user'), ('deactivate_user', 'Can deactivate user'), ('reset_user_password', 'Can reset password')],
+                "verbose_name": "user",
+                "verbose_name_plural": "users",
+                "permissions": [
+                    ("activate_user", "Can activate user"),
+                    ("deactivate_user", "Can deactivate user"),
+                    ("reset_user_password", "Can reset password"),
+                ],
             },
             managers=[
-                ('objects', TimeSyncPro.accounts.managers.TSPUserManager()),
+                ("objects", TimeSyncPro.accounts.managers.TSPUserManager()),
             ],
         ),
         migrations.CreateModel(
-            name='Profile',
+            name="Profile",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('modified_at', models.DateTimeField(auto_now=True)),
-                ('is_company_admin', models.BooleanField(blank=True, default=False)),
-                ('first_name', models.CharField(blank=True, max_length=30, null=True, validators=[django.core.validators.MinLengthValidator(2)])),
-                ('last_name', models.CharField(blank=True, max_length=30, null=True, validators=[django.core.validators.MinLengthValidator(2)])),
-                ('role', models.CharField(blank=True, choices=[('Staff', 'Staff'), ('Team Leader', 'Team Leader'), ('Manager', 'Manager'), ('HR', 'HR')], max_length=11, null=True)),
-                ('employee_id', models.CharField(blank=True, max_length=15, null=True, validators=[django.core.validators.MinLengthValidator(5)])),
-                ('date_of_hire', models.DateField(blank=True, null=True, validators=[TimeSyncPro.accounts.validators.DateRangeValidator])),
-                ('remaining_leave_days', models.PositiveSmallIntegerField(blank=True, null=True)),
-                ('next_year_leave_days', models.PositiveSmallIntegerField(blank=True, null=True)),
-                ('phone_number', models.CharField(blank=True, max_length=15, null=True, validators=[django.core.validators.MinLengthValidator(10), TimeSyncPro.accounts.validators.IsDigitsValidator('Phone number must contain only digits')])),
-                ('date_of_birth', models.DateField(blank=True, null=True, validators=[TimeSyncPro.accounts.validators.DateOfBirthValidator])),
-                ('profile_picture', models.ImageField(blank=True, null=True, upload_to='profile_pictures/')),
-                ('address', models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='employee', to='common.address')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("modified_at", models.DateTimeField(auto_now=True)),
+                ("is_company_admin", models.BooleanField(blank=True, default=False)),
+                (
+                    "first_name",
+                    models.CharField(
+                        blank=True,
+                        max_length=30,
+                        null=True,
+                        validators=[django.core.validators.MinLengthValidator(2)],
+                    ),
+                ),
+                (
+                    "last_name",
+                    models.CharField(
+                        blank=True,
+                        max_length=30,
+                        null=True,
+                        validators=[django.core.validators.MinLengthValidator(2)],
+                    ),
+                ),
+                (
+                    "role",
+                    models.CharField(
+                        blank=True,
+                        choices=[
+                            ("Staff", "Staff"),
+                            ("Team Leader", "Team Leader"),
+                            ("Manager", "Manager"),
+                            ("HR", "HR"),
+                        ],
+                        max_length=11,
+                        null=True,
+                    ),
+                ),
+                (
+                    "employee_id",
+                    models.CharField(
+                        blank=True,
+                        max_length=15,
+                        null=True,
+                        validators=[django.core.validators.MinLengthValidator(5)],
+                    ),
+                ),
+                (
+                    "date_of_hire",
+                    models.DateField(
+                        blank=True,
+                        null=True,
+                        validators=[TimeSyncPro.accounts.validators.DateRangeValidator],
+                    ),
+                ),
+                (
+                    "remaining_leave_days",
+                    models.PositiveSmallIntegerField(blank=True, null=True),
+                ),
+                (
+                    "next_year_leave_days",
+                    models.PositiveSmallIntegerField(blank=True, null=True),
+                ),
+                (
+                    "phone_number",
+                    models.CharField(
+                        blank=True,
+                        max_length=15,
+                        null=True,
+                        validators=[
+                            django.core.validators.MinLengthValidator(10),
+                            TimeSyncPro.accounts.validators.IsDigitsValidator(
+                                "Phone number must contain only digits"
+                            ),
+                        ],
+                    ),
+                ),
+                (
+                    "date_of_birth",
+                    models.DateField(
+                        blank=True,
+                        null=True,
+                        validators=[
+                            TimeSyncPro.accounts.validators.DateOfBirthValidator
+                        ],
+                    ),
+                ),
+                (
+                    "profile_picture",
+                    models.ImageField(
+                        blank=True, null=True, upload_to="profile_pictures/"
+                    ),
+                ),
+                (
+                    "address",
+                    models.OneToOneField(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="employee",
+                        to="common.address",
+                    ),
+                ),
             ],
             options={
-                'permissions': [('add_company_admin', 'Can add Company Administrator'), ('change_company_admin', 'Can change Company Administrator'), ('delete_company_admin', 'Can delete Company Administrator'), ('view_company_admin', 'Can view Company Administrator'), ('add_hr', 'Can add HR'), ('change_hr', 'Can change HR'), ('delete_hr', 'Can delete HR'), ('view_hr', 'Can view HR'), ('add_manager', 'Can add Manager'), ('change_manager', 'Can change Manager'), ('delete_manager', 'Can delete Manager'), ('view_manager', 'Can view Manager'), ('add_team_leader', 'Can add TeamLeader'), ('change_team_leader', 'Can change TeamLeader'), ('delete_team_leader', 'Can delete TeamLeader'), ('view_team_leader', 'Can view TeamLeader'), ('add_staff', 'Can add Staff'), ('change_staff', 'Can change Staff'), ('delete_staff', 'Can delete Staff'), ('view_staff', 'Can view Staff'), ('view_employee', 'Can view Employees'), ('add_employee', 'Can add Employees'), ('view_all_employees', 'Can view all Employees'), ('view_department_employees', 'Can view department Employees'), ('view_team_employees', 'Can view team Employees')],
+                "permissions": [
+                    ("add_company_admin", "Can add Company Administrator"),
+                    ("change_company_admin", "Can change Company Administrator"),
+                    ("delete_company_admin", "Can delete Company Administrator"),
+                    ("view_company_admin", "Can view Company Administrator"),
+                    ("add_hr", "Can add HR"),
+                    ("change_hr", "Can change HR"),
+                    ("delete_hr", "Can delete HR"),
+                    ("view_hr", "Can view HR"),
+                    ("add_manager", "Can add Manager"),
+                    ("change_manager", "Can change Manager"),
+                    ("delete_manager", "Can delete Manager"),
+                    ("view_manager", "Can view Manager"),
+                    ("add_team_leader", "Can add TeamLeader"),
+                    ("change_team_leader", "Can change TeamLeader"),
+                    ("delete_team_leader", "Can delete TeamLeader"),
+                    ("view_team_leader", "Can view TeamLeader"),
+                    ("add_staff", "Can add Staff"),
+                    ("change_staff", "Can change Staff"),
+                    ("delete_staff", "Can delete Staff"),
+                    ("view_staff", "Can view Staff"),
+                    ("view_employee", "Can view Employees"),
+                    ("add_employee", "Can add Employees"),
+                    ("view_all_employees", "Can view all Employees"),
+                    ("view_department_employees", "Can view department Employees"),
+                    ("view_team_employees", "Can view team Employees"),
+                ],
             },
         ),
     ]

@@ -25,9 +25,7 @@ class ShiftBlock(HistoryMixin, models.Model):
     ]
 
     pattern = models.ForeignKey(
-        "Shift",
-        on_delete=models.CASCADE,
-        related_name="blocks"
+        "Shift", on_delete=models.CASCADE, related_name="blocks"
     )
 
     on_off_days = ArrayField(

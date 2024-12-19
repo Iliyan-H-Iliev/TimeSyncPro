@@ -14,7 +14,7 @@ def yearly_set_next_year_leave_days():
     logger.info("Starting Yearly Set Next Year Leave Days")
 
     with transaction.atomic():
-        companies = Company.objects.prefetch_related('employees').all()
+        companies = Company.objects.prefetch_related("employees").all()
 
         for company in companies:
             try:
@@ -24,18 +24,21 @@ def yearly_set_next_year_leave_days():
                     remaining_leave_days=Case(
                         When(
                             remaining_leave_days__gt=company.max_carryover_leave,
-                            then=company.max_carryover_leave
+                            then=company.max_carryover_leave,
                         ),
-                        default=F('remaining_leave_days')
+                        default=F("remaining_leave_days"),
                     )
                 )
 
                 employees.update(
-                    remaining_leave_days=F('remaining_leave_days') + F('next_year_leave_days'),
-                    next_year_leave_days=company.annual_leave
+                    remaining_leave_days=F("remaining_leave_days")
+                    + F("next_year_leave_days"),
+                    next_year_leave_days=company.annual_leave,
                 )
 
-                logger.info(f"Successfully updated leave days for company {company.name} - {len(employees)} employees")
+                logger.info(
+                    f"Successfully updated leave days for company {company.name} - {len(employees)} employees"
+                )
 
             except Exception as e:
                 logger.error(f"Error processing company {company.name}: {str(e)}")

@@ -29,11 +29,11 @@
 
                                 <div class="profile-item-row">
                                     <span class="profile-label">First Name:</span>
-                                    <span class="profile-value">{{ profile.first_name }}</span>
+                                    <span class="profile-value">{{ profile.first_name|default:"-" }}</span>
                                 </div>
                                 <div class="profile-item-row">
                                     <span class="profile-label">Last Name:</span>
-                                    <span class="profile-value">{{ profile.last_name }}</span>
+                                    <span class="profile-value">{{ profile.last_name|default:"-" }}</span>
                                 </div>
                                 <div class="profile-item-row">
                                     <span class="profile-label">Date Of Birth:</span>

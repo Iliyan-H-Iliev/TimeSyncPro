@@ -102,10 +102,10 @@ class SignupEmployeeForm(RequiredFieldsFormMixin, CleanEmailMixin, UserCreationF
                     "department", "Please select a department for the Employee role"
                 )
 
-        if 'password1' not in cleaned_data:
-            cleaned_data['password1'] = self.fields['password1'].initial
-        if 'password2' not in cleaned_data:
-            cleaned_data['password2'] = self.fields['password2'].initial
+        if "password1" not in cleaned_data:
+            cleaned_data["password1"] = self.fields["password1"].initial
+        if "password2" not in cleaned_data:
+            cleaned_data["password2"] = self.fields["password2"].initial
 
         return cleaned_data
 
@@ -244,12 +244,12 @@ class SignupEmployeeForm(RequiredFieldsFormMixin, CleanEmailMixin, UserCreationF
                     "activate_and_set_password", args=[activation_token]
                 )
 
-                task = send_activation_email.apply_async(
-                    args=[email, site_domain, protocol, relative_url], countdown=1
+                send_activation_email.delay(
+                    email, site_domain, protocol, relative_url, employee.full_name
                 )
 
             except Exception as e:
-                print(f"DEBUG: Email task error: {str(e)}")  # Debug print
+                print(f"DEBUG: Email task error: {str(e)}")
                 logger.error(f"Failed to queue email: {str(e)}")
 
             return user

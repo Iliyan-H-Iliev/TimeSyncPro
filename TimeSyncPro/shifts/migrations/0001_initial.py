@@ -12,52 +12,142 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('companies', '0001_initial'),
+        ("companies", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Date',
+            name="Date",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('date', models.DateField(unique=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("date", models.DateField(unique=True)),
             ],
             options={
-                'indexes': [models.Index(fields=['date'], name='shifts_date_date_3d833b_idx')],
+                "indexes": [
+                    models.Index(fields=["date"], name="shifts_date_date_3d833b_idx")
+                ],
             },
         ),
         migrations.CreateModel(
-            name='Shift',
+            name="Shift",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=50, validators=[django.core.validators.MinLengthValidator(3)])),
-                ('description', models.TextField(blank=True, null=True)),
-                ('start_date', models.DateField(default=django.utils.timezone.now)),
-                ('rotation_weeks', models.IntegerField(default=1, validators=[django.core.validators.MinValueValidator(1), django.core.validators.MaxValueValidator(52)])),
-                ('last_generated_date', models.DateField(blank=True, null=True)),
-                ('company', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='shifts', to='companies.company')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "name",
+                    models.CharField(
+                        max_length=50,
+                        validators=[django.core.validators.MinLengthValidator(3)],
+                    ),
+                ),
+                ("description", models.TextField(blank=True, null=True)),
+                ("start_date", models.DateField(default=django.utils.timezone.now)),
+                (
+                    "rotation_weeks",
+                    models.IntegerField(
+                        default=1,
+                        validators=[
+                            django.core.validators.MinValueValidator(1),
+                            django.core.validators.MaxValueValidator(52),
+                        ],
+                    ),
+                ),
+                ("last_generated_date", models.DateField(blank=True, null=True)),
+                (
+                    "company",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="shifts",
+                        to="companies.company",
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('company', 'name')},
+                "unique_together": {("company", "name")},
             },
         ),
         migrations.CreateModel(
-            name='ShiftBlock',
+            name="ShiftBlock",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('on_off_days', django.contrib.postgres.fields.ArrayField(base_field=models.IntegerField(), size=60)),
-                ('selected_days', django.contrib.postgres.fields.ArrayField(base_field=models.IntegerField(), blank=True, null=True, size=7)),
-                ('days_on', models.PositiveIntegerField(blank=True, null=True, validators=[django.core.validators.MinValueValidator(1), django.core.validators.MaxValueValidator(28)])),
-                ('days_off', models.PositiveIntegerField(blank=True, null=True, validators=[django.core.validators.MinValueValidator(1), django.core.validators.MaxValueValidator(28)])),
-                ('start_time', models.TimeField()),
-                ('end_time', models.TimeField()),
-                ('duration', models.DurationField(blank=True, null=True)),
-                ('order', models.PositiveIntegerField()),
-                ('pattern', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='blocks', to='shifts.shift')),
-                ('working_dates', models.ManyToManyField(blank=True, related_name='shift_blocks', to='shifts.date')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "on_off_days",
+                    django.contrib.postgres.fields.ArrayField(
+                        base_field=models.IntegerField(), size=60
+                    ),
+                ),
+                (
+                    "selected_days",
+                    django.contrib.postgres.fields.ArrayField(
+                        base_field=models.IntegerField(), blank=True, null=True, size=7
+                    ),
+                ),
+                (
+                    "days_on",
+                    models.PositiveIntegerField(
+                        blank=True,
+                        null=True,
+                        validators=[
+                            django.core.validators.MinValueValidator(1),
+                            django.core.validators.MaxValueValidator(28),
+                        ],
+                    ),
+                ),
+                (
+                    "days_off",
+                    models.PositiveIntegerField(
+                        blank=True,
+                        null=True,
+                        validators=[
+                            django.core.validators.MinValueValidator(1),
+                            django.core.validators.MaxValueValidator(28),
+                        ],
+                    ),
+                ),
+                ("start_time", models.TimeField()),
+                ("end_time", models.TimeField()),
+                ("duration", models.DurationField(blank=True, null=True)),
+                ("order", models.PositiveIntegerField()),
+                (
+                    "pattern",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="blocks",
+                        to="shifts.shift",
+                    ),
+                ),
+                (
+                    "working_dates",
+                    models.ManyToManyField(
+                        blank=True, related_name="shift_blocks", to="shifts.date"
+                    ),
+                ),
             ],
             options={
-                'ordering': ['order'],
+                "ordering": ["order"],
             },
         ),
     ]

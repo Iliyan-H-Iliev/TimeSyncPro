@@ -136,9 +136,6 @@ class Profile(HistoryMixin, CreatedModifiedMixin):
     )
 
     date_of_hire = models.DateField(
-        validators=[
-            DateRangeValidator,
-        ],
         blank=True,
         null=True,
     )

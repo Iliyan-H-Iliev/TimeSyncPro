@@ -17,7 +17,9 @@ urlpatterns = [
         "users/<slug:slug>/",
         include(
             [
-                path("my-holidays/", views.MyRequestsView.as_view(), name="my_holidays"),
+                path(
+                    "my-holidays/", views.MyRequestsView.as_view(), name="my_holidays"
+                ),
                 path(
                     "request-holiday/",
                     views.CreateHolidayRequestView.as_view(),
@@ -35,7 +37,11 @@ urlpatterns = [
                     "holiday-requests/",
                     include(
                         [
-                            path("", views.RequestsView.as_view(), name="company_holidays"),
+                            path(
+                                "",
+                                views.RequestsView.as_view(),
+                                name="company_holidays",
+                            ),
                             path(
                                 "<slug:slug>/requests/",
                                 views.EmployeeRequestsView.as_view(),
@@ -53,7 +59,11 @@ urlpatterns = [
                     "absences/",
                     include(
                         [
-                            path("", views.AbsencesView.as_view(), name="company_absences"),
+                            path(
+                                "",
+                                views.AbsencesView.as_view(),
+                                name="company_absences",
+                            ),
                             path(
                                 "add-to-<slug:slug>/",
                                 views.CreateAbsenceView.as_view(),

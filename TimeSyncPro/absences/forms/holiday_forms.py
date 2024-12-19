@@ -60,10 +60,15 @@ class RequestHolidayForm(LabelMixin, forms.ModelForm):
             self.add_error("start_date", "The start date must be before the end date.")
 
         if start_date > today + datetime.timedelta(days=365):
-            self.add_error("start_date", "You cannot request a holiday more than a year in advance.")
+            self.add_error(
+                "start_date",
+                "You cannot request a holiday more than a year in advance.",
+            )
 
         if end_date >= date(today.year + 1, 12, 31):
-            self.add_error("end_date", "You cannot request a holiday more than a year in advance.")
+            self.add_error(
+                "end_date", "You cannot request a holiday more than a year in advance."
+            )
 
         if start_date <= date(today.year, 12, 31):
 
@@ -123,10 +128,14 @@ class RequestHolidayForm(LabelMixin, forms.ModelForm):
                     today = timezone.now().date()
 
                     if holiday.start_date <= date(today.year, 12, 31):
-                        holiday.requester.set_remaining_leave_days(holiday.days_requested)
+                        holiday.requester.set_remaining_leave_days(
+                            holiday.days_requested
+                        )
 
                     else:
-                        holiday.requester.set_next_year_leave_days(holiday.days_requested)
+                        holiday.requester.set_next_year_leave_days(
+                            holiday.days_requested
+                        )
 
                 return holiday
 

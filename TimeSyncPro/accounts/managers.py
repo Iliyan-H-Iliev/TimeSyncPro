@@ -63,11 +63,12 @@ class TSPUserManager(auth_models.BaseUserManager):
             )
         return self.none()
 
-    def make_random_password(self, length=10,
-                             allowed_chars='abcdefghjkmnpqrstuvwxyz'
-                                           'ABCDEFGHJKLMNPQRSTUVWXYZ'
-                                           '23456789'):
-        return ''.join(random.choice(allowed_chars) for _ in range(length))
+    def make_random_password(
+        self,
+        length=10,
+        allowed_chars="abcdefghjkmnpqrstuvwxyz" "ABCDEFGHJKLMNPQRSTUVWXYZ" "23456789",
+    ):
+        return "".join(random.choice(allowed_chars) for _ in range(length))
 
 
 # class ProfileManager(models.Manager):

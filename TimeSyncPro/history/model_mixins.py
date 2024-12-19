@@ -105,7 +105,7 @@ class HistoryMixin(models.Model):
 
     def _create_history(self, action: str, changes: Dict[str, Any]) -> None:
         try:
-            if not changes:  # Skip if no changes
+            if not changes:
                 return
 
             history_user = get_current_user()
@@ -137,10 +137,8 @@ class HistoryMixin(models.Model):
         original_state = {} if is_new else self._get_original_state()
 
         try:
-            # First save the instance
             super().save(*args, **kwargs)
 
-            # Skip history if requested or during certain operations
             if skip_history:
                 return
 
@@ -167,6 +165,11 @@ class HistoryMixin(models.Model):
                 super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs) -> tuple:
+        skip_history = self.skip_history if hasattr(self, "skip_history") else False
+
+        if skip_history:
+            return super().delete(*args, **kwargs)
+
         try:
             state = self._get_state()
             changes = {

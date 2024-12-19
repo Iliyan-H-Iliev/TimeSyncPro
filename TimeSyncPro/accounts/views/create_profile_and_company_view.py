@@ -11,6 +11,7 @@ from django.views import generic as views
 from TimeSyncPro.accounts import forms
 import TimeSyncPro.companies.forms as company_forms
 import TimeSyncPro.common.forms as common_forms
+from TimeSyncPro.accounts.tasks import send_welcome_email
 
 logger = logging.getLogger(__name__)
 
@@ -35,19 +36,34 @@ class CreateProfileAndCompanyView(
             return redirect("dashboard", slug=request.user.slug)
         return super().dispatch(request, *args, **kwargs)
 
+    # def get_context_data(self, **kwargs):
+    #     context = super().get_context_data(**kwargs)
+    #     if "company_form" not in kwargs:
+    #         context["company_form"] = self.company_form_class()
+    #     if "company_address_form" not in kwargs:
+    #         context["company_address_form"] = self.company_address_form_class()
+    #     if "profile_form" not in kwargs:
+    #         context["profile_form"] = self.form_class()
+    #     if "profile_address_form" not in kwargs:
+    #         context["profile_address_form"] = self.profile_address_form_class()
+    #     return context
     def get_context_data(self, **kwargs):
+        self.object = None
         context = super().get_context_data(**kwargs)
-        if "company_form" not in kwargs:
-            context["company_form"] = self.company_form_class()
-        if "company_address_form" not in kwargs:
-            context["company_address_form"] = self.company_address_form_class()
-        if "profile_form" not in kwargs:
-            context["profile_form"] = self.form_class()
-        if "profile_address_form" not in kwargs:
-            context["profile_address_form"] = self.profile_address_form_class()
+        context["company_form"] = kwargs.get("company_form", self.company_form_class())
+        context["company_address_form"] = kwargs.get(
+            "company_address_form", self.company_address_form_class()
+        )
+        context["profile_address_form"] = kwargs.get(
+            "profile_address_form", self.profile_address_form_class()
+        )
+        if "form" in kwargs:
+            context["form"] = kwargs["form"]
+
         return context
 
     def post(self, request, *args, **kwargs):
+        self.object = None
         form = self.get_form()
         company_form = self.company_form_class(request.POST)
         company_address_form = self.company_address_form_class(
@@ -114,6 +130,8 @@ class CreateProfileAndCompanyView(
 
             company.holiday_approver = profile
             company.save()
+
+            send_welcome_email.delay(user.email, profile.full_name)
 
             messages.success(self.request, "Company and profile created successfully.")
             return redirect("profile", slug=self.request.user.slug)

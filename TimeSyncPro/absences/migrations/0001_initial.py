@@ -7,43 +7,104 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Absence',
+            name="Absence",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('modified_at', models.DateTimeField(auto_now=True)),
-                ('start_date', models.DateField()),
-                ('end_date', models.DateField()),
-                ('reason', models.TextField(blank=True, max_length=500, null=True)),
-                ('absence_type', models.CharField(choices=[('sick', 'Sick Leave'), ('personal', 'Personal Leave'), ('unpaid', 'Unpaid Leave'), ('other', 'Other')], max_length=8)),
-                ('days_of_absence', models.PositiveSmallIntegerField(blank=True, null=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("modified_at", models.DateTimeField(auto_now=True)),
+                ("start_date", models.DateField()),
+                ("end_date", models.DateField()),
+                ("reason", models.TextField(blank=True, max_length=500, null=True)),
+                (
+                    "absence_type",
+                    models.CharField(
+                        choices=[
+                            ("sick", "Sick Leave"),
+                            ("personal", "Personal Leave"),
+                            ("unpaid", "Unpaid Leave"),
+                            ("other", "Other"),
+                        ],
+                        max_length=8,
+                    ),
+                ),
+                (
+                    "days_of_absence",
+                    models.PositiveSmallIntegerField(blank=True, null=True),
+                ),
             ],
             options={
-                'ordering': ['start_date'],
-                'permissions': [('view_all_absences', 'Can view all absences'), ('view_department_absences', 'Can view department absences'), ('view_team_absences', 'Can view own absences'), ('view_absences', 'Can view absences')],
+                "ordering": ["start_date"],
+                "permissions": [
+                    ("view_all_absences", "Can view all absences"),
+                    ("view_department_absences", "Can view department absences"),
+                    ("view_team_absences", "Can view own absences"),
+                    ("view_absences", "Can view absences"),
+                ],
             },
         ),
         migrations.CreateModel(
-            name='Holiday',
+            name="Holiday",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('modified_at', models.DateTimeField(auto_now=True)),
-                ('start_date', models.DateField()),
-                ('end_date', models.DateField()),
-                ('reason', models.TextField(blank=True, max_length=500, null=True)),
-                ('status', models.CharField(choices=[('pending', 'Pending'), ('approved', 'Approved'), ('denied', 'Denied'), ('cancelled', 'Cancelled')], default='pending', max_length=9)),
-                ('review_reason', models.TextField(blank=True, max_length=500, null=True)),
-                ('days_requested', models.PositiveSmallIntegerField(blank=True, null=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("modified_at", models.DateTimeField(auto_now=True)),
+                ("start_date", models.DateField()),
+                ("end_date", models.DateField()),
+                ("reason", models.TextField(blank=True, max_length=500, null=True)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("pending", "Pending"),
+                            ("approved", "Approved"),
+                            ("denied", "Denied"),
+                            ("cancelled", "Cancelled"),
+                        ],
+                        default="pending",
+                        max_length=9,
+                    ),
+                ),
+                (
+                    "review_reason",
+                    models.TextField(blank=True, max_length=500, null=True),
+                ),
+                (
+                    "days_requested",
+                    models.PositiveSmallIntegerField(blank=True, null=True),
+                ),
             ],
             options={
-                'ordering': ['start_date'],
-                'permissions': [('view_all_holidays_requests', 'Can view all holiday requests'), ('view_department_holidays_requests', 'Can view department holiday requests'), ('view_team_holidays_requests', 'Can view own holiday requests'), ('update_holiday_requests_status', 'Can update holiday status'), ('view_holidays_requests', 'Can view holiday requests')],
+                "ordering": ["start_date"],
+                "permissions": [
+                    ("view_all_holidays_requests", "Can view all holiday requests"),
+                    (
+                        "view_department_holidays_requests",
+                        "Can view department holiday requests",
+                    ),
+                    ("view_team_holidays_requests", "Can view own holiday requests"),
+                    ("update_holiday_requests_status", "Can update holiday status"),
+                    ("view_holidays_requests", "Can view holiday requests"),
+                ],
             },
         ),
     ]

@@ -31,4 +31,3 @@ def generate_shift_dates_for_next_year():
             logger.info(f"Generated dates for shift {shift.id}")
         except Exception as e:
             logger.error(f"Error generating dates for shift {shift.id}: {str(e)}")
-

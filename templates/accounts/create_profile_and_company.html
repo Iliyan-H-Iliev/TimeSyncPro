@@ -9,6 +9,7 @@
 {% block content %}
     <div class="profile-company-form-container">
         <form method="POST" enctype="multipart/form-data">
+        {% include "partials/messages.html" %}
             {% csrf_token %}
             <div class="profile-company-form">
                 <div class="profile-company-reg">
@@ -31,7 +32,7 @@
                         <div class="part-form-container">
                             <h2>Profile</h2>
                             <h4>Profile Details</h4>
-                            {% for field in profile_form %}
+                            {% for field in form %}
                                 {% render_field field wrapper_class="form-row" class="form-control" label_class="form-label" %}
                             {% endfor %}
                         </div>

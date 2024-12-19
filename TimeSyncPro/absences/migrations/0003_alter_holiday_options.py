@@ -6,12 +6,25 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('absences', '0002_initial'),
+        ("absences", "0002_initial"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='holiday',
-            options={'ordering': ['start_date'], 'permissions': [('view_all_holidays_requests', 'Can view all holiday requests'), ('view_department_holidays_requests', 'Can view department holiday requests'), ('view_team_holidays_requests', 'Can view own holiday requests'), ('update_holiday_requests_status', 'Can update holiday status'), ('view_holidays_requests', 'Can view holiday requests'), ('approve_holiday_requests', 'Can approve holiday requests')]},
+            name="holiday",
+            options={
+                "ordering": ["start_date"],
+                "permissions": [
+                    ("view_all_holidays_requests", "Can view all holiday requests"),
+                    (
+                        "view_department_holidays_requests",
+                        "Can view department holiday requests",
+                    ),
+                    ("view_team_holidays_requests", "Can view own holiday requests"),
+                    ("update_holiday_requests_status", "Can update holiday status"),
+                    ("view_holidays_requests", "Can view holiday requests"),
+                    ("approve_holiday_requests", "Can approve holiday requests"),
+                ],
+            },
         ),
     ]

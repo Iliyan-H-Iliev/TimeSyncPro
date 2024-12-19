@@ -1,10 +1,12 @@
 from django import forms
+from django.core.exceptions import ValidationError
+
 from ..models import Company
-from TimeSyncPro.common.form_mixins import CheckCompanyExistingSlugMixin
+from TimeSyncPro.common.form_mixins import CheckCompanyExistingSlugMixin, CleanFormMixin
 from ...accounts.models import Profile
 
 
-class CompanyBaseForm(forms.ModelForm):
+class CompanyBaseForm(CleanFormMixin, forms.ModelForm):
     class Meta:
         model = Company
         fields = [

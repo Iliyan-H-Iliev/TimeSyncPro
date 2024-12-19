@@ -1,22 +1,17 @@
 import logging
 from celery import shared_task
-from django.core.mail import EmailMultiAlternatives
+from django.core.mail import EmailMultiAlternatives, send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from datetime import datetime, timedelta
 
+from TimeSyncPro import settings
+
 logger = logging.getLogger(__name__)
 
 
-@shared_task(
-    bind=True,
-    autoretry_for=(Exception,),
-    retry_backoff=True,
-    retry_kwargs={"max_retries": 5},
-    queue="emails",
-)
+@shared_task
 def send_email_to_reviewer(
-    self,
     start_date,
     end_date,
     requester_name,
@@ -43,34 +38,26 @@ def send_email_to_reviewer(
 
         subject = f"New Holiday Request for Review - {start_date.strftime('%B %d')} to {end_date.strftime('%B %d')}"
 
-        email = EmailMultiAlternatives(
+        send_mail(
             subject=subject,
-            body=text_content,
-            from_email="timesyncpro@donotreply.com",
-            to=[reviewer_email],
+            message=text_content,
+            from_email=settings.EMAIL_HOST_USER or "noreply@example.com",
+            recipient_list=[reviewer_email],
+            fail_silently=False,
+            html_message=html_content,
         )
-
-        email.attach_alternative(html_content, "text/html")
-
-        email.send()
 
         logger.info(f"New holiday request email sent successfully to {reviewer_email}")
         return True
 
     except Exception as e:
         logger.error(f"Failed to send new holiday request email: {str(e)}")
-        raise self.retry(exc=e)
+        return False
 
 
-@shared_task(
-    bind=True,
-    autoretry_for=(Exception,),
-    retry_backoff=True,
-    retry_kwargs={"max_retries": 5},
-    queue="emails",
-)
+@shared_task
 def send_new_holiday_request_email(
-    self, start_date, end_date, requester_email, requester_name, days_requested
+    start_date, end_date, requester_email, requester_name, days_requested
 ):
     try:
         start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
@@ -90,34 +77,25 @@ def send_new_holiday_request_email(
 
         subject = f"New Holiday Request - {start_date.strftime('%B %d')} to {end_date.strftime('%B %d')}"
 
-        email = EmailMultiAlternatives(
+        send_mail(
             subject=subject,
-            body=text_content,
-            from_email="timesyncpro@donotreply.com",
-            to=[requester_email],
+            message=text_content,
+            from_email=settings.EMAIL_HOST_USER or "noreply@example.com",
+            recipient_list=[requester_email],
+            fail_silently=False,
+            html_message=html_content,
         )
-
-        email.attach_alternative(html_content, "text/html")
-
-        email.send()
 
         logger.info(f"New holiday request email sent successfully to {requester_email}")
         return True
 
     except Exception as e:
         logger.error(f"Failed to send new holiday request email: {str(e)}")
-        raise self.retry(exc=e)
+        return False
 
 
-@shared_task(
-    bind=True,
-    autoretry_for=(Exception,),
-    retry_backoff=True,
-    retry_kwargs={"max_retries": 5},
-    queue="emails",
-)
+@shared_task
 def send_holiday_status_email(
-    self,
     start_date,
     end_date,
     status,
@@ -149,20 +127,18 @@ def send_holiday_status_email(
 
         subject = f"Holiday Request {status.title()} - {start_date.strftime('%B %d')} to {end_date.strftime('%B %d')}"
 
-        email = EmailMultiAlternatives(
+        send_mail(
             subject=subject,
-            body=text_content,
-            from_email="timesyncpro@donotreply.com",
-            to=[recipient_email],
+            message=text_content,
+            from_email=settings.EMAIL_HOST_USER or "noreply@example.com",
+            recipient_list=[recipient_email],
+            fail_silently=False,
+            html_message=html_content,
         )
-
-        email.attach_alternative(html_content, "text/html")
-
-        email.send()
 
         logger.info(f"Holiday status email sent successfully to {recipient_email}")
         return True
 
     except Exception as e:
         logger.error(f"Failed to send holiday status email: {str(e)}")
-        raise self.retry(exc=e)
+        return False

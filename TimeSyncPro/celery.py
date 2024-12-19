@@ -3,10 +3,10 @@ import os
 from celery import Celery
 
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'TimeSyncPro.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "TimeSyncPro.settings")
 
-app = Celery('TimeSyncPro')
+app = Celery("TimeSyncPro")
 
-app.config_from_object('django.conf:settings', namespace='CELERY')
+app.config_from_object("django.conf:settings", namespace="CELERY")
 
 app.autodiscover_tasks()

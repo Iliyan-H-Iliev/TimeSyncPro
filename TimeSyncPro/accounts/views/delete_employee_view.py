@@ -16,14 +16,15 @@ UserModel = get_user_model()
 
 
 class DeleteEmployeeView(
+    CompanyObjectsAccessMixin,
     LoginRequiredMixin,
     PermissionRequiredMixin,
-    CompanyObjectsAccessMixin,
     DynamicPermissionMixin,
     views.DeleteView,
 ):
     model = UserModel
-    template_name = "accounts/delete_user.html"
+    template_name = "accounts/delete_employee.html"
+    context_object_name = "object"
 
     def get_queryset(self):
         queryset = self.model.objects.select_related(
@@ -33,6 +34,9 @@ class DeleteEmployeeView(
             "user_permissions",
         )
         return queryset
+
+    def get_object(self, queryset=None):
+        return get_object_or_404(self.get_queryset(), slug=self.kwargs["slug"])
 
     def get_permission_required(self):
         user_to_delete = self.get_object()
@@ -44,10 +48,19 @@ class DeleteEmployeeView(
         return reverse("company_members", kwargs={"company_slug": company_slug})
 
     def post(self, request, *args, **kwargs):
-        user_to_delete = get_object_or_404(self.queryset, slug=self.kwargs["slug"])
+        # Changed from self.queryset to self.get_queryset()
+        user_to_delete = get_object_or_404(
+            self.get_queryset(), slug=self.kwargs["slug"]
+        )
         related_instance = user_to_delete.profile
 
-        related_instance.delete()
-        user_to_delete.delete()
-        messages.success(request, "User deleted successfully.")
+        try:
+            # Delete in try-except block for better error handling
+            related_instance.delete()
+            user_to_delete.delete()
+            messages.success(request, "User deleted successfully.")
+        except Exception as e:
+            messages.error(request, f"Error deleting user: {str(e)}")
+            logger.error(f"Error deleting user: {str(e)}")
+
         return redirect(self.get_success_url())

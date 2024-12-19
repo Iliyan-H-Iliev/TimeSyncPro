@@ -1,22 +1,21 @@
 import logging
 from django import forms
 from django.contrib.auth import get_user_model
-from TimeSyncPro.common.form_mixins import RequiredFieldsFormMixin
-from ..models import Profile
+from django.core.exceptions import ValidationError
 
+from TimeSyncPro.common.form_mixins import RequiredFieldsFormMixin, CleanFormMixin
+from ..models import Profile
 
 logger = logging.getLogger(__name__)
 
 UserModel = get_user_model()
 
 
-class CrateProfileBaseForm(RequiredFieldsFormMixin, forms.ModelForm):
-
+class CrateProfileBaseForm(CleanFormMixin, RequiredFieldsFormMixin, forms.ModelForm):
     required_fields = [
         "first_name",
         "last_name",
         "role",
-        "employee_id",
         "date_of_hire",
         "remaining_leave_days",
     ]

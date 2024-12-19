@@ -136,22 +136,6 @@ class MultiplePermissionsRequiredMixin(AccessMixin):
         return super().dispatch(request, *args, **kwargs)
 
 
-# TODO remove company_name and company_slug
-class UserDataMixin:
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["user_data"] = {
-            "profile": self.request.user.profile,
-            "company": self.request.user.profile.company,
-            "department": self.request.user.profile.department,
-            "team": self.request.user.profile.team,
-            "shift": self.request.user.profile.shift,
-            "address": self.request.user.profile.address,
-            "holiday_approver": self.request.user.profile.get_holiday_approver,
-        }
-        return context
-
-
 class AuthenticatedUserMixin(UserPassesTestMixin):
 
     success_url_name = "profile"
@@ -177,8 +161,6 @@ class AuthenticatedUserMixin(UserPassesTestMixin):
 
         if hasattr(user, "profile") and hasattr(user, "slug"):
             return reverse(self.success_url_name, kwargs={"slug": user.slug})
-
-
 
         return reverse("index")
 

@@ -15,7 +15,7 @@
                         {% csrf_token %}
                         <div class="button-container">
                             <button type="submit" class="default-btn delete">Delete</button>
-                            <button type="button" class="default-btn" id="cancel-btn">Cancel</button>
+                            {% include "partials/cancel_btn_blue.html" %}
                         </div>
                     </form>
                 </section>

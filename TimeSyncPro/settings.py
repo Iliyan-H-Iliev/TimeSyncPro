@@ -57,21 +57,19 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-
     "rest_framework",
     "django_celery_beat",
     "storages",
     "debug_toolbar",
     "widget_tweaks",
     "celery",
-
     "TimeSyncPro.absences.apps.AbsencesConfig",
     "TimeSyncPro.accounts.apps.AccountsConfig",
     "TimeSyncPro.common.apps.CommonConfig",
     "TimeSyncPro.companies.apps.CompaniesConfig",
     "TimeSyncPro.history.apps.HistoryConfig",
     "TimeSyncPro.reports.apps.ReportsConfig",
-    "TimeSyncPro.shifts.apps.ShiftsConfig"
+    "TimeSyncPro.shifts.apps.ShiftsConfig",
 ]
 
 MIDDLEWARE = [
@@ -272,9 +270,9 @@ CELERY_BEAT_SCHEDULE = {
         "task": "TimeSyncPro.shifts.tasks.generate_shift_dates_for_next_year",
         "schedule": crontab(month_of_year="1", day_of_month="1", hour="0", minute="5"),
     },
-    'yearly-leave-days-update': {
-        'task': 'TimeSyncPro.companies.tasks.yearly_set_next_year_leave_days',
-        'schedule': crontab(month_of_year="1", day_of_month="1", hour="1", minute="0"),
+    "yearly-leave-days-update": {
+        "task": "TimeSyncPro.companies.tasks.yearly_set_next_year_leave_days",
+        "schedule": crontab(month_of_year="1", day_of_month="1", hour="1", minute="0"),
     },
     # "print-some-text": {
     #     "task": "TimeSyncPro.companies.tasks.print_some_text",
