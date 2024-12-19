@@ -235,7 +235,7 @@ STATICFILES_DIRS = (BASE_DIR / "staticfiles",)
 DEFAULT_AUTO_FIELD = os.getenv("DEFAULT_AUTO_FIELD")
 
 # Custom user model
-AUTH_USER_MODEL = os.getenv("AUTH_USER_MODEL")
+AUTH_USER_MODEL = 'accounts.TSPUser'
 
 LOGGING = {
     "version": 1,
