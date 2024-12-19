@@ -310,6 +310,7 @@ if USE_S3:
 else:
     STATIC_URL = '/static/'
     STATICFILES_DIRS = (BASE_DIR / 'staticfiles',)
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
     # Local media files settings
     MEDIA_URL = '/media/'
