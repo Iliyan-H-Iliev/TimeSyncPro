@@ -1,11 +1,7 @@
 from django.contrib import admin
-from django.db.models import Prefetch
 
 from TimeSyncPro.accounts.models import Profile
 from TimeSyncPro.companies.models import Company, Department, Team
-
-
-# Register your models here.
 
 
 class SetCompanyAndApproverMixin:

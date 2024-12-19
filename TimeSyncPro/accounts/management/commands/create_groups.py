@@ -160,6 +160,7 @@ class Command(BaseCommand):
                 "generate_department_reports",
                 "generate_reports",
                 "generate_department_reports",
+                "approve_holiday_requests",
             ]
         )
 

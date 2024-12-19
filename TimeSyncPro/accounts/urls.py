@@ -1,6 +1,6 @@
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
-from TimeSyncPro.accounts import views
+from TimeSyncPro.accounts import views as views
 
 urlpatterns = [
     path("api/events/", views.CalendarEventsView.as_view(), name="api_events"),

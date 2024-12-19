@@ -7,7 +7,8 @@ from TimeSyncPro.common.form_mixins import (
 )
 
 from ..models import Profile
-from ...companies.models import Team, Shift, Department
+from ...companies.models import Team, Department
+from ...shifts.models import Shift
 
 UserModel = get_user_model()
 

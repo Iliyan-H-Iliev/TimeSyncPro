@@ -17,7 +17,11 @@ class SignupCompanyAdministratorView(AuthenticatedUserMixin, views.CreateView):
     form_class = SignupCompanyAdministratorForm
 
     def get_success_url(self):
+        self.object = self.get_object()
         return reverse("create_profile_company", kwargs={"slug": self.object.slug})
+
+    def get_object(self, queryset=None):
+        return self.request.user
 
     def form_valid(self, form):
         try:
@@ -37,7 +41,7 @@ class SignupCompanyAdministratorView(AuthenticatedUserMixin, views.CreateView):
 
             self.object = user
 
-            return self.get_success_url()
+            return HttpResponseRedirect(self.get_success_url())
 
         except Exception as e:
             logger.error(f"Error in form_valid: {str(e)}")

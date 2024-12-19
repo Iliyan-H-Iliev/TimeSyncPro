@@ -1,12 +1,7 @@
-from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.http import Http404
-from django.shortcuts import redirect
 from django.urls import reverse
-
-from django.urls import NoReverseMatch
 import logging
-
 from TimeSyncPro.companies.models import Company
 
 logger = logging.getLogger(__name__)
@@ -93,7 +88,7 @@ class ApiConfigMixin:
         return context
 
 
-class AddPermissionMixin:
+class AddPermissionContextMixin:
     add_permission = None
 
     def get_context_data(self, **kwargs):
@@ -101,20 +96,3 @@ class AddPermissionMixin:
         context = super().get_context_data(**kwargs)
         context["add_permission"] = self.request.user.has_perm(self.add_permission)
         return context
-
-
-# class AddTeamPermissionMixin(AddPermissionBaseMixin):
-#     add_permission = 'companies.add_team'
-#
-#
-# class AddDepartmentPermissionMixin(AddPermissionBaseMixin):
-#     add_permission = 'companies.add_department'
-#
-#
-# class AddShiftPermissionMixin(AddPermissionBaseMixin):
-#     add_permission = 'companies.add_shift'
-#
-#
-# class AddEmployeePermissionMixin(AddPermissionBaseMixin):
-#     add_permission = 'companies.add_employee'
-#

@@ -6,9 +6,10 @@ from itertools import chain
 from operator import attrgetter
 
 from TimeSyncPro.common.views_mixins import SmallPagination
-from TimeSyncPro.companies.models import Team, Shift, Department
+from TimeSyncPro.companies.models import Team, Department
 from TimeSyncPro.history.models import History
 from TimeSyncPro.history.serializers import HistorySerializer
+from TimeSyncPro.shifts.models import Shift
 
 UserModel = get_user_model()
 

@@ -37,7 +37,7 @@
                                 </div>
                                 <div class="profile-item-row">
                                     <span class="profile-label">Date Of Birth:</span>
-                                    <span class="profile-value">{{ profile.date_of_birth }}</span>
+                                    <span class="profile-value">{{ profile.date_of_birth|default:"-" }}</span>
                                 </div>
                             </div>
                         </div>

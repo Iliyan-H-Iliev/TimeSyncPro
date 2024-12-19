@@ -1,9 +1,8 @@
+import datetime
 from datetime import date, timedelta
 from django import forms
 from django.db import transaction
-from django.db.models import F
 from django.utils import timezone
-
 from TimeSyncPro.absences.models import Holiday
 from TimeSyncPro.common.form_mixins import LabelMixin
 
@@ -38,6 +37,7 @@ class RequestHolidayForm(LabelMixin, forms.ModelForm):
         end_date = cleaned_data.get("end_date")
         requester = self.request.user.profile
         remaining_days = requester.remaining_leave_days
+        next_year_remaining_days = requester.next_year_leave_days
         requested_days = requester.get_count_of_working_days_by_period(
             start_date, end_date
         )
@@ -59,11 +59,25 @@ class RequestHolidayForm(LabelMixin, forms.ModelForm):
         if start_date > end_date:
             self.add_error("start_date", "The start date must be before the end date.")
 
-        if requested_days > remaining_days:
-            self.add_error(
-                "start_date",
-                "You do not have enough holiday days remaining for this request.",
-            )
+        if start_date > today + datetime.timedelta(days=365):
+            self.add_error("start_date", "You cannot request a holiday more than a year in advance.")
+
+        if end_date >= date(today.year + 1, 12, 31):
+            self.add_error("end_date", "You cannot request a holiday more than a year in advance.")
+
+        if start_date <= date(today.year, 12, 31):
+
+            if requested_days > remaining_days:
+                self.add_error(
+                    "start_date",
+                    "You do not have enough holiday days remaining for this request.",
+                )
+        elif start_date <= date(today.year + 1, 12, 31):
+            if requested_days > next_year_remaining_days:
+                self.add_error(
+                    "start_date",
+                    "You do not have enough holiday days remaining for this request.",
+                )
 
         if requested_days > company.maximum_leave_days_per_request:
             self.add_error(
@@ -106,11 +120,16 @@ class RequestHolidayForm(LabelMixin, forms.ModelForm):
                 holiday.status = Holiday.StatusChoices.PENDING
                 if commit:
                     holiday.save()
-                    holiday.requester.remaining_leave_days = (
-                        F("remaining_leave_days") - holiday.days_requested
-                    )
-                    holiday.requester.save(update_fields=["remaining_leave_days"])
+                    today = timezone.now().date()
+
+                    if holiday.start_date <= date(today.year, 12, 31):
+                        holiday.requester.set_remaining_leave_days(holiday.days_requested)
+
+                    else:
+                        holiday.requester.set_next_year_leave_days(holiday.days_requested)
+
                 return holiday
+
             except Exception as e:
                 raise forms.ValidationError(f"An error occurred: {e}")
 

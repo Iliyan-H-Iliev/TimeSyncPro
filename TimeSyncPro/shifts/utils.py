@@ -1,11 +1,12 @@
 from django.db import transaction
 from django.shortcuts import render, redirect
-from .models import ShiftBlock, Team
+from TimeSyncPro.companies.models import Team
 from django.db.models import Max
 
-from .. import settings
-from ..accounts.models import Profile
-from .tasks import generate_shift_working_dates_task
+from TimeSyncPro import settings
+from TimeSyncPro.accounts.models import Profile
+from TimeSyncPro.shifts.models import ShiftBlock
+from TimeSyncPro.shifts.tasks import generate_shift_working_dates_task
 
 
 def has_consistent_block_type(form, formset):
@@ -182,7 +183,7 @@ def handle_shift_post(
                     save_shift_blocks(shift=shift, formset=formset)
                     save_shift_members(shift=shift, form=form, is_existing=is_existing)
                     save_shift_teams(shift=shift, form=form, is_existing=is_existing)
-                    shift.save()
+                    # shift.save()
 
                 except Exception as e:
                     form.add_error(None, f"An unexpected error please try again:")
@@ -190,7 +191,6 @@ def handle_shift_post(
                         form.add_error(None, f"{str(e)}")
                     return render(request, template_name, context)
 
-            # shift.generate_shift_working_dates(is_edit=is_edit)
             generate_shift_working_dates_task.delay(shift.id, is_edit=is_edit)
 
             return redirect(redirect_url, company_slug=company.slug)

@@ -25,36 +25,12 @@ class HolidayReviewAccessMixin(UserPassesTestMixin):
         )
 
 
-#
-# class EmployeeHolidayRequestsAccessMixin(UserPassesTestMixin):
-#
-#     def test_func(self):
-#
-#         employee = self.get_object()
-#
-#         employee_leave_approver = employee.profile.get_holiday_approver()
-#
-#         if employee.profile.department:
-#             if self.request.user.has_perm('absences.view_department_holidays_requests'):
-#                 return employee.profile.department == self.request.user.profile.department
-#
-#         if employee.profile.team:
-#             if self.request.user.has_perm('absences.view_team_holidays_requests'):
-#                 return employee.profile.team == self.request.user.profile.team
-#
-#         return (employee_leave_approver == self.request.user.profile or
-#                 self.request.user.has_perm('absences.view_all_holidays_requests'))
-#
-#     def handle_no_permission(self):
-#         raise PermissionDenied('You do not have permission to view this employee\'s holiday requests.')
-
-
 class HolidayPermissionMixin(BasePermissionMixin):
 
     permission_required = {
-        "all": "absences.view_all_holidays",
-        "department": "absences.view_department_holidays",
-        "team": "absences.view_team_holidays",
+        "all": "absences.view_all_holidays_requests",
+        "department": "absences.view_department_holidays_requests",
+        "team": "absences.view_team_holidays_requests",
     }
 
     def get_target_profile(self):

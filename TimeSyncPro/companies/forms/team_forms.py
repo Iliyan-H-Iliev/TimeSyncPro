@@ -1,14 +1,11 @@
 from django import forms
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Prefetch, Q
-
 from .mixins import Select2SlideCheckboxWidget
-from ..models import Shift, Team, Department, Company
-
+from ..models import Team
 from TimeSyncPro.common.form_mixins import CheckExistingNamePerCompanyMixin
 from ...accounts.models import Profile
+from ...shifts.models import Shift
 
 UserModel = get_user_model()
 

@@ -2,7 +2,7 @@ from django.db.models import Prefetch, Q
 from django.urls import reverse
 from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin
 
-from ..models import Shift, Team, Department
+from ..models import Team, Department
 from ..forms import CreateTeamForm, EditTeamForm
 from django.views import generic as views
 
@@ -11,12 +11,13 @@ from TimeSyncPro.common.views_mixins import (
     CompanyAccessMixin,
     CRUDUrlsMixin,
 )
-from ..views_mixins import ApiConfigMixin, AddPermissionMixin
+from ..views_mixins import ApiConfigMixin, AddPermissionContextMixin
 from ...accounts.models import Profile
+from ...shifts.models import Shift
 
 
 class TeamsView(
-    AddPermissionMixin,
+    AddPermissionContextMixin,
     CompanyAccessMixin,
     CRUDUrlsMixin,
     LoginRequiredMixin,

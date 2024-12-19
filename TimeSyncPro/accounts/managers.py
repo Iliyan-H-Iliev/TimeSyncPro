@@ -1,9 +1,8 @@
+import random
+
 from django.contrib import auth
 from django.contrib.auth import models as auth_models
 from django.contrib.auth.hashers import make_password
-from django.contrib.auth.models import Group, Permission
-from django.db import models
-from django.utils.translation import gettext_lazy as _
 
 
 class TSPUserManager(auth_models.BaseUserManager):
@@ -63,6 +62,12 @@ class TSPUserManager(auth_models.BaseUserManager):
                 obj=obj,
             )
         return self.none()
+
+    def make_random_password(self, length=10,
+                             allowed_chars='abcdefghjkmnpqrstuvwxyz'
+                                           'ABCDEFGHJKLMNPQRSTUVWXYZ'
+                                           '23456789'):
+        return ''.join(random.choice(allowed_chars) for _ in range(length))
 
 
 # class ProfileManager(models.Manager):

@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db.models import Q, F
+from django.utils import timezone
 from django.views import generic as views
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse
@@ -218,6 +219,7 @@ class HolidayRequestStatusUpdateView(UpdateAPIView):
 
     def partial_update(self, request, *args, **kwargs):
         try:
+            today = timezone.now().date()
             holiday = self.get_object()
             serializer = self.get_serializer(holiday, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
@@ -226,10 +228,16 @@ class HolidayRequestStatusUpdateView(UpdateAPIView):
                 Holiday.StatusChoices.CANCELLED,
                 Holiday.StatusChoices.DENIED,
             ]:
-                holiday.requester.remaining_leave_days = (
-                    F("remaining_leave_days") + holiday.days_requested
-                )
-                holiday.requester.save(update_fields=["remaining_leave_days"])
+                if holiday.start_date.year == today.year:
+                    holiday.requester.remaining_leave_days = (
+                        F("remaining_leave_days") + holiday.days_requested
+                    )
+                    holiday.requester.save(update_fields=["remaining_leave_days"])
+                else:
+                    holiday.requester.next_year_leave_days = (
+                        F("next_year_leave_days") + holiday.days_requested
+                    )
+                    holiday.requester.save(update_fields=["next_year_leave_days"])
             serializer.save()
             return Response(
                 {"message": f"Holiday request {new_status} successfully."},

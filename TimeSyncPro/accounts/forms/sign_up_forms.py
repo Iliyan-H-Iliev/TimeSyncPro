@@ -9,7 +9,8 @@ from django.urls import reverse
 from TimeSyncPro.common.form_mixins import CleanEmailMixin, RequiredFieldsFormMixin
 from TimeSyncPro.accounts.tasks import send_activation_email
 from ..models import Profile
-from ...companies.models import Team, Shift, Department, Company
+from ...companies.models import Team, Department, Company
+from ...shifts.models import Shift
 
 logger = logging.getLogger(__name__)
 
@@ -77,6 +78,12 @@ class SignupEmployeeForm(RequiredFieldsFormMixin, CleanEmailMixin, UserCreationF
     def clean_email(self):
         return super().clean_email()
 
+    def clean_password1(self):
+        return self._random_password
+
+    def clean_password2(self):
+        return self._random_password
+
     def clean(self):
         cleaned_data = super().clean()
         user = self.request.user
@@ -95,14 +102,10 @@ class SignupEmployeeForm(RequiredFieldsFormMixin, CleanEmailMixin, UserCreationF
                     "department", "Please select a department for the Employee role"
                 )
 
-        if role == "Manager" and company_departments.exists():
-            if not cleaned_data.get("manages_departments") and not cleaned_data.get(
-                "department"
-            ):
-                self.add_error(
-                    "department",
-                    "Please select a 'department' or 'manages departments' for the Manager role",
-                )
+        if 'password1' not in cleaned_data:
+            cleaned_data['password1'] = self.fields['password1'].initial
+        if 'password2' not in cleaned_data:
+            cleaned_data['password2'] = self.fields['password2'].initial
 
         return cleaned_data
 
@@ -158,6 +161,7 @@ class SignupEmployeeForm(RequiredFieldsFormMixin, CleanEmailMixin, UserCreationF
         self.fields["password2"].required = False
         self.fields["password1"].initial = random_password
         self.fields["password2"].initial = random_password
+
         self._random_password = random_password
 
         self.fields["role"].choices = self._adjust_role_choices(user)
@@ -227,6 +231,7 @@ class SignupEmployeeForm(RequiredFieldsFormMixin, CleanEmailMixin, UserCreationF
                     "team": self.cleaned_data["team"],
                     "date_of_hire": self.cleaned_data["date_of_hire"],
                     "remaining_leave_days": self.cleaned_data["remaining_leave_days"],
+                    "next_year_leave_days": company.annual_leave,
                 }
 
                 employee = Profile.objects.create(**common_data)

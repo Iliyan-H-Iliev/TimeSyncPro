@@ -1,16 +1,26 @@
-{% extends 'layout/layout.html' %}
+{% extends 'layout/company-layout.html' %}
 
-{% block content %}
-    <div class="container">
-        <h1>Delete Team</h1>
-        <p>Are you sure you want to delete the team "<strong>{{ user.company_slug }}</strong>"?</p>
-        <p>This action cannot be undone.</p>
-        <form method="post">
-            {% csrf_token %}
-            <div class="button-container">
-                <button type="submit" class="button button-yes">Yes, delete it</button>
-                <a href="{% url 'edit profile'  slug=user.slug company_slug=user.company_slug %}" class="button button-no">No, go back</a>
+
+{% block page-content %}
+    <div class="content-area">
+        <div class="profile-content">
+            <div class="profile-main">
+                <section class="profile-section delete-section">
+                    <h2>Delete Company</h2>
+                    <h4>Are you sure you want to delete your company "<strong>{{ object.name }}</strong>"?</h4>
+                    <h4 class="warning">This action cannot be undone.</h4>
+                    <h4 class="warning">ALL EMPLOYEES WILL BE DELETED</h4>
+                    <h4 class="warning">INCLUDING YOUR PROFILE</h4>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="button-container">
+                            <button type="submit" class="default-btn delete">Delete</button>
+                            <button type="button" class="default-btn" id="cancel-btn">Cancel</button>
+                        </div>
+                    </form>
+                </section>
             </div>
-        </form>
+        </div>
     </div>
 {% endblock %}
+

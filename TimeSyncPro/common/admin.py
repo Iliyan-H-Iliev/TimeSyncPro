@@ -3,9 +3,6 @@ from django.contrib import admin
 from TimeSyncPro.common.models import Address
 
 
-# Register your models here.
-
-
 @admin.register(Address)
 class AddressAdmin(admin.ModelAdmin):
     list_display = (

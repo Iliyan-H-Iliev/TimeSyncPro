@@ -7,7 +7,8 @@ from django.db.models import Prefetch
 
 from TimeSyncPro.accounts.models import Profile
 from TimeSyncPro.common.models import Address
-from TimeSyncPro.companies.models import Company, Department, Team, Shift
+from TimeSyncPro.companies.models import Company, Department, Team
+from TimeSyncPro.shifts.models import Shift
 
 UserModel = get_user_model()
 

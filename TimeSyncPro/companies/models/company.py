@@ -159,7 +159,8 @@ class Company(HistoryMixin, EmailFormatingMixin, CreatedModifiedMixin):
                 Q(user__user_permissions__codename="update_holiday_requests_status")
                 | Q(
                     user__groups__permissions__codename="update_holiday_requests_status"
-                )
+                ) | Q(user__user_permissions__codename="approve_holiday_requests")
+                | Q(user__groups__permissions__codename="approve_holiday_requests")
             )
             .distinct()
         )

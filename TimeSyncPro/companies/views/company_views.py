@@ -1,7 +1,7 @@
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, logout
 from django.contrib import messages
 from django.db import transaction
-from django.db.models import Prefetch, Q
+from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
@@ -12,10 +12,9 @@ from ..models import Company
 from ..forms import EditCompanyForm, CreateCompanyForm
 from django.views import generic as views
 
-from TimeSyncPro.common.views_mixins import CompanyObjectsAccessMixin, CRUDUrlsMixin
-from ..views_mixins import CheckOwnCompanyMixin, AddPermissionMixin
+from TimeSyncPro.common.views_mixins import CRUDUrlsMixin
+from ..views_mixins import CheckOwnCompanyMixin, AddPermissionContextMixin
 from ...absences.models import Holiday
-from ...accounts.models import Profile
 from ...common.forms import AddressForm
 
 UserModel = get_user_model()
@@ -160,7 +159,7 @@ class CompanyMembersView(
     CheckOwnCompanyMixin,
     PermissionRequiredMixin,
     LoginRequiredMixin,
-    AddPermissionMixin,
+    AddPermissionContextMixin,
     views.ListView,
 ):
     # model = Company
@@ -273,28 +272,28 @@ class CompanyMembersView(
         return context
 
 
-# TODO add permision for delete
-# TODO Create logic for delete company
 class DeleteCompanyView(
     CheckOwnCompanyMixin, LoginRequiredMixin, PermissionRequiredMixin, views.DeleteView
 ):
     model = Company
-    queryset = model.objects.all()
     template_name = "companies/company/delete_company.html"
     success_url = reverse_lazy("index")
     permission_required = "companies.delete_company"
 
-    def get(self, request, *args, **kwargs):
-        user = request.user
-        company = user.profile.company
-        if not company:
-            messages.error(request, "Company not found.")
-            return redirect("index")
-        return super().get(request, *args, **kwargs)
+    def get_object(self, queryset=None):
+        company_slug = self.request.user.company.slug
+        obj = self.model.objects.prefetch_related(
+            "employees",
+            "employees__user"
+        ).get(slug=company_slug)
+        return obj
 
     def post(self, request, *args, **kwargs):
-        user = request.user
-        company = user.profile.company
-        company.delete()
-        messages.success(request, "Company deleted successfully.")
+        with transaction.atomic():
+            company = self.get_object()
+            users = UserModel.objects.filter(profile__company=company)
+            logout(request)
+            company.delete()
+            users.delete()
+
         return redirect(self.success_url)

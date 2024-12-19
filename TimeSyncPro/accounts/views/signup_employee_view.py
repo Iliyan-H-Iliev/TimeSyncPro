@@ -93,6 +93,10 @@ class SignupEmployeeView(PermissionRequiredMixin, LoginRequiredMixin, views.Crea
 
     @transaction.atomic
     def form_invalid(self, form, address_form):
+        for field, errors in form.errors.items():
+            for error in errors:
+                messages.error(self.request, f"{field}: {error}")
+
         messages.error(
             self.request, "An error occurred while registering the employee."
         )

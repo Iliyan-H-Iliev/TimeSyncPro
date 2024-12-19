@@ -13,7 +13,8 @@
     <div class="content-area">
 
         <div class="form-container">
-            <h2>Holiday Request</h2>
+            <h2>Request Holiday</h2>
+            {% include "partials/messages.html" %}
 
             <form action="{% url 'request_holiday' slug=user.slug %}" method="post"
                   enctype="multipart/form-data">
@@ -22,7 +23,10 @@
                 <div class="profile-form reg-form ">
                     <div class="profile-form reg-form update-form formset">
                         <div class="holiday_days">
+                            <div>
                             <h5>Remaining Days: {{ user.profile.remaining_leave_days }}</h5>
+                            <h5>Next Year Remaining Days: {{ user.profile.next_year_leave_days }}</h5>
+                            </div>
                             <h5>Requested Days: <span id="requested-days"></span></h5>
                         </div>
                         <div class="part-form-container">

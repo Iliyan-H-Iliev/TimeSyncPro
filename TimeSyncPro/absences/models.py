@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils import timezone
 
 import TimeSyncPro.common.model_mixins as common_mixins
 from TimeSyncPro.history.model_mixins import HistoryMixin
@@ -104,6 +105,7 @@ class Holiday(AbsenceBase):
             ("view_team_holidays_requests", "Can view own holiday requests"),
             ("update_holiday_requests_status", "Can update holiday status"),
             ("view_holidays_requests", "Can view holiday requests"),
+            ("approve_holiday_requests", "Can approve holiday requests"),
         ]
 
     def __str__(self):
@@ -124,6 +126,10 @@ class Holiday(AbsenceBase):
     @property
     def is_cancelled(self):
         return self.status == self.StatusChoices.CANCELLED
+
+    @property
+    def is_started(self):
+        return self.start_date < timezone.now().date()
 
     def get_reviewer(self):
         return self.requester.get_holiday_approver()

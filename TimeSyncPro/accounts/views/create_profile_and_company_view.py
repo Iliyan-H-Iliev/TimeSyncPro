@@ -95,17 +95,6 @@ class CreateProfileAndCompanyView(
 
             user = self.request.user
 
-            profile = form.save(commit=False)
-            profile.user = user
-            profile.address = profile_address
-            profile.company = company
-            profile.is_company_admin = True
-
-            profile.save()
-
-            company.holiday_approver = profile
-            company.save()
-
             first_name = form.cleaned_data.get("first_name")
             last_name = form.cleaned_data.get("last_name")
             employee_id = form.cleaned_data.get("employee_id")
@@ -113,6 +102,18 @@ class CreateProfileAndCompanyView(
             user.save(
                 first_name=first_name, last_name=last_name, employee_id=employee_id
             )
+
+            profile = form.save(commit=False)
+            profile.user = user
+            profile.address = profile_address
+            profile.company = company
+            profile.is_company_admin = True
+            profile.next_year_leave_days = company.annual_leave
+
+            profile.save()
+
+            company.holiday_approver = profile
+            company.save()
 
             messages.success(self.request, "Company and profile created successfully.")
             return redirect("profile", slug=self.request.user.slug)

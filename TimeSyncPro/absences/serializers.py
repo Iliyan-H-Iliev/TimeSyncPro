@@ -1,4 +1,5 @@
 from django.db.models import F
+from django.utils import timezone
 from rest_framework import serializers
 
 from TimeSyncPro.absences.models import Holiday
@@ -15,6 +16,7 @@ class HolidayStatusUpdateSerializer(serializers.ModelSerializer):
         holiday = self.instance
         new_status = data.get("status")
         current_status = holiday.status
+        today = timezone.now().date()
 
         if current_status in [
             Holiday.StatusChoices.CANCELLED,
@@ -47,5 +49,10 @@ class HolidayStatusUpdateSerializer(serializers.ModelSerializer):
 
         if new_status in [Holiday.StatusChoices.APPROVED, Holiday.StatusChoices.DENIED]:
             data["reviewed_by"] = request.user.profile
+
+        if new_status == Holiday.StatusChoices.CANCELLED and holiday.is_started:
+            raise serializers.ValidationError(
+                "You cannot cancel a holiday request that has already started."
+            )
 
         return data

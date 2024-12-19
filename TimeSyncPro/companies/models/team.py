@@ -7,8 +7,7 @@ from django.core.validators import (
 from django.db.models import Count
 from TimeSyncPro.absences.models import Holiday
 from TimeSyncPro.accounts.models import Profile
-from .company import Company
-from .shift import Shift
+
 from TimeSyncPro.history.model_mixins import HistoryMixin
 
 
@@ -28,7 +27,7 @@ class Team(HistoryMixin, models.Model):
     ]
 
     company = models.ForeignKey(
-        Company,
+        "companies.Company",
         on_delete=models.CASCADE,
         related_name="teams",
         null=False,
@@ -43,7 +42,7 @@ class Team(HistoryMixin, models.Model):
     )
 
     shift = models.ForeignKey(
-        Shift,
+        "shifts.Shift",
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
@@ -51,7 +50,7 @@ class Team(HistoryMixin, models.Model):
     )
 
     holiday_approver = models.ForeignKey(
-        Profile,
+        "accounts.Profile",
         on_delete=models.SET_NULL,
         blank=True,
         null=True,

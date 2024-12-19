@@ -1,11 +1,12 @@
 import logging
 from celery import shared_task
-from django.core.mail import send_mail, EmailMessage
-from django.core.mail.backends.console import EmailBackend
-from django.template.loader import render_to_string
+from django.core.mail import send_mail
+
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
+
+
 #
 #
 # @shared_task

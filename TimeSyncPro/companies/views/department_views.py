@@ -2,7 +2,7 @@ from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMix
 from django.db.models import Prefetch
 from django.urls import reverse
 
-from ..models import Department, Shift, Team
+from ..models import Department, Team
 from ..forms import CreateDepartmentForm, EditDepartmentForm
 from django.views import generic as views
 
@@ -12,8 +12,9 @@ from TimeSyncPro.common.views_mixins import (
     CompanyAccessMixin,
     CRUDUrlsMixin,
 )
-from ..views_mixins import ApiConfigMixin, AddPermissionMixin
+from ..views_mixins import ApiConfigMixin, AddPermissionContextMixin
 from ...accounts.models import Profile
+from ...shifts.models import Shift
 
 
 class CreateDepartmentView(
@@ -41,7 +42,7 @@ class CreateDepartmentView(
 
 
 class DepartmentsView(
-    AddPermissionMixin,
+    AddPermissionContextMixin,
     CompanyAccessMixin,
     CRUDUrlsMixin,
     LoginRequiredMixin,

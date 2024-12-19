@@ -4,7 +4,7 @@ from pathlib import Path
 from celery.schedules import crontab
 from dotenv import load_dotenv
 
-environment = os.getenv("ENV", "development")
+environment = os.getenv("ENV", "production")
 
 if environment == "production":
     load_dotenv(dotenv_path=".env.production")
@@ -62,6 +62,8 @@ INSTALLED_APPS = [
     "django_celery_beat",
     "storages",
     "debug_toolbar",
+    "widget_tweaks",
+    "celery",
 
     "TimeSyncPro.absences.apps.AbsencesConfig",
     "TimeSyncPro.accounts.apps.AccountsConfig",
@@ -69,6 +71,7 @@ INSTALLED_APPS = [
     "TimeSyncPro.companies.apps.CompaniesConfig",
     "TimeSyncPro.history.apps.HistoryConfig",
     "TimeSyncPro.reports.apps.ReportsConfig",
+    "TimeSyncPro.shifts.apps.ShiftsConfig"
 ]
 
 MIDDLEWARE = [
@@ -266,8 +269,12 @@ CELERY_TASK_SERIALIZER = "json"
 
 CELERY_BEAT_SCHEDULE = {
     "generate-shift-dates": {
-        "task": "TimeSyncPro.companies.tasks.generate_shift_dates_for_next_year",
+        "task": "TimeSyncPro.shifts.tasks.generate_shift_dates_for_next_year",
         "schedule": crontab(month_of_year="1", day_of_month="1", hour="0", minute="5"),
+    },
+    'yearly-leave-days-update': {
+        'task': 'TimeSyncPro.companies.tasks.yearly_set_next_year_leave_days',
+        'schedule': crontab(month_of_year="1", day_of_month="1", hour="1", minute="0"),
     },
     # "print-some-text": {
     #     "task": "TimeSyncPro.companies.tasks.print_some_text",

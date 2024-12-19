@@ -35,7 +35,7 @@
                                     <!-- Header Row -->
                                     <div class="container-row">
                                         <h4 class="obj-title">{{ object.start_date }} - {{ object.end_date }}</h4>
-                                        {% if object.status == "pending" or object.status == "approved" %}
+                                        {% if object.status == "pending" or object.status == "approved" and not object.is_started %}
                                             <div class="crud-buttons">
                                                 <button
                                                         type="button"

@@ -4,6 +4,7 @@ from datetime import timedelta, date
 from django.apps import apps
 from django.core.validators import MinLengthValidator
 from django.db import models
+from django.db.models import F
 
 from . import TSPUser
 
@@ -93,7 +94,7 @@ class Profile(HistoryMixin, CreatedModifiedMixin):
 
     company = models.ForeignKey(
         "companies.Company",
-        on_delete=models.DO_NOTHING,
+        on_delete=models.CASCADE,
         related_name="employees",
         blank=True,
         null=True,
@@ -147,6 +148,11 @@ class Profile(HistoryMixin, CreatedModifiedMixin):
         null=True,
     )
 
+    next_year_leave_days = models.PositiveSmallIntegerField(
+        blank=True,
+        null=True,
+    )
+
     phone_number = models.CharField(
         max_length=MAX_PHONE_NUMBER_LENGTH,
         validators=[
@@ -188,7 +194,7 @@ class Profile(HistoryMixin, CreatedModifiedMixin):
     )
 
     shift = models.ForeignKey(
-        "companies.Shift",
+        "shifts.Shift",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -220,6 +226,14 @@ class Profile(HistoryMixin, CreatedModifiedMixin):
 
     def get_employee_needed_permission_codename(self, action):
         return f"{action}_{self.role.lower().replace(' ', '_')}"
+
+    def set_remaining_leave_days(self, leave_days):
+        self.remaining_leave_days = F("remaining_leave_days") - leave_days
+        self.save(update_fields=["remaining_leave_days"])
+
+    def set_next_year_leave_days(self, leave_days):
+        self.next_year_leave_days = F("next_year_leave_days") - leave_days
+        self.save(update_fields=["next_year_leave_days"])
 
     def __str__(self):
         return f"{self.full_name} - {self.role}"

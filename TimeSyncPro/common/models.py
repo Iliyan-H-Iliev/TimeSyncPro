@@ -1,8 +1,6 @@
 from django.db import models
 from django_countries.fields import CountryField
 
-# Create your models here.
-
 
 class Address(models.Model):
     MAX_LENGTH_HOUSE_NUMBER_OR_NAME = 100

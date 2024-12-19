@@ -1,10 +1,10 @@
 from datetime import datetime, timedelta
 from django import forms
 
-from ..models import Shift, ShiftBlock
 from django.forms.models import inlineformset_factory
 
-from ...common.form_mixins import LabelMixin
+from TimeSyncPro.common.form_mixins import LabelMixin
+from TimeSyncPro.shifts.models import ShiftBlock, Shift
 
 
 # class HiddenDeleteFormSet(BaseModelFormSet):

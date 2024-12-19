@@ -6,8 +6,8 @@ from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin
 
-from ..models import Shift, Company, Department, Team
-from ..forms import (
+from TimeSyncPro.companies.models import Company, Department, Team
+from .forms import (
     CreateShiftForm,
     CreateShiftBlockFormSet,
     UpdateShiftForm,
@@ -15,19 +15,19 @@ from ..forms import (
 )
 from django.views import generic as views
 
-from ..utils import handle_shift_post
+from .models import Shift
+from .utils import handle_shift_post
 from TimeSyncPro.common.views_mixins import (
     CompanyObjectsAccessMixin,
-    MultiplePermissionsRequiredMixin,
     CompanyAccessMixin,
     CRUDUrlsMixin,
 )
-from ..views_mixins import ApiConfigMixin, AddPermissionMixin
-from ...accounts.models import Profile
+from ..accounts.models import Profile
+from ..companies.views_mixins import ApiConfigMixin, AddPermissionContextMixin
 
 
 class ShiftsView(
-    AddPermissionMixin,
+    AddPermissionContextMixin,
     CompanyAccessMixin,
     CRUDUrlsMixin,
     LoginRequiredMixin,
@@ -37,10 +37,10 @@ class ShiftsView(
     model = Shift
     template_name = "companies/shift/all_shifts.html"
     context_object_name = "objects"
-    permission_required = "companies.view_shift"
+    permission_required = "shifts.view_shift"
     paginate_by = 4
 
-    add_permission = "companies.add_shift"
+    add_permission = "shifts.add_shift"
 
     crud_url_names = {
         "create": "create_shift",
@@ -84,7 +84,7 @@ class DetailsShiftView(
     model = Shift
     template_name = "companies/shift/details_shift.html"
     context_object_name = "shift"
-    permission_required = "companies.view_shift"
+    permission_required = "shifts.view_shift"
     employee_api_url_name = "shift-employees-api"
     history_api_url_name = "shift-history-api"
     team_api_url_name = "shift-teams-api"
@@ -113,7 +113,7 @@ class CreateShiftView(LoginRequiredMixin, PermissionRequiredMixin, views.CreateV
     template_name = "companies/shift/create_shift.html"
     form_class = CreateShiftForm
     formset_class = CreateShiftBlockFormSet
-    permission_required = "companies.add_shift"
+    permission_required = "shifts.add_shift"
     redirect_url = "all_shifts"
 
     def setup(self, request, *args, **kwargs):
@@ -179,7 +179,7 @@ class EditShiftView(
     template_name = "companies/shift/update_shift.html"
     form_class = UpdateShiftForm
     formset_class = UpdateShiftBlockFormSet
-    permission_required = "companies.change_shift"
+    permission_required = "shifts.change_shift"
     redirect_url = "all_shifts"
 
     def get_form_kwargs(self):
@@ -277,7 +277,7 @@ class DeleteShiftView(
 ):
     model = Shift
     template_name = "companies/shift/delete_shift.html"
-    permission_required = "companies.delete_shift"
+    permission_required = "shifts.delete_shift"
 
     def get_success_url(self):
         return reverse("all_shifts", kwargs={"company_slug": self.object.company.slug})

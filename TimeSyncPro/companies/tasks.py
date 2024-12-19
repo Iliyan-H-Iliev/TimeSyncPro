@@ -1,41 +1,49 @@
 import logging
 from celery import shared_task
-from django.utils import timezone
-from django.db.models.signals import post_save
-from django.dispatch import receiver
+from django.db import transaction
+from django.db.models import Case, When, F
 
-from TimeSyncPro.companies.models import Shift
+from TimeSyncPro.companies.models import Company
+from TimeSyncPro.shifts.models import Shift
 
 logger = logging.getLogger(__name__)
 
 
-@shared_task
-def generate_shift_working_dates_task(shift_id, is_edit=False):
-    from .models import Shift
+@shared_task(name="TimeSyncPro.companies.tasks.yearly_set_next_year_leave_days")
+def yearly_set_next_year_leave_days():
+    logger.info("Starting Yearly Set Next Year Leave Days")
 
-    try:
-        shift = Shift.objects.get(id=shift_id)
-        shift.generate_shift_working_dates(is_edit=is_edit)
-        return f"Successfully generated working dates for shift {shift_id}"
-    except Exception as e:
-        print(f"Error generating dates for shift {shift_id}: {str(e)}")
-        raise
+    with transaction.atomic():
+        companies = Company.objects.prefetch_related('employees').all()
 
+        for company in companies:
+            try:
+                employees = company.employees.all()
 
-@shared_task(name="TimeSyncPro.companies.tasks.generate_shift_dates_for_next_year")
-def generate_shift_dates_for_next_year():
-    logger.info("Starting shift dates generation")
-    today = timezone.now().date()
-    shifts = Shift.objects.all()
+                employees.update(
+                    remaining_leave_days=Case(
+                        When(
+                            remaining_leave_days__gt=company.max_carryover_leave,
+                            then=company.max_carryover_leave
+                        ),
+                        default=F('remaining_leave_days')
+                    )
+                )
 
-    for shift in shifts:
-        try:
-            shift.generate_shift_working_dates()
-            logger.info(f"Generated dates for shift {shift.id}")
-        except Exception as e:
-            logger.error(f"Error generating dates for shift {shift.id}: {str(e)}")
+                employees.update(
+                    remaining_leave_days=F('remaining_leave_days') + F('next_year_leave_days'),
+                    next_year_leave_days=company.annual_leave
+                )
+
+                logger.info(f"Successfully updated leave days for company {company.name} - {len(employees)} employees")
+
+            except Exception as e:
+                logger.error(f"Error processing company {company.name}: {str(e)}")
+                continue
+
+    logger.info("Completed Yearly Set Next Year Leave Days")
 
 
 # @shared_task(name='TimeSyncPro.companies.tasks.print_some_text')
-# def print_some_text():
-#     logger.info("This is some text")
+# def print_text():
+#     logger.info("Text")

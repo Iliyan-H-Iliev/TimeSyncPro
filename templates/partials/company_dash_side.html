@@ -24,7 +24,7 @@
         {% if perms.companies.view_team %}
             <li><a href="{% url 'all_teams' company_slug=user.company.slug %}" class="dash-button">Teams</a></li>
         {% endif %}
-        {% if perms.companies.view_shift %}
+        {% if perms.shifts.view_shift %}
             <li><a href="{% url 'all_shifts' company_slug=company.slug %}" class="dash-button">Shifts</a></li>
         {% endif %}
         {% if perms.absences.view_holiday %}

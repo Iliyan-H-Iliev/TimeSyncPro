@@ -1,9 +1,9 @@
 from django import forms
 
-from .mixins import Select2SlideCheckboxWidget
-from ..models import Shift
+from TimeSyncPro.companies.forms.mixins import Select2SlideCheckboxWidget
 from TimeSyncPro.common.form_mixins import CheckExistingNamePerCompanyMixin, LabelMixin
 from TimeSyncPro.common.form_mixins import ReadonlyFieldsFormMixin
+from TimeSyncPro.shifts.models import Shift
 
 
 class ShiftBaseForm(

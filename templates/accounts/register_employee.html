@@ -11,6 +11,7 @@
     <div class="content-area update-view">
         <div class="form-container">
             <h2>Register New Employee</h2>
+        {% include "partials/messages.html" %}
 
             <form action="{% url 'register_employee' company_slug=company_slug %}" method="post">
                 {% csrf_token %}

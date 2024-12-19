@@ -23,7 +23,7 @@ class CrateProfileBaseForm(RequiredFieldsFormMixin, forms.ModelForm):
 
     class Meta:
         model = Profile
-        exclude = ["user", "company", "is_company_admin"]
+        exclude = ["user", "company", "is_company_admin", "next_year_leave_days"]
 
         widgets = {
             "date_of_hire": forms.DateInput(attrs={"type": "date"}),

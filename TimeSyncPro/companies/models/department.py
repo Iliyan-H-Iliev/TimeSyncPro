@@ -12,7 +12,7 @@ class Department(HistoryMixin, models.Model):
     tracked_fields = ["name", "holiday_approver"]
 
     company = models.ForeignKey(
-        Company,
+        "companies.Company",
         on_delete=models.CASCADE,
         related_name="departments",
         blank=False,
@@ -27,7 +27,7 @@ class Department(HistoryMixin, models.Model):
     )
 
     holiday_approver = models.ForeignKey(
-        Profile,
+        "accounts.Profile",
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
