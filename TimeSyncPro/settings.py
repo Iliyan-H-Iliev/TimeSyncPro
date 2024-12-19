@@ -286,7 +286,7 @@ EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
 
-USE_S3 = os.getenv("USE_S3") == "True"
+USE_S3 = os.getenv("USE_S3") == "q"
 
 
 if USE_S3:
@@ -309,8 +309,8 @@ if USE_S3:
     MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
 else:
     STATIC_URL = '/static/'
-    STATICFILES_DIRS = (BASE_DIR / 'staticfiles',)
-    STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+    # STATICFILES_DIRS = (BASE_DIR / 'staticfiles',)
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles', 'static')
 
     # Local media files settings
     MEDIA_URL = '/media/'
