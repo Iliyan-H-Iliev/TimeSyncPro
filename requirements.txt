@@ -36,7 +36,7 @@ pillow==11.0.0
 platformdirs==4.3.6
 prometheus_client==0.20.0
 prompt_toolkit==3.0.47
-# psycopg2==2.9.9
+psycopg2==2.9.9
 pydevd-pycharm==242.14146.24
 python-crontab==3.2.0
 python-dateutil==2.9.0.post0
