@@ -4,12 +4,7 @@ from pathlib import Path
 from celery.schedules import crontab
 from dotenv import load_dotenv
 
-environment = os.getenv("ENV", "production")
-
-if environment == "production":
-    load_dotenv(dotenv_path=".env.production")
-else:
-    load_dotenv(dotenv_path=".env.development")
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -85,7 +80,7 @@ MIDDLEWARE = [
     "TimeSyncPro.middleware.history_user_middleware.HistoryUserMiddleware",
 ]
 
-ROOT_URLCONF = os.getenv("ROOT_URLCONF")
+ROOT_URLCONF = os.getenv("ROOT_URLCONF", "TimeSyncPro.urls")
 
 TEMPLATES = [
     {
@@ -103,8 +98,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = os.getenv("WSGI_APPLICATION")
-ASGI_APPLICATION = os.getenv("ASGI_APPLICATION")
+WSGI_APPLICATION = os.getenv("WSGI_APPLICATION", "TimeSyncPro.wsgi.application")
+ASGI_APPLICATION = os.getenv("ASGI_APPLICATION", "TimeSyncPro.asgi.application")
 
 DATABASES = {
     "default": {
@@ -220,9 +215,11 @@ DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 #     STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 #     # MEDIA_URL = '/media/'
 #     # MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-STATIC_URL = os.getenv("STATIC_URL")
-STATIC_ROOT = os.getenv("STATIC_ROOT")
+# STATIC_URL = os.getenv("STATIC_URL")
+# STATIC_ROOT = os.getenv("STATIC_ROOT")
 STATICFILES_DIRS = (BASE_DIR / "staticfiles",)
+STATIC_URL = os.getenv("STATIC_URL", '/static/')
+STATIC_ROOT = os.getenv("STATIC_ROOT", os.path.join(BASE_DIR, 'staticfiles'))
 #
 #     # Media files
 # MEDIA_URL = os.getenv('MEDIA_URL')
