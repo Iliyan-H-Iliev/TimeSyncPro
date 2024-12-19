@@ -32,9 +32,9 @@ DEBUG_TOOLBAR_PANELS = [
     "debug_toolbar.panels.redirects.RedirectsPanel",
 ]
 
-# DEBUG_TOOLBAR_CONFIG = {
-#     'SHOW_TOOLBAR_CALLBACK': lambda request: True,
-# }
+DEBUG_TOOLBAR_CONFIG = {
+   'SHOW_TOOLBAR_CALLBACK': lambda request: True,
+}
 
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
 
