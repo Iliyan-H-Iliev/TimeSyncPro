@@ -33,7 +33,7 @@ DEBUG_TOOLBAR_PANELS = [
 ]
 
 DEBUG_TOOLBAR_CONFIG = {
-   'SHOW_TOOLBAR_CALLBACK': lambda request: True,
+    'SHOW_TOOLBAR_CALLBACK': lambda request: True,
 }
 
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
@@ -235,7 +235,7 @@ STATICFILES_DIRS = (BASE_DIR / "staticfiles",)
 DEFAULT_AUTO_FIELD = os.getenv("DEFAULT_AUTO_FIELD")
 
 # Custom user model
-AUTH_USER_MODEL = 'accounts.TSPUser'
+AUTH_USER_MODEL = os.getenv("AUTH_USER_MODEL")
 
 LOGGING = {
     "version": 1,
